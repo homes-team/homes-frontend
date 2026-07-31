@@ -8,5 +8,5 @@ export function fetchAllProperties(): Promise<PropertyListItem[]> {
 
 /** 실시간 급상승 랭킹 조회 — GET /properties/surge-rankings */
 export function fetchSurgeRankings(): Promise<PropertyListItem[]> {
-  return apiGet<PropertyListItem[]>('/properties/surge-rankings', { auth: true });
+  return apiGet<PropertyListItem[]>('/properties/surge-rankings');
 }
