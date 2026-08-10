@@ -1,0 +1,138 @@
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--color-gray-200);
+  background: var(--color-white);
+}
+
+.count {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-gray-600);
+  white-space: nowrap;
+}
+
+.count strong {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.segment {
+  display: flex;
+  padding: 3px;
+  border-radius: 6px;
+  background: var(--color-gray-100);
+}
+
+.segmentItem {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  font-family: var(--font-family);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-gray-500);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.segmentItemActive {
+  background: var(--color-white);
+  color: var(--color-gray-900);
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.sort {
+  position: relative;
+}
+
+.sortButton,
+.filterButton {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 10px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 6px;
+  background: var(--color-white);
+  font-family: var(--font-family);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-gray-600);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sortButton:hover,
+.filterButton:hover {
+  border-color: var(--color-gray-400);
+}
+
+.chevron {
+  font-size: 10px;
+  line-height: 1;
+}
+
+.sortMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  min-width: 130px;
+  margin: 0;
+  padding: 6px 0;
+  list-style: none;
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.sortOption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 14px;
+  border: none;
+  background: none;
+  font-family: var(--font-family);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-gray-600);
+  cursor: pointer;
+  text-align: left;
+}
+
+.sortOptionActive {
+  background: var(--color-primary-50);
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.badge {
+  display: grid;
+  place-items: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: var(--color-white);
+  font-size: 10px;
+  font-weight: 700;
+}
