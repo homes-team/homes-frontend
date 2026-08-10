@@ -119,3 +119,9 @@
   font-size: 13px;
   color: var(--color-gray-500);
 }
+
+.matchedBadge {
+  /* .suspiciousBadge와 동일한 위치·크기 속성 복사 */
+  background: #d97706;
+  color: var(--color-white);
+}

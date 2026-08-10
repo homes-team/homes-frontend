@@ -1,5 +1,10 @@
-import { PropertyListItem, PROPERTY_TYPE_LABEL } from '../../types/property';
-import { formatMeta, formatPrice, formatRelativeTime } from '../../utils/format';
+import { PROPERTY_OPTION_LABEL, PropertyListItem, PROPERTY_TYPE_LABEL } from '../../types/property';
+import {
+  formatMeta,
+  formatPrice,
+  formatRelativeTime,
+  pickCardOptions,
+} from '../../utils/format';
 import styles from './PropertyCard.module.css';
 
 interface PropertyCardProps {
@@ -8,10 +13,9 @@ interface PropertyCardProps {
   dateLabel?: string;
 }
 
-const MAX_VISIBLE_TAGS = 3;
-
 function PropertyCard({ property, dateLabel }: PropertyCardProps) {
   const typeLabel = PROPERTY_TYPE_LABEL[property.propertyType];
+  const cardOptions = pickCardOptions(property.options);
 
   return (
     <article className={styles.card}>
@@ -20,30 +24,30 @@ function PropertyCard({ property, dateLabel }: PropertyCardProps) {
           <img
             className={styles.image}
             src={property.thumbnailUrl}
-            alt={`${typeLabel} 매물 사진 - ${property.description}`}
+            alt={`${typeLabel} 매물 사진 - ${property.title}`}
             loading="lazy"
           />
         ) : (
           <span className={styles.noImage}>사진 준비 중</span>
         )}
         <span className={styles.typeBadge}>{typeLabel}</span>
+        {property.status === 'MATCHED' && <span className={styles.matchedBadge}>중개 진행중</span>}
         {property.isSuspicious && <span className={styles.suspiciousBadge}>! 의심 매물</span>}
       </div>
 
       <div className={styles.body}>
         <div className={styles.priceRow}>
           <strong className={styles.price}>{formatPrice(property)}</strong>
-          <span className={styles.aiBadge}>AI {property.aiScore}점</span>
         </div>
-        <p className={styles.description}>{property.description}</p>
+        <p className={styles.description}>{property.title}</p>
         <p className={styles.meta}>
           {typeLabel} · {formatMeta(property)}
         </p>
-        {property.tags.length > 0 && (
+        {cardOptions.length > 0 && (
           <ul className={styles.tags}>
-            {property.tags.slice(0, MAX_VISIBLE_TAGS).map((tag) => (
-              <li key={tag} className={styles.tag}>
-                {tag}
+            {cardOptions.map((option) => (
+              <li key={option} className={styles.tag}>
+                {PROPERTY_OPTION_LABEL[option]}
               </li>
             ))}
           </ul>
