@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { loadKakaoMapSdk } from '../../utils/kakaoLoader';
+import { loadKakaoMapSdk } from '../../utils/KakaoLoader';
 import styles from './SearchBar.module.css';
 
 export interface PlaceSuggestion {
@@ -128,8 +128,10 @@ function SearchBar({ value, onChange, onSubmit }: SearchBarProps) {
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
           aria-label="매물 검색"
+          role="combobox"
           aria-autocomplete="list"
           aria-expanded={open && suggestions.length > 0}
+          aria-controls="property-search-suggestions"
         />
         {value && (
           <button
@@ -147,7 +149,7 @@ function SearchBar({ value, onChange, onSubmit }: SearchBarProps) {
       </div>
 
       {open && suggestions.length > 0 && (
-        <ul className={styles.suggestions} role="listbox">
+        <ul id="property-search-suggestions" className={styles.suggestions} role="listbox">
           {suggestions.map((suggestion, index) => (
             <li key={suggestion.id}>
               <button

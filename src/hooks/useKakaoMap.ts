@@ -1,5 +1,5 @@
 import { RefObject, useEffect, useState } from 'react';
-import { loadKakaoMapSdk } from '../utils/kakaoLoader';
+import { loadKakaoMapSdk } from '../utils/KakaoLoader';
 
 /** 강남역. 초기 진입 시 지도 중심 */
 export const DEFAULT_CENTER = { lat: 37.4979, lng: 127.0276 };

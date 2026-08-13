@@ -54,7 +54,7 @@ export type MapSearchParams = MapBounds & PropertyFilter;
  */
 const DEFAULT_SORT_BY: SortBy = 'LATEST';
 
-function buildSearchQuery(params: MapSearchParams): string {
+export function buildSearchQuery(params: MapSearchParams): string {
   const query = new URLSearchParams();
 
   const append = (key: string, value: string | number | undefined | null) => {
@@ -91,6 +91,12 @@ function buildSearchQuery(params: MapSearchParams): string {
  * (일반 유저는 AVAILABLE + MATCHED, 중개사는 AVAILABLE만),
  * 추천순 정렬의 개인화 보너스에도 사용자 정보가 쓰이기 때문이다.
  */
-export function searchPropertiesOnMap(params: MapSearchParams): Promise<PropertyListItem[]> {
-  return apiGet<PropertyListItem[]>(`/properties/map?${buildSearchQuery(params)}`, { auth: true });
+export function searchPropertiesOnMap(
+  params: MapSearchParams,
+  signal?: AbortSignal,
+): Promise<PropertyListItem[]> {
+  return apiGet<PropertyListItem[]>(`/properties/map?${buildSearchQuery(params)}`, {
+    auth: true,
+    signal,
+  });
 }

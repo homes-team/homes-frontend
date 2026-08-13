@@ -1,175 +1,168 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { MapBounds, PropertyFilter } from '../api/propertyApi';
 import Header from '../components/layout/Header';
 import CategoryChips from '../components/search/CategoryChips';
 import FilterBar from '../components/search/FilterBar';
+import FilterModal, { DetailFilter } from '../components/search/FilterModal';
 import PropertyMap from '../components/search/PropertyMap';
 import PropertyRow from '../components/search/PropertyRow';
 import SearchBar, { PlaceSuggestion } from '../components/search/SearchBar';
 import { usePropertySearch } from '../hooks/usePropertySearch';
-import { PropertyType, SortBy, TradeType } from '../types/property';
+import { PropertyOption, PropertyType, SortBy, TradeType } from '../types/property';
 import styles from './SearchPage.module.css';
 
-/** 필터 모달에서 다루는 값들. 필터 적용 개수 뱃지 계산에 쓴다. */
-type ModalFilter = Pick<
-  PropertyFilter,
-  'minDeposit' | 'maxDeposit' | 'minMonthlyRent' | 'maxMonthlyRent' | 'minArea' | 'maxArea' | 'options'
->;
+const PROPERTY_TYPES: PropertyType[] = ['ONE_ROOM', 'TWO_ROOM', 'VILLA', 'HOUSE', 'APARTMENT', 'OFFICETEL', 'PRESALE'];
+const TRADE_TYPES: TradeType[] = ['MONTHLY_RENT', 'JEONSE', 'SALE'];
+const SORT_TYPES: SortBy[] = ['RECOMMENDED', 'LATEST', 'FAVORITE'];
+const PROPERTY_OPTIONS: PropertyOption[] = ['ELEVATOR', 'SECURITY_GUARD', 'PARKING', 'BED', 'DESK', 'AIR_CONDITIONER', 'REFRIGERATOR', 'WASHING_MACHINE', 'MICROWAVE', 'INDUCTION', 'GAS_STOVE', 'SHOE_RACK', 'CLOSET', 'SINK', 'VERANDA', 'FULL_OPTION'];
+
+function readNumber(params: URLSearchParams, key: string): number | undefined {
+  const raw = params.get(key);
+  if (raw === null || raw === '') return undefined;
+  const value = Number(raw);
+  return Number.isFinite(value) && value >= 0 ? value : undefined;
+}
+
+function readDetailFilter(params: URLSearchParams): DetailFilter {
+  return {
+    minDeposit: readNumber(params, 'minDeposit'),
+    maxDeposit: readNumber(params, 'maxDeposit'),
+    minMonthlyRent: readNumber(params, 'minMonthlyRent'),
+    maxMonthlyRent: readNumber(params, 'maxMonthlyRent'),
+    minArea: readNumber(params, 'minArea'),
+    maxArea: readNumber(params, 'maxArea'),
+    options: params.getAll('options').filter((value): value is PropertyOption => PROPERTY_OPTIONS.includes(value as PropertyOption)),
+  };
+}
 
 function SearchPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { items, loading, error, searched, search } = usePropertySearch();
+  const initialPropertyType = searchParams.get('propertyType');
+  const initialTradeType = searchParams.get('tradeType');
+  const initialSort = searchParams.get('sortBy');
 
-  const [keyword, setKeyword] = useState('');
-  const [propertyType, setPropertyType] = useState<PropertyType | null>(null);
-  const [tradeType, setTradeType] = useState<TradeType | undefined>(undefined);
-  const [sortBy, setSortBy] = useState<SortBy>('LATEST');
-  const [modalFilter] = useState<ModalFilter>({});
-
+  const [keyword, setKeyword] = useState(searchParams.get('keyword') ?? '');
+  const [propertyType, setPropertyType] = useState<PropertyType | null>(
+    PROPERTY_TYPES.includes(initialPropertyType as PropertyType) ? initialPropertyType as PropertyType : null,
+  );
+  const [tradeType, setTradeType] = useState<TradeType | undefined>(
+    TRADE_TYPES.includes(initialTradeType as TradeType) ? initialTradeType as TradeType : undefined,
+  );
+  const [sortBy, setSortBy] = useState<SortBy>(
+    SORT_TYPES.includes(initialSort as SortBy) ? initialSort as SortBy : 'LATEST',
+  );
+  const [detailFilter, setDetailFilter] = useState<DetailFilter>(() => readDetailFilter(searchParams));
+  const [filterOpen, setFilterOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [moveTo, setMoveTo] = useState<{ lat: number; lng: number } | null>(null);
   const [boundsChanged, setBoundsChanged] = useState(false);
-
-  /** 지도가 알려준 최신 영역. 값이 바뀌어도 리렌더가 필요 없어 ref로 둔다. */
   const boundsRef = useRef<MapBounds | null>(null);
+  const pendingPlaceSearchRef = useRef(false);
+  const pendingPlaceKeywordRef = useRef<string | undefined>(undefined);
 
-  const filter: PropertyFilter = useMemo(
-    () => ({
-      keyword: keyword.trim() || undefined,
-      propertyType: propertyType ?? undefined,
-      tradeType,
-      sortBy,
-      ...modalFilter,
-    }),
-    [keyword, propertyType, tradeType, sortBy, modalFilter],
-  );
+  const filter: PropertyFilter = useMemo(() => ({
+    keyword: keyword.trim() || undefined,
+    propertyType: propertyType ?? undefined,
+    tradeType,
+    sortBy,
+    ...detailFilter,
+  }), [keyword, propertyType, tradeType, sortBy, detailFilter]);
 
-  /** 현재 지도 영역 + 현재 필터로 검색 */
-  const runSearch = useCallback(
-    (overrides: Partial<PropertyFilter> = {}) => {
-      if (!boundsRef.current) return;
-      setBoundsChanged(false);
-      search({ ...boundsRef.current, ...filter, ...overrides });
-    },
-    [filter, search],
-  );
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (keyword.trim()) params.set('keyword', keyword.trim());
+    if (propertyType) params.set('propertyType', propertyType);
+    if (tradeType) params.set('tradeType', tradeType);
+    if (sortBy !== 'LATEST') params.set('sortBy', sortBy);
+    Object.entries(detailFilter).forEach(([key, value]) => {
+      if (Array.isArray(value)) value.forEach((item) => params.append(key, item));
+      else if (value !== undefined) params.set(key, String(value));
+    });
+    setSearchParams(params, { replace: true });
+  }, [keyword, propertyType, tradeType, sortBy, detailFilter, setSearchParams]);
 
-  const handleBoundsChanged = useCallback(
-    (bounds: MapBounds, isInitial: boolean) => {
-      boundsRef.current = bounds;
-      if (isInitial) {
-        runSearch();
-        return;
-      }
-      // 자동 재조회하지 않는다. 드래그 중 요청이 쏟아지는 것을 막고,
-      // 사용자가 "이 지역에서 재검색"을 눌렀을 때만 결과를 갱신한다.
-      setBoundsChanged(true);
-    },
-    [runSearch],
-  );
+  useEffect(() => {
+    if (selectedId !== null && !items.some((item) => item.propertyId === selectedId)) setSelectedId(null);
+  }, [items, selectedId]);
 
-  const handleSubmitKeyword = useCallback(
-    (value: string, place?: PlaceSuggestion) => {
-      setKeyword(value);
-      if (place) {
-        // 지도 이동 → idle → boundsChanged. 이동이 끝난 영역으로 검색해야 하므로
-        // 여기서 바로 검색하지 않고 재검색 버튼을 띄운다.
-        setMoveTo({ lat: place.lat, lng: place.lng });
-        return;
-      }
-      runSearch({ keyword: value.trim() || undefined });
-    },
-    [runSearch],
-  );
+  const runSearch = useCallback((overrides: Partial<PropertyFilter> = {}) => {
+    if (!boundsRef.current) return;
+    setBoundsChanged(false);
+    search({ ...boundsRef.current, ...filter, ...overrides });
+  }, [filter, search]);
 
-  const activeFilterCount = useMemo(
-    () =>
-      Object.entries(modalFilter).filter(([, value]) =>
-        Array.isArray(value) ? value.length > 0 : value !== undefined,
-      ).length,
-    [modalFilter],
-  );
+  const handleBoundsChanged = useCallback((bounds: MapBounds, isInitial: boolean) => {
+    boundsRef.current = bounds;
+    if (isInitial || pendingPlaceSearchRef.current) {
+      const keywordOverride = pendingPlaceSearchRef.current ? pendingPlaceKeywordRef.current : undefined;
+      pendingPlaceSearchRef.current = false;
+      pendingPlaceKeywordRef.current = undefined;
+      runSearch(keywordOverride === undefined ? {} : { keyword: keywordOverride });
+      return;
+    }
+    setBoundsChanged(true);
+  }, [runSearch]);
+
+  const handleSubmitKeyword = useCallback((value: string, place?: PlaceSuggestion) => {
+    setKeyword(value);
+    if (place) {
+      pendingPlaceSearchRef.current = true;
+      pendingPlaceKeywordRef.current = value.trim() || undefined;
+      setMoveTo({ lat: place.lat, lng: place.lng });
+      return;
+    }
+    runSearch({ keyword: value.trim() || undefined });
+  }, [runSearch]);
+
+  const activeFilterCount = useMemo(() => Object.values(detailFilter).reduce<number>(
+    (count, value) => count + (Array.isArray(value) ? value.length : value === undefined ? 0 : 1), 0,
+  ), [detailFilter]);
 
   return (
     <div className={styles.page}>
       <Header />
-
       <div className={styles.body}>
         <aside className={styles.panel}>
           <div className={styles.searchSection}>
             <SearchBar value={keyword} onChange={setKeyword} onSubmit={handleSubmitKeyword} />
-            <CategoryChips
-              value={propertyType}
-              onChange={(value) => {
-                setPropertyType(value);
-                runSearch({ propertyType: value ?? undefined });
-              }}
-            />
+            <CategoryChips value={propertyType} onChange={(value) => { setPropertyType(value); runSearch({ propertyType: value ?? undefined }); }} />
           </div>
-
-          <FilterBar
-            total={items.length}
-            loading={loading}
-            tradeType={tradeType}
-            onTradeTypeChange={(value) => {
-              setTradeType(value);
-              runSearch({ tradeType: value });
-            }}
-            sortBy={sortBy}
-            onSortByChange={(value) => {
-              setSortBy(value);
-              runSearch({ sortBy: value });
-            }}
-            activeFilterCount={activeFilterCount}
-            onOpenFilter={() => {
-              // 필터 모달은 다음 단계에서 연결한다
-            }}
-          />
-
+          <FilterBar total={items.length} loading={loading} tradeType={tradeType}
+            onTradeTypeChange={(value) => { setTradeType(value); runSearch({ tradeType: value }); }}
+            sortBy={sortBy} onSortByChange={(value) => { setSortBy(value); runSearch({ sortBy: value }); }}
+            activeFilterCount={activeFilterCount} onOpenFilter={() => setFilterOpen(true)} />
           <div className={styles.list}>
-            {error && (
-              <div className={styles.message} role="alert">
-                <p className={styles.messageTitle}>매물을 불러오지 못했습니다</p>
-                <p className={styles.messageText}>{error}</p>
-                <button type="button" className={styles.retry} onClick={() => runSearch()}>
-                  다시 시도
-                </button>
-              </div>
-            )}
-
-            {!error && !loading && searched && items.length === 0 && (
-              <div className={styles.message}>
-                <p className={styles.messageTitle}>조건에 맞는 방이 없습니다</p>
-                <p className={styles.messageText}>
-                  지도를 넓히거나 필터를 줄여서 다시 찾아보세요.
-                </p>
-              </div>
-            )}
-
-            {!error && items.length > 0 && (
-              <ul className={styles.rows}>
-                {items.map((item) => (
-                  <PropertyRow
-                    key={item.propertyId}
-                    property={item}
-                    selected={item.propertyId === selectedId}
-                    onSelect={setSelectedId}
-                  />
-                ))}
-              </ul>
-            )}
+            {error && <div className={styles.message} role="alert"><p className={styles.messageTitle}>매물을 불러오지 못했습니다</p><p className={styles.messageText}>{error}</p><button type="button" className={styles.retry} onClick={() => runSearch()}>다시 시도</button></div>}
+            {!error && !loading && searched && items.length === 0 && <div className={styles.message}><p className={styles.messageTitle}>조건에 맞는 방이 없습니다</p><p className={styles.messageText}>지역을 넓히거나 필터를 줄여서 다시 찾아보세요.</p></div>}
+            {!error && items.length > 0 && <ul className={styles.rows}>{items.map((item) => <PropertyRow key={item.propertyId} property={item} selected={item.propertyId === selectedId} onSelect={setSelectedId} />)}</ul>}
           </div>
         </aside>
-
-        <PropertyMap
-          items={items}
-          selectedId={selectedId}
-          onSelectProperty={setSelectedId}
-          onBoundsChanged={handleBoundsChanged}
-          showResearch={boundsChanged}
-          onResearch={() => runSearch()}
-          moveTo={moveTo}
-        />
+        <PropertyMap items={items} selectedId={selectedId} onSelectProperty={setSelectedId}
+          onBoundsChanged={handleBoundsChanged} showResearch={boundsChanged} onResearch={() => runSearch()} moveTo={moveTo} />
       </div>
+      <FilterModal open={filterOpen} value={detailFilter} onClose={() => setFilterOpen(false)} onApply={(value) => {
+        setDetailFilter(value);
+        setFilterOpen(false);
+        if (boundsRef.current) {
+          setBoundsChanged(false);
+          search({
+            ...boundsRef.current,
+            keyword: keyword.trim() || undefined,
+            propertyType: propertyType ?? undefined,
+            tradeType,
+            sortBy,
+            minDeposit: value.minDeposit,
+            maxDeposit: value.maxDeposit,
+            minMonthlyRent: value.minMonthlyRent,
+            maxMonthlyRent: value.maxMonthlyRent,
+            minArea: value.minArea,
+            maxArea: value.maxArea,
+            options: value.options,
+          });
+        }
+      }} />
     </div>
   );
 }

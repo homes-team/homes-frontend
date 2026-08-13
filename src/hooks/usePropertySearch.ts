@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { MapSearchParams, searchPropertiesOnMap } from '../api/propertyApi';
 import { PropertyListItem } from '../types/property';
 
@@ -31,19 +31,23 @@ export function usePropertySearch(): UsePropertySearchResult {
     searched: false,
   });
 
-  const latestRequestId = useRef(0);
+  const controllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => () => controllerRef.current?.abort(), []);
 
   const search = useCallback((params: MapSearchParams) => {
-    const requestId = ++latestRequestId.current;
+    controllerRef.current?.abort();
+    const controller = new AbortController();
+    controllerRef.current = controller;
     setState((prev) => ({ ...prev, loading: true, error: null }));
 
-    searchPropertiesOnMap(params)
+    searchPropertiesOnMap(params, controller.signal)
       .then((items) => {
-        if (requestId !== latestRequestId.current) return; // 오래된 응답 무시
+        if (controller.signal.aborted) return;
         setState({ items, loading: false, error: null, searched: true });
       })
       .catch((err: Error) => {
-        if (requestId !== latestRequestId.current) return;
+        if (controller.signal.aborted) return;
         setState({ items: [], loading: false, error: err.message, searched: true });
       });
   }, []);

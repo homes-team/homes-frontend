@@ -1,6 +1,13 @@
 import styles from './Header.module.css';
+import { Link } from 'react-router-dom';
 
-const NAV_ITEMS = ['원룸·투룸', '오피스텔', '아파트', '대출계산기'] as const;
+
+const NAV_ITEMS = [
+  { label: '원룸·투룸', to: '/search' },
+  { label: '오피스텔', to: '/search?propertyType=OFFICETEL' },
+  { label: '아파트', to: '/search?propertyType=APARTMENT' },
+  { label: '대출계산기', to: '/loan-calculator' },
+] as const;
 
 function Header() {
   return (
@@ -10,16 +17,16 @@ function Header() {
           <span className={styles.logoMark} aria-hidden="true" />
           <span className={styles.logoText}>홈즈</span>
         </a>
-        <nav className={styles.nav} aria-label="주요 메뉴">
-          {NAV_ITEMS.map((item) => (
-            <a key={item} href="/" className={styles.navItem}>
-              {item}
-            </a>
-          ))}
-          <a href="/" className={`${styles.navItem} ${styles.navItemAccent}`}>
-            AI 집값 예측
-          </a>
-        </nav>
+<nav className={styles.nav} aria-label="주요 메뉴">
+  {NAV_ITEMS.map((item) => (
+    <Link key={item.label} to={item.to} className={styles.navItem}>
+      {item.label}
+    </Link>
+  ))}
+  <Link to="/ai-price" className={`${styles.navItem} ${styles.navItemAccent}`}>
+    AI 집값 예측
+  </Link>
+</nav>
       </div>
 
       <div className={styles.actions}>
@@ -38,3 +45,7 @@ function Header() {
 }
 
 export default Header;
+
+
+
+

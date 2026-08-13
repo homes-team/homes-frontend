@@ -17,6 +17,7 @@ export class ApiError extends Error {
 interface RequestOptions {
   /** true면 localStorage의 accessToken을 Authorization 헤더로 첨부 */
   auth?: boolean;
+  signal?: AbortSignal;
 }
 
 export async function apiGet<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -31,8 +32,9 @@ export async function apiGet<T>(path: string, options: RequestOptions = {}): Pro
 
   let response: Response;
   try {
-    response = await fetch(`${BASE_URL}${path}`, { headers });
-  } catch {
+    response = await fetch(`${BASE_URL}${path}`, { headers, signal: options.signal });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') throw error;
     throw new ApiError('NETWORK_ERROR', '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.');
   }
 

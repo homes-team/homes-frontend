@@ -1,12 +1,16 @@
 import { FormEvent, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from './HeroSection.module.css';
 
 function HeroSection() {
   const [keyword, setKeyword] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // TODO: 검색 페이지 라우팅 연결 (예: /search?keyword=...)
+    const query = new URLSearchParams();
+    if (keyword.trim()) query.set('keyword', keyword.trim());
+    navigate(`/search${query.size ? `?${query}` : ''}`);
   };
 
   return (
