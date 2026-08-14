@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { PropertyFilter } from '../../api/propertyApi';
 import {
   PROPERTY_OPTION_LABEL,
@@ -31,17 +31,47 @@ const NUMBER_FIELDS = [
 function FilterModal({ open, value, onClose, onApply }: FilterModalProps) {
   const [draft, setDraft] = useState<DetailFilter>(value);
   const [error, setError] = useState('');
+  const modalRef = useRef<HTMLFormElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (open) {
       setDraft(value);
       setError('');
+      previouslyFocusedRef.current = document.activeElement as HTMLElement;
+      requestAnimationFrame(() => {
+        const closeButton = modalRef.current?.querySelector('button[type="button"]') as HTMLButtonElement | null;
+        const firstInput = modalRef.current?.querySelector('input') as HTMLInputElement | null;
+        (closeButton ?? firstInput)?.focus();
+      });
+    } else {
+      previouslyFocusedRef.current?.focus();
+      previouslyFocusedRef.current = null;
     }
   }, [open, value]);
 
   useEffect(() => {
     if (!open) return;
-    const onKeyDown = (event: KeyboardEvent) => event.key === 'Escape' && onClose();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (event.key === 'Tab' && modalRef.current) {
+        const focusableElements = modalRef.current.querySelectorAll(
+          'button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        const firstElement = focusableElements[0] as HTMLElement;
+        const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+        if (event.shiftKey && document.activeElement === firstElement) {
+          event.preventDefault();
+          lastElement.focus();
+        } else if (!event.shiftKey && document.activeElement === lastElement) {
+          event.preventDefault();
+          firstElement.focus();
+        }
+      }
+    };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [open, onClose]);
@@ -72,6 +102,7 @@ function FilterModal({ open, value, onClose, onApply }: FilterModalProps) {
   return (
     <div className={styles.backdrop} role="presentation" onMouseDown={onClose}>
       <form
+        ref={modalRef}
         className={styles.modal}
         role="dialog"
         aria-modal="true"

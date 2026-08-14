@@ -121,7 +121,14 @@
 }
 
 .matchedBadge {
-  /* .suspiciousBadge와 동일한 위치·크기 속성 복사 */
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 5px 12px;
+  margin-right: 90px;
+  border-radius: 8px;
   background: #d97706;
   color: var(--color-white);
+  font-size: 12px;
+  font-weight: 700;
 }

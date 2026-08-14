@@ -6,7 +6,6 @@ const NAV_ITEMS = [
   { label: '원룸·투룸', to: '/search' },
   { label: '오피스텔', to: '/search?propertyType=OFFICETEL' },
   { label: '아파트', to: '/search?propertyType=APARTMENT' },
-  { label: '대출계산기', to: '/loan-calculator' },
 ] as const;
 
 function Header() {
@@ -23,9 +22,6 @@ function Header() {
       {item.label}
     </Link>
   ))}
-  <Link to="/ai-price" className={`${styles.navItem} ${styles.navItemAccent}`}>
-    AI 집값 예측
-  </Link>
 </nav>
       </div>
 

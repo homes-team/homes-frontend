@@ -38,13 +38,22 @@ export function loadKakaoMapSdk(): Promise<typeof kakao.maps> {
       window.kakao.maps.load(() => resolve(window.kakao.maps));
     };
 
-    script.addEventListener('error', () => {
-      loadPromise = null; // 재시도 가능하도록 초기화
+    const handleError = () => {
+      loadPromise = null;
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
       reject(new Error('카카오맵 SDK를 불러오지 못했습니다. 네트워크와 도메인 등록을 확인해 주세요.'));
-    });
+    };
+
+    script.addEventListener('error', handleError);
 
     if (existing) {
-      handleLoad();
+      if (window.kakao?.maps) {
+        handleLoad();
+      } else {
+        script.addEventListener('load', handleLoad);
+      }
       return;
     }
 

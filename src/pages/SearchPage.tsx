@@ -61,6 +61,7 @@ function SearchPage() {
   const boundsRef = useRef<MapBounds | null>(null);
   const pendingPlaceSearchRef = useRef(false);
   const pendingPlaceKeywordRef = useRef<string | undefined>(undefined);
+  const isUpdatingUrlRef = useRef(false);
 
   const filter: PropertyFilter = useMemo(() => ({
     keyword: keyword.trim() || undefined,
@@ -80,8 +81,38 @@ function SearchPage() {
       if (Array.isArray(value)) value.forEach((item) => params.append(key, item));
       else if (value !== undefined) params.set(key, String(value));
     });
+    isUpdatingUrlRef.current = true;
     setSearchParams(params, { replace: true });
   }, [keyword, propertyType, tradeType, sortBy, detailFilter, setSearchParams]);
+
+  useEffect(() => {
+    if (isUpdatingUrlRef.current) {
+      isUpdatingUrlRef.current = false;
+      return;
+    }
+    const urlKeyword = searchParams.get('keyword') ?? '';
+    const urlPropertyType = searchParams.get('propertyType');
+    const urlTradeType = searchParams.get('tradeType');
+    const urlSortBy = searchParams.get('sortBy');
+    const urlDetailFilter = readDetailFilter(searchParams);
+
+    setKeyword(urlKeyword);
+    setPropertyType(PROPERTY_TYPES.includes(urlPropertyType as PropertyType) ? urlPropertyType as PropertyType : null);
+    setTradeType(TRADE_TYPES.includes(urlTradeType as TradeType) ? urlTradeType as TradeType : undefined);
+    setSortBy(SORT_TYPES.includes(urlSortBy as SortBy) ? urlSortBy as SortBy : 'LATEST');
+    setDetailFilter(urlDetailFilter);
+
+    if (boundsRef.current) {
+      search({
+        ...boundsRef.current,
+        keyword: urlKeyword.trim() || undefined,
+        propertyType: PROPERTY_TYPES.includes(urlPropertyType as PropertyType) ? urlPropertyType as PropertyType : undefined,
+        tradeType: TRADE_TYPES.includes(urlTradeType as TradeType) ? urlTradeType as TradeType : undefined,
+        sortBy: SORT_TYPES.includes(urlSortBy as SortBy) ? urlSortBy as SortBy : 'LATEST',
+        ...urlDetailFilter,
+      });
+    }
+  }, [searchParams, search]);
 
   useEffect(() => {
     if (selectedId !== null && !items.some((item) => item.propertyId === selectedId)) setSelectedId(null);

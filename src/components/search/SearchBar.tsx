@@ -132,6 +132,7 @@ function SearchBar({ value, onChange, onSubmit }: SearchBarProps) {
           aria-autocomplete="list"
           aria-expanded={open && suggestions.length > 0}
           aria-controls="property-search-suggestions"
+          aria-activedescendant={activeIndex >= 0 ? `suggestion-${suggestions[activeIndex]?.id}` : undefined}
         />
         {value && (
           <button
@@ -155,6 +156,7 @@ function SearchBar({ value, onChange, onSubmit }: SearchBarProps) {
               <button
                 type="button"
                 role="option"
+                id={`suggestion-${suggestion.id}`}
                 aria-selected={index === activeIndex}
                 className={`${styles.suggestion} ${index === activeIndex ? styles.suggestionActive : ''}`}
                 onMouseEnter={() => setActiveIndex(index)}
