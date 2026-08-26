@@ -13,6 +13,7 @@ import formStyles from '../components/auth/AuthForm.module.css';
 const INVALID_CREDENTIAL_CODES = new Set(['USER400_3', 'USER400_4']);
 const INVALID_CREDENTIAL_MESSAGE = '아이디 또는 비밀번호가 올바르지 않습니다.';
 
+/** 로그인 페이지 — 이메일/비밀번호 입력, 아이디/비밀번호 찾기, 회원가입 링크 */
 function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -21,6 +22,7 @@ function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  /** 로그인 폼 제출 핸들러 — 토큰 저장 후 홈으로 이동 */
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (submitting) return;

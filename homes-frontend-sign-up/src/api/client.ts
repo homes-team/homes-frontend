@@ -24,6 +24,7 @@ interface RequestOptions {
   auth?: boolean;
 }
 
+/** API 응답을 ApiResponse<T> 형태로 파싱하고, 에러 시 ApiError로 변환 */
 async function unwrap<T>(response: Response): Promise<T> {
   const body = (await response.json()) as ApiResponse<T>;
   if (!response.ok || !body.isSuccess) {
@@ -32,6 +33,7 @@ async function unwrap<T>(response: Response): Promise<T> {
   return body.result;
 }
 
+/** 요청 헤더 빌더 — Content-Type, Authorization(옵션) */
 function buildHeaders(options: RequestOptions): Record<string, string> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (options.auth) {
@@ -41,11 +43,13 @@ function buildHeaders(options: RequestOptions): Record<string, string> {
   return headers;
 }
 
+/** GET 요청 헬퍼 함수 */
 export async function apiGet<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const response = await fetch(`${BASE_URL}${path}`, { headers: buildHeaders(options) });
   return unwrap<T>(response);
 }
 
+/** POST 요청 헬퍼 함수 (JSON body) */
 export async function apiPost<T>(path: string, body: unknown, options: RequestOptions = {}): Promise<T> {
   const response = await fetch(`${BASE_URL}${path}`, {
     method: 'POST',
@@ -73,6 +77,7 @@ export async function apiPostForm<T>(path: string, formData: FormData, options: 
   return unwrap<T>(response);
 }
 
+/** 로그인 여부 확인 — accessToken 존재 여부로 판단 */
 export function isLoggedIn(): boolean {
   return Boolean(localStorage.getItem(ACCESS_TOKEN_KEY));
 }

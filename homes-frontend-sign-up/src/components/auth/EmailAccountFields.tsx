@@ -16,6 +16,7 @@ interface EmailAccountFieldsProps {
  * 이메일 중복확인 → 이메일 인증번호 발송/확인 → 비밀번호/비밀번호 확인 순서로 렌더링한다.
  */
 function EmailAccountFields({ step, onNext, showLoginLink = true }: EmailAccountFieldsProps) {
+  /** 폼 제출 핸들러 — canProceed 검증 후 다음 단계로 진행 */
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!step.canProceed) return;

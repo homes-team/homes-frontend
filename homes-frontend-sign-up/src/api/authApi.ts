@@ -66,6 +66,7 @@ export function signupRealtor(request: RealtorSignupRequest): Promise<RealtorSig
  * 아래 함수들은 화면 흐름과 상태 관리를 미리 붙여두기 위한 스텁입니다.
  * ------------------------------------------------------------------ */
 
+/** 백엔드 미구현 API 스텁 — 안내 메시지와 함께 reject */
 function notImplemented<T>(feature: string): Promise<T> {
   return Promise.reject(
     new Error(`${feature} 기능은 아직 백엔드에 준비되지 않았어요. 백엔드 팀 구현 후 이용해주세요.`)

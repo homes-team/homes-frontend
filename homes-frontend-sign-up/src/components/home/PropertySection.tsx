@@ -18,6 +18,7 @@ interface PropertySectionProps {
 
 const SKELETON_COUNT = 4;
 
+/** 매물 섹션 컴포넌트 — 제목, 부제, 매물 카드 그리드, 로딩/에러/빈 상태 처리 */
 function PropertySection({
   title,
   subtitle,

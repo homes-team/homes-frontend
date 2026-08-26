@@ -2,6 +2,7 @@ import styles from './AiBanner.module.css';
 
 const BAR_HEIGHTS = [44, 52, 48, 62, 74, 92] as const;
 
+/** AI 집값 예측 서비스 홍보 배너 — 캐치카피, 차트 프리뷰, CTA 버튼 */
 function AiBanner() {
   return (
     <section className={styles.wrapper}>

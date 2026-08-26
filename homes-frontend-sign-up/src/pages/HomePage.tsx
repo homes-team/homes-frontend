@@ -12,6 +12,7 @@ import styles from './HomePage.module.css';
 
 const SECTION_CARD_COUNT = 4;
 
+/** 홈즈 메인 랜딩 페이지 — 히어로, 인기 매물, AI 배너, 최근 등록, 최근 본 방 섹션 */
 function HomePage() {
   const loggedIn = useMemo(() => isLoggedIn(), []);
 

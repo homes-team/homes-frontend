@@ -9,6 +9,7 @@ interface PropertyCardProps {
 
 const MAX_VISIBLE_TAGS = 3;
 
+/** 매물 한 건을 카드 형태로 표시하는 컴포넌트 (썸네일, 가격, 설명, 태그, 좋아요 수 등) */
 function PropertyCard({ property, dateLabel }: PropertyCardProps) {
   const typeLabel = PROPERTY_TYPE_LABEL[property.propertyType];
 

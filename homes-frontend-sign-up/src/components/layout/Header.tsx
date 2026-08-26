@@ -3,6 +3,7 @@ import styles from './Header.module.css';
 
 const NAV_ITEMS = ['원룸·투룸', '오피스텔', '아파트', '대출계산기'] as const;
 
+/** 홈즈 메인 헤더 — 로고, 주요 메뉴, 로그인/방 내놓기 버튼 */
 function Header() {
   return (
     <header className={styles.header}>

@@ -10,7 +10,7 @@ export function requestPresignedUploadUrl(request: PresignedUploadRequest): Prom
   return apiPost<PresignedUploadResult>('/images/presigned-url', request, { auth: true });
 }
 
-/** 발급받은 Presigned URL로 S3에 파일을 직접 PUT 업로드한다. */
+/** 발급받은 Presigned URL로 S3에 파일을 직접 PUT 업로드 */
 async function putFileToS3(file: File, uploadUrl: string): Promise<void> {
   const response = await fetch(uploadUrl, {
     method: 'PUT',

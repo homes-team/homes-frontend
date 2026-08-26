@@ -44,6 +44,7 @@ function SignupWizardPage() {
   const [identityMessage, setIdentityMessage] = useState<string | null>(null);
   const [termsError, setTermsError] = useState<string | null>(null);
 
+  /** 전체 약관 동의/해제 토글 */
   const toggleAllAgree = () => {
     const next = !allAgreed;
     setAgreeService(next);
@@ -54,6 +55,7 @@ function SignupWizardPage() {
 
   const canSubmitSignup = agreeService && agreePrivacy;
 
+  /** 회원가입 최종 제출 핸들러 — 가입 후 로그인하고 본인인증 단계로 이동 */
   const handleSignup = async () => {
     if (!canSubmitSignup || submittingSignup) return;
     setTermsError(null);
@@ -71,6 +73,7 @@ function SignupWizardPage() {
     }
   };
 
+  /** 본인인증 시작 핸들러 (TODO: PortOne SDK 연동) */
   const handleStartIdentityVerification = () => {
     // TODO: PortOne SDK(IMP.init 등) 연동 후, 팝업 완료 시 받는 identityVerificationId를
     // api/authApi.ts의 verifyIdentity(identityVerificationId)로 전달하도록 교체.

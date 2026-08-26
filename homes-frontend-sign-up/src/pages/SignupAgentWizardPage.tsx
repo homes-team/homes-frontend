@@ -58,6 +58,7 @@ function SignupAgentWizardPage() {
   const [documentsError, setDocumentsError] = useState<string | null>(null);
 
   const canGoToOffice = name.trim().length > 0 && phone.trim().length > 0;
+  /** 개인 정보 단계 다음 버튼 핸들러 */
   const handlePersonalNext = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canGoToOffice) return;
@@ -66,6 +67,7 @@ function SignupAgentWizardPage() {
 
   const businessNumValid = BUSINESS_NUM_PATTERN.test(businessNum);
   const canGoToDocuments = officeName.trim().length > 0 && businessNumValid;
+  /** 중개사 정보 단계 다음 버튼 핸들러 */
   const handleOfficeNext = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canGoToDocuments) return;
@@ -75,6 +77,7 @@ function SignupAgentWizardPage() {
   const canSubmit = Boolean(businessCertImage) && Boolean(agentCertImage);
   const [uploadStage, setUploadStage] = useState<string | null>(null);
 
+  /** 서류 제출 및 중개사 회원가입 최종 제출 핸들러 */
   const handleSubmit = async () => {
     if (!canSubmit || submitting) return;
     setDocumentsError(null);
@@ -123,12 +126,14 @@ function SignupAgentWizardPage() {
     }
   };
 
+  /** 파일 input 변경 핸들러 팩토리 함수 */
   function handleFileChange(setter: (file: File | null) => void) {
     return (event: ChangeEvent<HTMLInputElement>) => {
       setter(event.target.files?.[0] ?? null);
     };
   }
 
+  /** 파일 드롭존 컴포넌트 — 클릭해서 이미지 업로드 */
   function FileDropzone({
     label,
     required,

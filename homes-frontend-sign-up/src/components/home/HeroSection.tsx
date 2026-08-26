@@ -1,9 +1,11 @@
 import { FormEvent, useState } from 'react';
 import styles from './HeroSection.module.css';
 
+/** 홈페이지 상단 히어로 섹션 — 캐치프레이즈와 매물 검색 바 */
 function HeroSection() {
   const [keyword, setKeyword] = useState('');
 
+  /** 검색 폼 제출 핸들러 (TODO: 검색 페이지 라우팅 연결) */
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     // TODO: 검색 페이지 라우팅 연결 (예: /search?keyword=...)

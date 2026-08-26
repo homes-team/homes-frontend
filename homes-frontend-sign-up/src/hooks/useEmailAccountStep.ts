@@ -28,6 +28,7 @@ export function useEmailAccountStep() {
   const passwordMatches = password.length > 0 && password === confirmPassword;
   const canProceed = emailAvailable === true && codeVerified && passwordValid && passwordMatches;
 
+  /** 이메일 입력 변경 시 중복확인/인증 상태 초기화 */
   function handleEmailChange(value: string) {
     setEmail(value);
     setEmailAvailable(null);
@@ -35,6 +36,7 @@ export function useEmailAccountStep() {
     setCodeVerified(false);
   }
 
+  /** 이메일 중복 확인 API 호출 */
   async function handleCheckEmail() {
     if (!emailFormatValid || checkingEmail) return;
     setErrorMessage(null);
@@ -53,6 +55,7 @@ export function useEmailAccountStep() {
     }
   }
 
+  /** 이메일 인증번호 발송 API 호출 */
   async function handleSendCode() {
     if (emailAvailable !== true || sendingCode) return;
     setErrorMessage(null);
@@ -67,6 +70,7 @@ export function useEmailAccountStep() {
     }
   }
 
+  /** 이메일 인증번호 검증 API 호출 */
   async function handleVerifyCode() {
     if (!codeSent || code.trim().length === 0 || verifyingCode) return;
     setErrorMessage(null);
