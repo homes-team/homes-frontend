@@ -1,0 +1,9 @@
+{
+  "short_name": "홈즈",
+  "name": "홈즈 - 부동산 직거래 플랫폼",
+  "icons": [],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#2563eb",
+  "background_color": "#ffffff"
+}

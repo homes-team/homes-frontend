@@ -1,0 +1,121 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-card);
+  background-color: var(--color-white);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.08);
+}
+
+.thumbnail {
+  position: relative;
+  height: 190px;
+  background-color: var(--color-gray-100);
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.noImage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 13px;
+  color: var(--color-gray-400);
+}
+
+.typeBadge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 5px 12px;
+  border-radius: 8px;
+  background-color: rgba(17, 24, 39, 0.75);
+  color: var(--color-white);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.suspiciousBadge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 5px 12px;
+  border-radius: 8px;
+  background-color: var(--color-danger);
+  color: var(--color-white);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+}
+
+.priceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.price {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--color-gray-900);
+}
+
+.aiBadge {
+  padding: 4px 10px;
+  border-radius: 8px;
+  background-color: var(--color-primary-50);
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.description {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-gray-600);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  font-size: 13px;
+  color: var(--color-gray-500);
+}
+
+.tags {
+  display: flex;
+  gap: 6px;
+}
+
+.tag {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-600);
+  font-size: 12px;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--color-gray-500);
+}
