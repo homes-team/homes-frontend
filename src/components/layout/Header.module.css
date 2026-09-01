@@ -1,0 +1,94 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 40px;
+  background-color: var(--color-white);
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logoMark {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background-color: var(--color-primary);
+}
+
+.logoText {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.navItem {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-gray-900);
+}
+
+.navItem:hover {
+  color: var(--color-primary);
+}
+
+.navItemAccent {
+  color: var(--color-primary);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.searchMini {
+  width: 230px;
+  padding: 9px 16px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-gray-100);
+  font-size: 13px;
+  color: var(--color-gray-500);
+  text-align: left;
+}
+
+.login {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-gray-500);
+}
+
+.listButton {
+  padding: 10px 20px;
+  border-radius: var(--radius-button);
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.listButton:hover {
+  background-color: var(--color-primary-dark);
+}
+
+@media (max-width: 1024px) {
+  .nav,
+  .searchMini {
+    display: none;
+  }
+}
