@@ -1,0 +1,160 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--color-gray-100);
+}
+
+.pageHeader {
+  padding: 14px 40px;
+  background-color: var(--color-white);
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logoMark {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background-color: var(--color-primary);
+}
+
+.logoText {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 24px 24px 60px;
+}
+
+.modal {
+  width: 100%;
+  max-width: 448px;
+  height: fit-content;
+  border-radius: 16px;
+  background-color: var(--color-white);
+  box-shadow: 0 16px 48px rgba(17, 24, 39, 0.14);
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+}
+
+.topBarTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-gray-900);
+}
+
+.topBarActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.signupLinkSmall {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-gray-500);
+}
+
+.signupLinkSmall:hover {
+  color: var(--color-primary);
+}
+
+.closeButton {
+  font-size: 16px;
+  color: var(--color-gray-500);
+  line-height: 1;
+}
+
+.closeButton:hover {
+  color: var(--color-gray-900);
+}
+
+.topBarDivider {
+  height: 1px;
+  background-color: var(--color-gray-200);
+}
+
+/* 회원가입 마법사 단계 인디케이터 */
+.stepper {
+  display: flex;
+  align-items: flex-start;
+  padding: 0 24px 20px;
+}
+
+.stepItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.stepItem:last-child {
+  flex: 0;
+}
+
+.stepRow {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.stepDot {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.stepDotDone {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+.stepDotActive {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+.stepDotUpcoming {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-400);
+}
+
+.stepLine {
+  flex: 1;
+  height: 2px;
+  margin: 0 4px;
+  background-color: var(--color-gray-200);
+}
+
+.stepLineDone {
+  background-color: var(--color-primary);
+}
+
+.stepLabel {
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-primary);
+  white-space: nowrap;
+}
