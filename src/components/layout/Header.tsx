@@ -29,9 +29,9 @@ function Header() {
         <button type="button" className={styles.searchMini}>
           어떤 동네, 어떤 방을 찾으세요?
         </button>
-        <a href="/" className={styles.login}>
+        <Link to="/login" className={styles.login}>
           로그인
-        </a>
+        </Link>
         <button type="button" className={styles.listButton}>
           방 내놓기
         </button>
