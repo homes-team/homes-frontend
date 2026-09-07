@@ -52,6 +52,50 @@ export async function apiGet<T>(path: string, options: RequestOptions = {}): Pro
   return body.result;
 }
 
+export async function apiPost<T>(
+  path: string,
+  data: unknown,
+  options: RequestOptions = {},
+): Promise<T> {
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+  };
+
+  if (options.auth) {
+    const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(`${BASE_URL}${path}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data),
+      signal: options.signal,
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') throw error;
+    throw new ApiError('NETWORK_ERROR', '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.');
+  }
+
+  const contentType = response.headers.get('content-type') ?? '';
+  const body = contentType.includes('application/json')
+    ? ((await response.json()) as ApiResponse<T>)
+    : null;
+
+  if (!response.ok || !body?.isSuccess) {
+    throw new ApiError(
+      body?.code ?? String(response.status),
+      body?.message ?? `요청에 실패했습니다. (${response.status})`,
+    );
+  }
+  return body.result;
+}
+
 export function isLoggedIn(): boolean {
   return Boolean(localStorage.getItem(ACCESS_TOKEN_KEY));
 }
