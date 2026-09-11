@@ -1,0 +1,126 @@
+.wrapper {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 40px 0 8px;
+  width: 100%;
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 48px;
+  padding: 48px 56px;
+  border-radius: 24px;
+  background-color: var(--color-dark);
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.eyebrow {
+  color: #6b99ff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.headline {
+  color: var(--color-white);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.headlineAccent {
+  color: #6b99ff;
+}
+
+.body {
+  color: #b3bdcc;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.cta {
+  padding: 13px 24px;
+  border-radius: var(--radius-button);
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.cta:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.chartCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex-shrink: 0;
+  padding: 24px 28px;
+  border-radius: 16px;
+  background-color: var(--color-dark-2);
+}
+
+.chartHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chartTitle {
+  color: var(--color-white);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.upBadge {
+  padding: 3px 8px;
+  border-radius: 6px;
+  background-color: #055e45;
+  color: #66e6b3;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.bar {
+  width: 28px;
+  border-radius: 4px;
+  background-color: var(--color-primary);
+}
+
+.chartFooter {
+  display: flex;
+  justify-content: space-between;
+}
+
+.chartLabel {
+  color: #99a4b8;
+  font-size: 13px;
+}
+
+.chartValue {
+  color: var(--color-white);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

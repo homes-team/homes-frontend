@@ -1,0 +1,78 @@
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 88px 120px 96px;
+  background-color: var(--color-primary-hero);
+}
+
+.badge {
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  background-color: rgba(255, 255, 255, 0.16);
+  color: var(--color-white);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.headline {
+  color: var(--color-white);
+  font-size: 46px;
+  font-weight: 900;
+  line-height: 1.38;
+  text-align: center;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(620px, 100%);
+  padding: 8px 8px 8px 24px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-white);
+}
+
+.searchIcon {
+  flex-shrink: 0;
+  color: var(--color-gray-400);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--color-gray-900);
+}
+
+.input::placeholder {
+  color: var(--color-gray-400);
+}
+
+.submit {
+  flex-shrink: 0;
+  padding: 12px 28px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.submit:hover {
+  background-color: var(--color-primary-dark);
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 64px 24px 72px;
+  }
+
+  .headline {
+    font-size: 32px;
+  }
+}
