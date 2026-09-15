@@ -117,6 +117,71 @@ export const CARD_OPTION_PRIORITY: PropertyOption[] = [
   'DESK',
 ];
 
+/** ReportReason.java 대응 */
+export type ReportReason =
+  | 'FAKE_PROPERTY'
+  | 'SOLD_OUT'
+  | 'PRICE_MISMATCH'
+  | 'INFO_MISMATCH'
+  | 'OTHER';
+
+export const REPORT_REASON_LABEL: Record<ReportReason, string> = {
+  FAKE_PROPERTY: '존재하지 않는 허위 매물',
+  SOLD_OUT: '이미 거래완료된 매물',
+  PRICE_MISMATCH: '가격 정보 불일치',
+  INFO_MISMATCH: '매물 정보 불일치',
+  OTHER: '기타',
+};
+
+/** ReportCreateReqDto.java 대응 */
+export interface ReportCreateRequest {
+  reason: ReportReason;
+  /** reason이 OTHER일 때만 저장됨 */
+  customReason?: string;
+}
+
+/** ReportListRespDto.java 대응 (GET /users/me/reports) */
+export interface ReportListItem {
+  reportId: number;
+  propertyId: number;
+  propertyTitle: string;
+  reasonDescription: string;
+  reportedAt: string;
+}
+
+/**
+ * PropertyDetailRespDto.java 대응.
+ * 목록(PropertyListItem)과 달리 status/favoriteCount일부/썸네일 구분이 없고
+ * 대신 전체 이미지 목록·상세주소·희망 중개수수료율을 내려준다.
+ * ⚠️ 백엔드 응답에 status 필드가 없다 — 상세 화면에서 거래 상태를 보여줘야 하면
+ * 목록 API(PropertyListItem.status)에서 가져온 값을 함께 들고 있어야 한다.
+ */
+export interface PropertyDetail {
+  propertyId: number;
+  imageUrls: string[];
+  title: string;
+  description: string;
+  address: string;
+  detailAddress: string;
+  tradeType: TradeType;
+  propertyType: PropertyType;
+  deposit: number;
+  monthlyRent: number;
+  maintenanceFee: number | null;
+  totalFloors: number;
+  currentFloor: number;
+  area: number;
+  aiScore: number | null;
+  desiredBrokerageFee: number | null;
+  options: PropertyOption[];
+  nearestStation: string | null;
+  walkingTime: number | null;
+  latitude: number;
+  longitude: number;
+  favoriteCount: number;
+  isSuspicious: boolean;
+}
+
 /** PropertyListRespDto.java 대응 (카드형 리스트 아이템) */
 export interface PropertyListItem {
   propertyId: number;

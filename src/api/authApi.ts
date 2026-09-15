@@ -1,17 +1,28 @@
 import {
   IdentityVerificationResult,
   LoginRequest,
+  OAuthLoginRequest,
   RealtorSignupRequest,
   RealtorSignupResult,
   SignupRequest,
   SignupResult,
   TokenDto,
 } from '../types/auth';
-import { apiPost } from './client';
+import { apiPost, apiPostMultipart } from './client';
 
 /** 이메일/비밀번호 로그인 — POST /users/login */
 export function login(request: LoginRequest): Promise<TokenDto> {
   return apiPost<TokenDto>('/users/login', request);
+}
+
+/** 로그아웃 — POST /users/logout (Redis에 저장된 refreshToken 무효화) */
+export function logout(): Promise<void> {
+  return apiPost<void>('/users/logout', {}, { auth: true });
+}
+
+/** 구글 OAuth 로그인/자동가입 — POST /users/oauth/google */
+export function loginWithGoogle(request: OAuthLoginRequest): Promise<TokenDto> {
+  return apiPost<TokenDto>('/users/oauth/google', request);
 }
 
 /** 이메일 중복 확인 — POST /users/check-email (중복이면 DUPLICATE_EMAIL 에러) */
@@ -48,16 +59,28 @@ export function verifyIdentity(identityVerificationId: string): Promise<Identity
 }
 
 /**
- * 중개사 회원가입 — POST /users/realtors
+ * 중개사 회원가입 — POST /users/realtors (multipart/form-data)
  * checkEmailDuplicate/sendSignupEmailCode/verifySignupEmailCode와 동일한 이메일 인증
  * 절차를 사전에 통과해야 한다 (일반 회원가입과 같은 Redis AUTH_SUCCESS 플래그를 공유).
- *
- * Presigned URL 방식으로 전환: 이미지는 호출 전에 uploadApi.ts의 uploadImage()로
- * S3에 먼저 올리고, 그 결과 URL만 이 함수에 문자열로 전달한다 (더 이상 멀티파트로
- * 원본 파일을 보내지 않는다).
+ * 텍스트 필드는 RealtorSignupReqDto와 1:1로 매핑되는 폼 파트로, 서류 이미지는
+ * businessCertImage/agentCertImage(필수)/profileImage(선택) 파일 파트로 함께 보낸다.
  */
 export function signupRealtor(request: RealtorSignupRequest): Promise<RealtorSignupResult> {
-  return apiPost<RealtorSignupResult>('/users/realtors', request);
+  const form = new FormData();
+  form.append('email', request.email);
+  form.append('password', request.password);
+  form.append('name', request.name);
+  form.append('phone', request.phone);
+  form.append('officeName', request.officeName);
+  form.append('businessNum', request.businessNum);
+  if (request.officeAddress) form.append('officeAddress', request.officeAddress);
+  if (request.officeLatitude !== undefined) form.append('officeLatitude', String(request.officeLatitude));
+  if (request.officeLongitude !== undefined) form.append('officeLongitude', String(request.officeLongitude));
+  form.append('businessCertImage', request.businessCertImage);
+  form.append('agentCertImage', request.agentCertImage);
+  if (request.profileImage) form.append('profileImage', request.profileImage);
+
+  return apiPostMultipart<RealtorSignupResult>('/users/realtors', form);
 }
 
 /* ------------------------------------------------------------------ *

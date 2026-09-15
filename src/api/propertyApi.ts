@@ -1,11 +1,13 @@
 import {
+  PropertyDetail,
   PropertyListItem,
   PropertyOption,
   PropertyType,
+  ReportCreateRequest,
   SortBy,
   TradeType,
 } from '../types/property';
-import { apiGet } from './client';
+import { apiDelete, apiGet, apiPost } from './client';
 
 /** 전체 매물 리스트 조회 (최신 등록순) — GET /properties */
 export function fetchAllProperties(): Promise<PropertyListItem[]> {
@@ -15,6 +17,44 @@ export function fetchAllProperties(): Promise<PropertyListItem[]> {
 /** 실시간 급상승 랭킹 조회 — GET /properties/surge-rankings */
 export function fetchSurgeRankings(): Promise<PropertyListItem[]> {
   return apiGet<PropertyListItem[]>('/properties/surge-rankings');
+}
+
+/**
+ * 매물 상세 조회 — GET /properties/{propertyId}
+ * 로그인 상태면 "최근 본 매물" 기록 및 인기랭킹 조회수가 부수효과로 올라간다.
+ * 응답에 status가 없어 목록 API 값을 따로 들고 있어야 할 수 있다 (PropertyDetail 타입 주석 참고).
+ */
+export function fetchPropertyDetail(propertyId: number, signal?: AbortSignal): Promise<PropertyDetail> {
+  return apiGet<PropertyDetail>(`/properties/${propertyId}`, { auth: true, signal });
+}
+
+/** 매물 삭제 — DELETE /properties/{propertyId} (소유자만) */
+export function deleteProperty(propertyId: number): Promise<void> {
+  return apiDelete<void>(`/properties/${propertyId}`, { auth: true });
+}
+
+/** AI 맞춤 추천 (상위 10개) — GET /properties/recommendations */
+export function fetchRecommendedProperties(params: {
+  minPrice?: number;
+  maxPrice?: number;
+  preferredRegion?: string;
+} = {}): Promise<PropertyListItem[]> {
+  const query = new URLSearchParams();
+  if (params.minPrice !== undefined) query.append('minPrice', String(params.minPrice));
+  if (params.maxPrice !== undefined) query.append('maxPrice', String(params.maxPrice));
+  if (params.preferredRegion) query.append('preferredRegion', params.preferredRegion);
+  const qs = query.toString();
+  return apiGet<PropertyListItem[]>(`/properties/recommendations${qs ? `?${qs}` : ''}`, { auth: true });
+}
+
+/** 매물 찜하기 토글 — POST /favorites/{propertyId} (result가 토글 후 찜 여부) */
+export function toggleFavorite(propertyId: number): Promise<boolean> {
+  return apiPost<boolean>(`/favorites/${propertyId}`, {}, { auth: true });
+}
+
+/** 매물 신고 — POST /properties/{propertyId}/reports */
+export function reportProperty(propertyId: number, request: ReportCreateRequest): Promise<void> {
+  return apiPost<void>(`/properties/${propertyId}/reports`, request, { auth: true });
 }
 
 /** 지도 영역 (카카오맵 getBounds() 결과를 그대로 옮긴 값) */

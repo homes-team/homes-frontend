@@ -1,6 +1,5 @@
 import { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
-import styles from './AuthLayout.module.css';
+import { useNavigate } from 'react-router-dom';
 
 export interface AuthStep {
   label: string;
@@ -22,62 +21,67 @@ interface AuthLayoutProps {
  * Figma WireFrame 페이지의 `/login`, `/sign_up` AuthModal 컨벤션을 그대로 따른다.
  */
 function AuthLayout({ title, showSignupLink = false, steps, children }: AuthLayoutProps) {
+  const navigate = useNavigate();
+
   return (
-    <div className={styles.page}>
-      <header className={styles.pageHeader}>
-        <Link to="/" className={styles.logo}>
-          <span className={styles.logoMark} aria-hidden="true" />
-          <span className={styles.logoText}>홈즈</span>
-        </Link>
+    <div className="flex min-h-screen flex-col bg-gray-100">
+      <header className="bg-white px-10 py-3.5">
+        <button type="button" onClick={() => navigate('/')} className="inline-flex items-center gap-2">
+          <span className="h-[30px] w-[30px] rounded-lg bg-primary" aria-hidden="true" />
+          <span className="text-xl font-bold text-primary">홈즈</span>
+        </button>
       </header>
 
-      <main className={styles.center}>
-        <div className={styles.modal}>
-          <div className={styles.topBar}>
-            <h1 className={styles.topBarTitle}>{title}</h1>
-            <div className={styles.topBarActions}>
+      <main className="flex flex-1 justify-center px-6 py-6 pb-15">
+        <div className="h-fit w-full max-w-[448px] rounded-2xl bg-white shadow-[0_16px_48px_rgba(17,24,39,0.14)]">
+          <div className="flex items-center justify-between px-6 py-5">
+            <h1 className="text-lg font-bold text-gray-900">{title}</h1>
+            <div className="flex items-center gap-4">
               {showSignupLink && (
-                <Link to="/signup" className={styles.signupLinkSmall}>
+                <button
+                  type="button"
+                  onClick={() => navigate('/signup')}
+                  className="text-[13px] font-medium text-gray-500 hover:text-primary"
+                >
                   회원가입
-                </Link>
+                </button>
               )}
-              <Link to="/" className={styles.closeButton} aria-label="닫기">
+              <button
+                type="button"
+                onClick={() => navigate('/')}
+                aria-label="닫기"
+                className="text-base leading-none text-gray-500 hover:text-gray-900"
+              >
                 ✕
-              </Link>
+              </button>
             </div>
           </div>
 
           {steps && (
-            <div className={styles.stepper}>
+            <div className="flex items-start px-6 pb-5">
               {steps.map((step, index) => (
-                <div key={step.label} className={styles.stepItem}>
-                  <div className={styles.stepRow}>
+                <div key={step.label} className={`flex flex-col items-center ${index === steps.length - 1 ? 'flex-none' : 'flex-1'}`}>
+                  <div className="flex w-full items-center">
                     <span
-                      className={`${styles.stepDot} ${
-                        step.status === 'done'
-                          ? styles.stepDotDone
-                          : step.status === 'active'
-                            ? styles.stepDotActive
-                            : styles.stepDotUpcoming
+                      className={`flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                        step.status === 'upcoming' ? 'bg-gray-100 text-gray-400' : 'bg-primary text-white'
                       }`}
                     >
                       {step.status === 'done' ? '✓' : index + 1}
                     </span>
                     {index < steps.length - 1 && (
-                      <span
-                        className={`${styles.stepLine} ${
-                          step.status === 'done' ? styles.stepLineDone : ''
-                        }`}
-                      />
+                      <span className={`mx-1 h-0.5 flex-1 ${step.status === 'done' ? 'bg-primary' : 'bg-gray-200'}`} />
                     )}
                   </div>
-                  {step.status === 'active' && <span className={styles.stepLabel}>{step.label}</span>}
+                  {step.status === 'active' && (
+                    <span className="mt-1.5 whitespace-nowrap text-[11px] font-medium text-primary">{step.label}</span>
+                  )}
                 </div>
               ))}
             </div>
           )}
 
-          <div className={styles.topBarDivider} />
+          <div className="h-px bg-gray-200" />
 
           {children}
         </div>

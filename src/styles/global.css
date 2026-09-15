@@ -1,16 +1,44 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+@import 'tailwindcss';
+
+/*
+ * ⚠️ 마이그레이션 중간 상태: 아직 CSS Modules로 남아있는 컴포넌트들이
+ * variables.css의 var(--color-*) 등을 계속 참조하므로 당분간 같이 둔다.
+ * 모든 컴포넌트가 Tailwind 유틸리티로 전환되면 variables.css와 이 파일의
+ * 커스텀 리셋은 삭제하고 @theme만 단일 소스로 남긴다.
+ */
 @import './variables.css';
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@theme {
+  --font-sans: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --color-primary: #2563eb;
+  --color-primary-dark: #1d4ed8;
+  --color-primary-hero: #1e4fd6;
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+
+  --color-gray-900: #111827;
+  --color-gray-600: #4b5563;
+  --color-gray-500: #6b7280;
+  --color-gray-400: #9ca3af;
+  --color-gray-200: #e5e7eb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-50: #f9fafb;
+
+  --color-danger: #dc2626;
+  --color-dark: #0f172a;
+  --color-dark-2: #1b2540;
+
+  --radius-card: 16px;
+  --radius-button: 10px;
+  --radius-pill: 999px;
 }
 
 body {
-  font-family: var(--font-family);
+  font-family: var(--font-sans);
   color: var(--color-gray-900);
-  background-color: var(--color-white);
+  background-color: #ffffff;
   -webkit-font-smoothing: antialiased;
 }
 
