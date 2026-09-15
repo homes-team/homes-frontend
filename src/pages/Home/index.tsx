@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { isLoggedIn } from '../../api/client';
-import { fetchAllProperties, fetchRecommendedProperties, fetchSurgeRankings } from '../../api/propertyApi';
-import { fetchMyRecentViews } from '../../api/userApi';
+import { fetchAllProperties, fetchRecommendedProperties, fetchSurgeRankings } from '../../api/property/propertyApi';
+import { fetchMyRecentViews } from '../../api/user/userApi';
 import { useFetch } from '../../hooks/useFetch';
 import Header from '../../components/layout/Header';
 import Footer from '../../components/layout/Footer';

@@ -7,8 +7,8 @@ import {
   SignupRequest,
   SignupResult,
   TokenDto,
-} from '../types/auth';
-import { apiPost, apiPostMultipart } from './client';
+} from '../../types/auth';
+import { apiPost, apiPostMultipart } from '../client';
 
 /** 이메일/비밀번호 로그인 — POST /users/login */
 export function login(request: LoginRequest): Promise<TokenDto> {

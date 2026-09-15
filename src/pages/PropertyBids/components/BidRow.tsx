@@ -5,7 +5,7 @@ import Badge from '../../../components/ui/Badge';
 import Button from '../../../components/ui/Button';
 import { HelperText } from '../../../components/ui/Field';
 import NegotiationThread from './NegotiationThread';
-import { acceptBid, cancelBid, completeBid } from '../../../api/bidApi';
+import { acceptBid, cancelBid, completeBid } from '../../../api/bid/bidApi';
 import { ApiError } from '../../../api/client';
 import { formatRelativeTime } from '../../../utils/format';
 import { BID_STATUS_LABEL, BidListItem } from '../../../types/bid';

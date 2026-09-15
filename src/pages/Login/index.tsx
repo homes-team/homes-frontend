@@ -1,6 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login } from '../../api/authApi';
+import { login } from '../../api/auth/authApi';
 import { ApiError } from '../../api/client';
 import { saveTokens } from '../../utils/auth';
 import AuthLayout from '../../components/auth/AuthLayout';

@@ -4,7 +4,7 @@ import WizardShell from '../components/WizardShell';
 import Button from '../../../components/ui/Button';
 import { Field, Label, Input, HelperText, ErrorText } from '../../../components/ui/Field';
 import { useListPropertyForm } from '../../../context/ListPropertyContext';
-import { geocodeAddress } from '../../../api/listPropertyApi';
+import { geocodeAddress } from '../../../api/property/listPropertyApi';
 
 function ListPropertyAddressPage() {
   const navigate = useNavigate();

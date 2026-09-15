@@ -5,7 +5,7 @@ import TipBox from '../components/TipBox';
 import Button from '../../../components/ui/Button';
 import { Field, Label, Input, HelperText, ErrorText } from '../../../components/ui/Field';
 import { useListPropertyForm } from '../../../context/ListPropertyContext';
-import { createProperty } from '../../../api/listPropertyApi';
+import { createProperty } from '../../../api/property/listPropertyApi';
 import { isLoggedIn } from '../../../api/client';
 
 function ListPropertyFeePage() {

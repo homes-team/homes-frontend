@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { MapSearchParams, searchPropertiesOnMap } from '../api/propertyApi';
+import { MapSearchParams, searchPropertiesOnMap } from '../api/property/propertyApi';
 import { PropertyListItem } from '../types/property';
 
 interface PropertySearchState {

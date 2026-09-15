@@ -1,6 +1,6 @@
 import { ChangeEvent, FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login, signupRealtor } from '../../api/authApi';
+import { login, signupRealtor } from '../../api/auth/authApi';
 import { ApiError } from '../../api/client';
 import { saveTokens } from '../../utils/auth';
 import { buildAuthSteps } from '../../utils/authSteps';

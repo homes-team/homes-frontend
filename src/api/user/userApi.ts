@@ -1,6 +1,6 @@
-import { UpdatePasswordRequest, UserProfile, UserUpdateProfileRequest, UserUpdateProfileResult } from '../types/auth';
-import { PropertyListItem, ReportListItem } from '../types/property';
-import { apiDelete, apiGet, apiPatch } from './client';
+import { UpdatePasswordRequest, UserProfile, UserUpdateProfileRequest, UserUpdateProfileResult } from '../../types/auth';
+import { PropertyListItem, ReportListItem } from '../../types/property';
+import { apiDelete, apiGet, apiPatch } from '../client';
 
 /** 최근 본 방 조회 (로그인 필요) — GET /users/me/recent-views */
 export function fetchMyRecentViews(): Promise<PropertyListItem[]> {

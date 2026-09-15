@@ -6,8 +6,8 @@ import {
   RealtorPublicProfile,
   ReviewCreateRequest,
   ReviewListItem,
-} from '../types/realtor';
-import { apiGet, apiPatch, apiPost } from './client';
+} from '../../types/realtor';
+import { apiGet, apiPatch, apiPost } from '../client';
 
 /** 내(중개사) 프로필 조회 — GET /realtors/me */
 export function fetchMyAgentProfile(): Promise<AgentProfile> {

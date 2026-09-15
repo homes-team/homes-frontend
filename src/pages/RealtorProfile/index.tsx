@@ -5,7 +5,7 @@ import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import { Field, Label, Input, Textarea, HelperText } from '../../components/ui/Field';
-import { createRealtorReview, fetchRealtorPublicProfile, fetchRealtorReviews } from '../../api/realtorApi';
+import { createRealtorReview, fetchRealtorPublicProfile, fetchRealtorReviews } from '../../api/realtor/realtorApi';
 import { ApiError } from '../../api/client';
 import { getCurrentUser } from '../../utils/auth';
 import { formatRelativeTime } from '../../utils/format';

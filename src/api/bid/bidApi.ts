@@ -1,5 +1,5 @@
-import { BidCreateRequest, BidListItem, NegotiationListItem, NegotiationRequest } from '../types/bid';
-import { apiGet, apiPost } from './client';
+import { BidCreateRequest, BidListItem, NegotiationListItem, NegotiationRequest } from '../../types/bid';
+import { apiGet, apiPost } from '../client';
 
 /** 입찰서 제출 — POST /properties/{propertyId}/bids (중개사 전용) */
 export function createBid(propertyId: number, request: BidCreateRequest): Promise<void> {

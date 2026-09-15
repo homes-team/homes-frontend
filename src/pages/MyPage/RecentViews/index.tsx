@@ -1,7 +1,7 @@
 import PageShell from '../../../components/layout/PageShell';
 import MyPageNav from '../components/MyPageNav';
 import PropertyCard from '../../../components/property/PropertyCard';
-import { fetchMyRecentViews } from '../../../api/userApi';
+import { fetchMyRecentViews } from '../../../api/user/userApi';
 import { useFetch } from '../../../hooks/useFetch';
 
 function RecentViewsPage() {

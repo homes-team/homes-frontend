@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { MapBounds } from '../../../api/propertyApi';
+import { MapBounds } from '../../../api/property/propertyApi';
 import { useKakaoMap } from '../../../hooks/useKakaoMap';
 import { PropertyListItem } from '../../../types/property';
 import { formatPrice } from '../../../utils/format';

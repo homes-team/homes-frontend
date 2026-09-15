@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import PageShell from '../../../components/layout/PageShell';
 import MyPageNav from '../components/MyPageNav';
 import Card from '../../../components/ui/Card';
-import { fetchMyReports } from '../../../api/userApi';
+import { fetchMyReports } from '../../../api/user/userApi';
 import { useFetch } from '../../../hooks/useFetch';
 import { formatRelativeTime } from '../../../utils/format';
 

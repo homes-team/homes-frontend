@@ -1,6 +1,6 @@
-import { AppNotification } from '../types/notification';
-import { apiGet, apiPatch, BASE_URL } from './client';
-import { issueWebSocketTicket } from './wsTicketApi';
+import { AppNotification } from '../../types/notification';
+import { apiGet, apiPatch, BASE_URL } from '../client';
+import { issueWebSocketTicket } from '../wsTicketApi';
 
 /** 내 알림 목록 (최신순) — GET /users/me/notifications */
 export function fetchNotifications(): Promise<AppNotification[]> {

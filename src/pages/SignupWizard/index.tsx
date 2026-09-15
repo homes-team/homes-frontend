@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login, signup } from '../../api/authApi';
+import { login, signup } from '../../api/auth/authApi';
 import { saveTokens } from '../../utils/auth';
 import { buildAuthSteps } from '../../utils/authSteps';
 import { SignupResult } from '../../types/auth';
@@ -75,7 +75,7 @@ function SignupWizardPage() {
 
   const handleStartIdentityVerification = () => {
     // TODO: PortOne SDK(IMP.init 등) 연동 후, 팝업 완료 시 받는 identityVerificationId를
-    // api/authApi.ts의 verifyIdentity(identityVerificationId)로 전달하도록 교체.
+    // api/auth/authApi.ts의 verifyIdentity(identityVerificationId)로 전달하도록 교체.
     setIdentityMessage('PortOne 본인인증 SDK 연동 후 이용할 수 있어요. 지금은 건너뛰어도 가입에는 문제가 없어요.');
   };
 

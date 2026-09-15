@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { MapBounds, PropertyFilter } from '../../api/propertyApi';
+import { MapBounds, PropertyFilter } from '../../api/property/propertyApi';
 import Header from '../../components/layout/Header';
 import CategoryChips from './components/CategoryChips';
 import FilterBar from './components/FilterBar';

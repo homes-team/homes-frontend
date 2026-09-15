@@ -1,5 +1,5 @@
-import { apiPatchMultipart, apiPostMultipart } from './client';
-import { PropertyOption, PropertyType, TradeType } from '../types/property';
+import { apiPatchMultipart, apiPostMultipart } from '../client';
+import { PropertyOption, PropertyType, TradeType } from '../../types/property';
 
 /** PropertyCreateReqDto(백엔드) 대응. 백엔드 필드명/타입과 1:1로 맞춰뒀다. */
 export interface CreatePropertyPayload {
@@ -79,7 +79,7 @@ export function updateProperty(propertyId: number, payload: CreatePropertyPayloa
  * 매칭되는 주소가 없으면 null을 반환한다.
  */
 export async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
-  const { loadKakaoMapSdk } = await import('../utils/KakaoLoader');
+  const { loadKakaoMapSdk } = await import('../../utils/KakaoLoader');
   const maps = await loadKakaoMapSdk();
 
   return new Promise((resolve) => {

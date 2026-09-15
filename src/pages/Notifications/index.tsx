@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import PageShell from '../../components/layout/PageShell';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
-import { fetchNotifications, markAllNotificationsRead, markNotificationRead } from '../../api/notificationApi';
+import { fetchNotifications, markAllNotificationsRead, markNotificationRead } from '../../api/notification/notificationApi';
 import { formatRelativeTime } from '../../utils/format';
 import { AppNotification } from '../../types/notification';
 

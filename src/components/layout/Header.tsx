@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isLoggedIn } from '../../api/client';
-import { logout as logoutRequest } from '../../api/authApi';
-import { fetchNotifications, subscribeToNotifications } from '../../api/notificationApi';
+import { logout as logoutRequest } from '../../api/auth/authApi';
+import { fetchNotifications, subscribeToNotifications } from '../../api/notification/notificationApi';
 import { clearTokens, getCurrentUser } from '../../utils/auth';
 
 const NAV_ITEMS = [

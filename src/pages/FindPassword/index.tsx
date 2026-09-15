@@ -1,6 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { sendTemporaryPassword } from '../../api/authApi';
+import { sendTemporaryPassword } from '../../api/auth/authApi';
 import AuthLayout from '../../components/auth/AuthLayout';
 import Button from '../../components/ui/Button';
 import { Field, Label, Input, ErrorText } from '../../components/ui/Field';

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import Badge from '../../../components/ui/Badge';
 import { Input, ErrorText, HelperText } from '../../../components/ui/Field';
-import { createNegotiation, fetchNegotiations } from '../../../api/bidApi';
+import { createNegotiation, fetchNegotiations } from '../../../api/bid/bidApi';
 import { ApiError } from '../../../api/client';
 import { formatRelativeTime } from '../../../utils/format';
 import { NegotiationListItem } from '../../../types/bid';

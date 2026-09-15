@@ -6,8 +6,8 @@ import {
   ReportCreateRequest,
   SortBy,
   TradeType,
-} from '../types/property';
-import { apiDelete, apiGet, apiPost } from './client';
+} from '../../types/property';
+import { apiDelete, apiGet, apiPost } from '../client';
 
 /** 전체 매물 리스트 조회 (최신 등록순) — GET /properties */
 export function fetchAllProperties(): Promise<PropertyListItem[]> {

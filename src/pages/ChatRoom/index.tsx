@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import PageShell from '../../components/layout/PageShell';
 import Button from '../../components/ui/Button';
 import { Input, ErrorText } from '../../components/ui/Field';
-import { connectChatSocket, fetchChatMessages, leaveChatRoom, ChatSocketHandle } from '../../api/chatApi';
+import { connectChatSocket, fetchChatMessages, leaveChatRoom, ChatSocketHandle } from '../../api/chat/chatApi';
 import { ApiError } from '../../api/client';
 import { getCurrentUser } from '../../utils/auth';
 import { ChatMessage } from '../../types/chat';

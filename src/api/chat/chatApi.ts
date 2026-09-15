@@ -1,7 +1,7 @@
 import { Client, IMessage, StompSubscription } from '@stomp/stompjs';
-import { ChatMessage, ChatRoom, ChatRoomCreateRequest } from '../types/chat';
-import { apiDelete, apiGet, apiPost, WS_BASE_URL } from './client';
-import { issueWebSocketTicket } from './wsTicketApi';
+import { ChatMessage, ChatRoom, ChatRoomCreateRequest } from '../../types/chat';
+import { apiDelete, apiGet, apiPost, WS_BASE_URL } from '../client';
+import { issueWebSocketTicket } from '../wsTicketApi';
 
 export interface ChatSocketHandle {
   /** SEND /app/chats/{chatId}/send */

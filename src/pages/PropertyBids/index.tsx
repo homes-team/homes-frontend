@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import PageShell from '../../components/layout/PageShell';
 import BidRow from './components/BidRow';
-import { fetchBidsForProperty } from '../../api/bidApi';
+import { fetchBidsForProperty } from '../../api/bid/bidApi';
 import { BidListItem } from '../../types/bid';
 
 function PropertyBidsPage() {

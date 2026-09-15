@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
-import { PropertyFilter } from '../../../api/propertyApi';
+import { PropertyFilter } from '../../../api/property/propertyApi';
 import { PROPERTY_OPTION_LABEL, PROPERTY_OPTION_ORDER, PropertyOption } from '../../../types/property';
 
 export type DetailFilter = Pick<

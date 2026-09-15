@@ -10,7 +10,7 @@ import {
   fetchMyAgentProfile,
   fetchNearbyProperties,
   updateMyAgentProfile,
-} from '../../api/realtorApi';
+} from '../../api/realtor/realtorApi';
 import { ApiError } from '../../api/client';
 import { PROPERTY_TYPE_LABEL } from '../../types/property';
 import { AgentDashboardStats, AgentProfile, NearbyProperty } from '../../types/realtor';
