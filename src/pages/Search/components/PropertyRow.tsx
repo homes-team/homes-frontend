@@ -45,7 +45,7 @@ function PropertyRow({ property, selected, onSelect }: PropertyRowProps) {
               {typeLabel}
             </span>
             {property.status === 'MATCHED' && (
-              <span className="rounded bg-[#d97706] px-1.5 py-0.5 text-[11px] font-medium whitespace-nowrap text-white">
+              <span className="rounded bg-warning px-1.5 py-0.5 text-[11px] font-medium whitespace-nowrap text-white">
                 중개 진행중
               </span>
             )}

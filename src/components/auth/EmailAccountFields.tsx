@@ -54,7 +54,7 @@ function EmailAccountFields({ step, onNext, showLoginLink = true }: EmailAccount
             {step.checkingEmail ? '확인 중...' : '중복확인'}
           </button>
         </div>
-        {step.emailAvailable === true && <p className="text-xs text-[#0f7048]">사용 가능한 이메일이에요.</p>}
+        {step.emailAvailable === true && <p className="text-xs text-success">사용 가능한 이메일이에요.</p>}
         {step.emailAvailable === false && <p className="text-xs text-danger">이미 가입된 이메일이에요.</p>}
       </Field>
 
@@ -88,7 +88,7 @@ function EmailAccountFields({ step, onNext, showLoginLink = true }: EmailAccount
                       : '인증번호 받기'}
               </button>
             ) : (
-              <span className={`${actionButtonClass} bg-[#0f7048]`}>인증 완료</span>
+              <span className={`${actionButtonClass} bg-success`}>인증 완료</span>
             )}
           </div>
           {step.codeSent && !step.codeVerified && (

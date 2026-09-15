@@ -126,7 +126,7 @@ function SignupAgentWizardPage() {
             <p className="text-center text-[13px] text-gray-500">가입 신청이 접수됐어요. 관리자 승인 후 중개사 서비스를 이용하실 수 있어요.</p>
           </div>
 
-          <p className="rounded-lg bg-[#fff9e7] p-3.5 text-xs leading-relaxed text-[#b56b0f]">
+          <p className="rounded-lg bg-warning-50 p-3.5 text-xs leading-relaxed text-warning-dark">
             승인 전에는 '준비 중' 상태로 표시되며, 승인 완료 시 이메일로 안내드려요.
           </p>
 
@@ -157,7 +157,7 @@ function SignupAgentWizardPage() {
         <div className="flex flex-col gap-5 px-6 pt-6 pb-8">
           <h2 className="text-left text-lg font-bold text-gray-900">서류 제출</h2>
 
-          <p className="rounded-lg bg-[#fff9e7] p-3.5 text-xs leading-relaxed text-[#b56b0f]">
+          <p className="rounded-lg bg-warning-50 p-3.5 text-xs leading-relaxed text-warning-dark">
             제출하신 서류는 관리자 확인 후 승인되며, 승인 전까지는 매물 등록 등 일부 기능이 제한돼요.
           </p>
 
@@ -203,7 +203,7 @@ function SignupAgentWizardPage() {
       <AuthLayout title="회원가입" steps={buildAuthSteps(STEP_LABELS, 4)}>
         <form className="flex flex-col gap-5 px-6 pt-6 pb-8" onSubmit={handleOfficeNext} noValidate>
           <h2 className="text-left text-lg font-bold text-gray-900">중개사 정보 입력</h2>
-          <p className="rounded-lg bg-[#fff9e7] p-3.5 text-xs leading-relaxed text-[#b56b0f]">
+          <p className="rounded-lg bg-warning-50 p-3.5 text-xs leading-relaxed text-warning-dark">
             입력하신 정보는 공인중개사 자격 확인에 사용됩니다. 정확한 정보를 입력해주세요.
           </p>
 

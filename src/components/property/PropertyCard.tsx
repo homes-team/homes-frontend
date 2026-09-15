@@ -34,7 +34,7 @@ function PropertyCard({ property, dateLabel }: PropertyCardProps) {
           {typeLabel}
         </span>
         {property.status === 'MATCHED' && (
-          <span className="absolute top-3 right-3 rounded-lg bg-[#d97706] px-3 py-1.5 text-xs font-bold text-white">
+          <span className="absolute top-3 right-3 rounded-lg bg-warning px-3 py-1.5 text-xs font-bold text-white">
             중개 진행중
           </span>
         )}

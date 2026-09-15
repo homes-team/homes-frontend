@@ -100,8 +100,8 @@ function FindPasswordPage() {
         )}
 
         {done && (
-          <div className="flex flex-col gap-1 rounded-[10px] bg-[#ebfbf3] p-4">
-            <span className="text-xs font-medium text-[#0f7048]">이메일 발송 완료</span>
+          <div className="flex flex-col gap-1 rounded-[10px] bg-success-50 p-4">
+            <span className="text-xs font-medium text-success">이메일 발송 완료</span>
             <span className="text-base font-bold text-gray-900">
               입력하신 이메일로 임시 비밀번호를 보내드렸어요. 로그인 후 꼭 비밀번호를 변경해주세요.
             </span>
