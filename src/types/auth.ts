@@ -32,10 +32,9 @@ export interface IdentityVerificationResult {
 }
 
 /**
- * RealtorSignupReqDto.java 대응 (Presigned URL 방식 전환 버전).
- * 이미지는 프론트에서 S3에 직접 업로드한 뒤, 그 결과 URL만 문자열로 전송한다.
- * ⚠️ 백엔드가 아직 이 방식으로 전환 중이라 필드명은 잠정안입니다 —
- * 실제 RealtorSignupReqDto 필드명이 확정되면 이 인터페이스만 맞춰 고치면 됩니다.
+ * RealtorSignupReqDto.java 대응.
+ * 백엔드가 실제로는 multipart/form-data로 받는다 — 텍스트 필드는 ModelAttribute 파트로,
+ * 파일은 businessCertImage/agentCertImage(필수)/profileImage(선택) 파트로 함께 전송한다.
  */
 export interface RealtorSignupRequest {
   email: string;
@@ -47,9 +46,9 @@ export interface RealtorSignupRequest {
   officeAddress?: string;
   officeLatitude?: number;
   officeLongitude?: number;
-  businessCertImageUrl: string;
-  agentCertImageUrl: string;
-  profileImageUrl?: string;
+  businessCertImage: File;
+  agentCertImage: File;
+  profileImage?: File;
 }
 
 /** RealtorSignupResDto.java 대응 */
@@ -61,23 +60,38 @@ export interface RealtorSignupResult {
   isVerified: boolean;
 }
 
-/**
- * 이미지 업로드용 Presigned URL 발급 요청/응답.
- * ⚠️ 백엔드에 아직 없는 API라 잠정 스펙입니다 — 실제 엔드포인트 경로/필드명이
- * 확정되면 api/uploadApi.ts의 requestPresignedUploadUrl()만 맞춰 고치면 됩니다.
- */
-export interface PresignedUploadRequest {
-  /** 원본 파일명 (S3 키 생성에 참고용) */
-  fileName: string;
-  /** 파일 MIME 타입 (예: image/png) — Presigned URL 서명에 포함됨 */
-  contentType: string;
-  /** 업로드 대상 디렉터리/버킷 경로 구분 (예: 'agent-certs', 'agent-profiles') */
-  directory: string;
+/** OAuthLoginReqDto.java 대응 — 구글 로그인/자동가입 */
+export interface OAuthLoginRequest {
+  authorizationCode: string;
 }
 
-export interface PresignedUploadResult {
-  /** 프론트에서 PUT으로 직접 업로드할 S3 Presigned URL (짧은 시간만 유효) */
-  uploadUrl: string;
-  /** 업로드 완료 후 DB에 저장할 최종 공개 URL */
-  fileUrl: string;
+/** UserProfileResDto.java 대응 — GET /users/me */
+export interface UserProfile {
+  userId: number;
+  email: string;
+  name: string | null;
+  nickname: string | null;
+  phone: string | null;
+  usagePurpose: string | null;
+  isIdentityVerified: boolean;
+  role: 'USER' | 'AGENT' | 'ADMIN';
+}
+
+/** UserUpdateProfileReqDto.java 대응 (부분 수정) */
+export interface UserUpdateProfileRequest {
+  nickname?: string;
+  usagePurpose?: string;
+}
+
+/** UserUpdateProfileResDto.java 대응 */
+export interface UserUpdateProfileResult {
+  userId: number;
+  nickname: string | null;
+  usagePurpose: string | null;
+}
+
+/** UserUpdatePasswordReqDto.java 대응 */
+export interface UpdatePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
 }

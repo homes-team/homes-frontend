@@ -1,4 +1,4 @@
-const KAKAO_APP_KEY = process.env.REACT_APP_KAKAO_MAP_KEY;
+const KAKAO_APP_KEY = import.meta.env.VITE_KAKAO_MAP_KEY;
 const SCRIPT_ID = 'kakao-maps-sdk';
 
 let loadPromise: Promise<typeof kakao.maps> | null = null;
@@ -18,7 +18,7 @@ export function loadKakaoMapSdk(): Promise<typeof kakao.maps> {
     if (!KAKAO_APP_KEY) {
       reject(
         new Error(
-          '카카오맵 키가 없습니다. .env에 REACT_APP_KAKAO_MAP_KEY를 설정한 뒤 개발 서버를 재시작해 주세요.',
+          '카카오맵 키가 없습니다. .env에 VITE_KAKAO_MAP_KEY를 설정한 뒤 개발 서버를 재시작해 주세요.',
         ),
       );
       return;

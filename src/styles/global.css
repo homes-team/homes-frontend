@@ -1,31 +1,82 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
-@import './variables.css';
+@import 'tailwindcss';
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/**
+ * 홈즈 디자인 토큰 — 모든 색상은 여기 @theme에 선언하고, 컴포넌트에서는
+ * bg-primary / text-warning 같은 유틸리티로 가져다 쓴다. bg-[#으로 직접
+ * 하드코딩하지 말 것 — 새 색이 필요하면 여기에 이름을 붙여 추가한다.
+ */
+@theme {
+  --font-sans: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Brand */
+  --color-primary: #2563eb;
+  --color-primary-dark: #1d4ed8;
+  --color-primary-hero: #1e4fd6;
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+
+  /* Gray scale */
+  --color-gray-900: #111827;
+  --color-gray-600: #4b5563;
+  --color-gray-500: #6b7280;
+  --color-gray-400: #9ca3af;
+  --color-gray-200: #e5e7eb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-50: #f9fafb;
+
+  /* Semantic */
+  --color-danger: #dc2626;
+  --color-dark: #0f172a;
+  --color-dark-2: #1b2540;
+
+  /* 성공/완료 (이메일 인증 완료, 발송 완료 안내 등) */
+  --color-success: #0f7048;
+  --color-success-dark: #055e45;
+  --color-success-light: #66e6b3;
+  --color-success-50: #ebfbf3;
+
+  /* 경고/안내 (서류 제출 안내, 매칭 진행중 배지 등) */
+  --color-warning: #d97706;
+  --color-warning-dark: #b56b0f;
+  --color-warning-50: #fff9e7;
+
+  /* AI 배너 전용 포인트 컬러 */
+  --color-accent: #6b99ff;
+  /* 어두운 배경(AI 배너, 다크 카드) 위에 쓰는 보조 텍스트 */
+  --color-on-dark-muted: #b3bdcc;
+  --color-on-dark-subtle: #99a4b8;
+
+  --radius-card: 16px;
+  --radius-button: 10px;
+  --radius-pill: 999px;
 }
 
-body {
-  font-family: var(--font-family);
-  color: var(--color-gray-900);
-  background-color: var(--color-white);
-  -webkit-font-smoothing: antialiased;
-}
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-gray-900);
+    background-color: #ffffff;
+    -webkit-font-smoothing: antialiased;
+  }
 
-button {
-  font-family: inherit;
-  border: none;
-  cursor: pointer;
-  background: none;
-}
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 
-ul {
-  list-style: none;
+  button {
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  ul {
+    list-style: none;
+  }
 }

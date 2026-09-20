@@ -154,6 +154,7 @@ vite.config.ts.timestamp-*
 
 # production
 /build
+/dist
 
 # misc
 .DS_Store

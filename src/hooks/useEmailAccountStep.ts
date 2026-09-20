@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { checkEmailDuplicate, sendSignupEmailCode, verifySignupEmailCode } from '../api/authApi';
+import { checkEmailDuplicate, sendSignupEmailCode, verifySignupEmailCode } from '../api/auth/authApi';
 import { ApiError } from '../api/client';
 
 /** 백엔드 password 검증 규칙과 동일: 영문/숫자/특수문자 포함 8~20자 (UserCreateReqDto, RealtorSignupReqDto 공통) */
