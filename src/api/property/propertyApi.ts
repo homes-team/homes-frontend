@@ -1,4 +1,5 @@
 import {
+  BuildingInformation,
   PropertyDetail,
   PropertyListItem,
   PropertyOption,
@@ -30,6 +31,19 @@ export function fetchPropertyDetail(propertyId: number, signal?: AbortSignal): P
     allowAnonymousFallback: true,
     signal,
   });
+}
+
+/** 건축물대장·K-apt 자동 수집 결과 조회 — GET /properties/{propertyId}/building-information */
+export function fetchBuildingInformation(
+  propertyId: number,
+  signal?: AbortSignal,
+): Promise<BuildingInformation> {
+  return apiGet<BuildingInformation>(`/properties/${propertyId}/building-information`, { signal });
+}
+
+/** 건물정보 즉시 재수집 — POST /properties/{propertyId}/building-information/resolve (소유자만) */
+export function resolveBuildingInformation(propertyId: number): Promise<BuildingInformation> {
+  return apiPost<BuildingInformation>(`/properties/${propertyId}/building-information/resolve`, {}, { auth: true });
 }
 
 /** 매물 삭제 — DELETE /properties/{propertyId} (소유자만) */
