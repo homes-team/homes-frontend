@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { isLoggedIn } from '../../api/client';
+import { AUTH_STATE_CHANGED_EVENT, isLoggedIn } from '../../api/client';
 import { logout as logoutRequest } from '../../api/auth/authApi';
 import { fetchNotifications, subscribeToNotifications } from '../../api/notification/notificationApi';
 import { clearTokens, getCurrentUser } from '../../utils/auth';
@@ -17,6 +17,12 @@ function Header() {
   const [unreadCount, setUnreadCount] = useState(0);
   const role = loggedIn ? getCurrentUser()?.role : null;
   const disconnectRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    const syncAuthenticationState = () => setLoggedIn(isLoggedIn());
+    window.addEventListener(AUTH_STATE_CHANGED_EVENT, syncAuthenticationState);
+    return () => window.removeEventListener(AUTH_STATE_CHANGED_EVENT, syncAuthenticationState);
+  }, []);
 
   useEffect(() => {
     if (!loggedIn) {

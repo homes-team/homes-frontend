@@ -6,6 +6,12 @@ export const WS_BASE_URL = (import.meta.env.VITE_WS_BASE_URL ?? 'ws://localhost:
 
 export const ACCESS_TOKEN_KEY = 'accessToken';
 export const REFRESH_TOKEN_KEY = 'refreshToken';
+export const AUTH_STATE_CHANGED_EVENT = 'homes:auth-state-changed';
+
+/** 토큰이 갱신되거나 제거됐음을 현재 탭의 UI에 알린다. */
+export function notifyAuthStateChanged(): void {
+  window.dispatchEvent(new Event(AUTH_STATE_CHANGED_EVENT));
+}
 
 export class ApiError extends Error {
   readonly code: string;
@@ -43,10 +49,12 @@ async function refreshAccessToken(): Promise<string | null> {
 
       localStorage.setItem(ACCESS_TOKEN_KEY, response.data.result.accessToken);
       localStorage.setItem(REFRESH_TOKEN_KEY, response.data.result.refreshToken);
+      notifyAuthStateChanged();
       return response.data.result.accessToken;
     } catch {
       localStorage.removeItem(ACCESS_TOKEN_KEY);
       localStorage.removeItem(REFRESH_TOKEN_KEY);
+      notifyAuthStateChanged();
       return null;
     }
   })();
@@ -61,6 +69,8 @@ async function refreshAccessToken(): Promise<string | null> {
 interface RequestOptions {
   /** true면 localStorage의 accessToken을 Authorization 헤더로 첨부 */
   auth?: boolean;
+  /** 공개 API에서 저장된 토큰이 무효하면 비로그인 요청으로 한 번 복구 */
+  allowAnonymousFallback?: boolean;
   signal?: AbortSignal;
 }
 
@@ -99,6 +109,14 @@ async function request<T>(
         const newToken = await refreshAccessToken();
         if (newToken) {
           return request<T>(method, path, { ...options, isRetry: true });
+        }
+        if (options.allowAnonymousFallback) {
+          return request<T>(method, path, {
+            ...options,
+            auth: false,
+            allowAnonymousFallback: false,
+            isRetry: true,
+          });
         }
       }
 

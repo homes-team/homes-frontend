@@ -1,4 +1,4 @@
-import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '../api/client';
+import { ACCESS_TOKEN_KEY, notifyAuthStateChanged, REFRESH_TOKEN_KEY } from '../api/client';
 import { TokenDto } from '../types/auth';
 
 export { REFRESH_TOKEN_KEY };
@@ -7,12 +7,14 @@ export { REFRESH_TOKEN_KEY };
 export function saveTokens(token: TokenDto): void {
   localStorage.setItem(ACCESS_TOKEN_KEY, token.accessToken);
   localStorage.setItem(REFRESH_TOKEN_KEY, token.refreshToken);
+  notifyAuthStateChanged();
 }
 
 /** 로그아웃 시 토큰 제거 */
 export function clearTokens(): void {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+  notifyAuthStateChanged();
 }
 
 /** JwtTokenProvider가 accessToken에 심는 클레임 (sub=userId, email, role) */
