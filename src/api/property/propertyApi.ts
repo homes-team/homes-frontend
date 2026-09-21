@@ -25,7 +25,11 @@ export function fetchSurgeRankings(): Promise<PropertyListItem[]> {
  * 응답에 status가 없어 목록 API 값을 따로 들고 있어야 할 수 있다 (PropertyDetail 타입 주석 참고).
  */
 export function fetchPropertyDetail(propertyId: number, signal?: AbortSignal): Promise<PropertyDetail> {
-  return apiGet<PropertyDetail>(`/properties/${propertyId}`, { auth: true, signal });
+  return apiGet<PropertyDetail>(`/properties/${propertyId}`, {
+    auth: true,
+    allowAnonymousFallback: true,
+    signal,
+  });
 }
 
 /** 매물 삭제 — DELETE /properties/{propertyId} (소유자만) */
@@ -137,6 +141,7 @@ export function searchPropertiesOnMap(
 ): Promise<PropertyListItem[]> {
   return apiGet<PropertyListItem[]>(`/properties/map?${buildSearchQuery(params)}`, {
     auth: true,
+    allowAnonymousFallback: true,
     signal,
   });
 }
