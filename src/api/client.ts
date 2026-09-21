@@ -25,13 +25,13 @@ export class ApiError extends Error {
 
 const http = axios.create({ baseURL: BASE_URL });
 
+let refreshInFlight: Promise<string | null> | null = null;
+
 /**
  * accessToken이 만료돼 401이 났을 때 RefreshToken으로 1회 재발급을 시도한다.
  * 성공하면 새 accessToken을 반환, 실패하면 로그인 정보를 지우고 null을 반환한다.
  * (RefreshToken 헤더명은 Authorization이 아니라 커스텀 헤더 "RefreshToken" — UserController 참고)
  */
-let refreshInFlight: Promise<string | null> | null = null;
-
 async function refreshAccessToken(): Promise<string | null> {
   if (refreshInFlight) return refreshInFlight;
 
@@ -74,6 +74,7 @@ interface RequestOptions {
   signal?: AbortSignal;
 }
 
+/** API 요청을 실행하고 인증 만료 시 토큰 갱신과 선택적 비로그인 재시도를 처리한다. */
 async function request<T>(
   method: AxiosRequestConfig['method'],
   path: string,

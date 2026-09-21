@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { label: '아파트', to: '/search?propertyType=APARTMENT' },
 ] as const;
 
+/** 인증 상태와 알림 정보를 반영하는 공통 헤더를 렌더링한다. */
 function Header() {
   const navigate = useNavigate();
   const [loggedIn, setLoggedIn] = useState(isLoggedIn);
