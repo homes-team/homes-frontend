@@ -29,7 +29,7 @@ let refreshInFlight: Promise<string | null> | null = null;
 
 /**
  * accessToken이 만료돼 401이 났을 때 RefreshToken으로 1회 재발급을 시도한다.
- * 성공하면 새 accessToken을 반환, 실패하면 로그인 정보를 지우고 null을 반환한다.
+ * 성공하면 새 accessToken을 반환하고, 인증 실패가 확인되면 로그인 정보를 지우고 null을 반환한다.
  * (RefreshToken 헤더명은 Authorization이 아니라 커스텀 헤더 "RefreshToken" — UserController 참고)
  */
 async function refreshAccessToken(): Promise<string | null> {
@@ -51,11 +51,14 @@ async function refreshAccessToken(): Promise<string | null> {
       localStorage.setItem(REFRESH_TOKEN_KEY, response.data.result.refreshToken);
       notifyAuthStateChanged();
       return response.data.result.accessToken;
-    } catch {
-      localStorage.removeItem(ACCESS_TOKEN_KEY);
-      localStorage.removeItem(REFRESH_TOKEN_KEY);
-      notifyAuthStateChanged();
-      return null;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        localStorage.removeItem(ACCESS_TOKEN_KEY);
+        localStorage.removeItem(REFRESH_TOKEN_KEY);
+        notifyAuthStateChanged();
+        return null;
+      }
+      throw error;
     }
   })();
 
