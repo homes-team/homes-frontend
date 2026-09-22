@@ -1,4 +1,5 @@
 import {
+  AiEvaluation,
   BuildingInformation,
   PropertyDetail,
   PropertyListItem,
@@ -39,6 +40,11 @@ export function fetchBuildingInformation(
   signal?: AbortSignal,
 ): Promise<BuildingInformation> {
   return apiGet<BuildingInformation>(`/properties/${propertyId}/building-information`, { signal });
+}
+
+/** AI 매물 다면평가 조회 — GET /properties/{propertyId}/ai-evaluation */
+export function fetchAiEvaluation(propertyId: number, signal?: AbortSignal): Promise<AiEvaluation> {
+  return apiGet<AiEvaluation>(`/properties/${propertyId}/ai-evaluation`, { signal });
 }
 
 /** 건물정보 즉시 재수집 — POST /properties/{propertyId}/building-information/resolve (소유자만) */

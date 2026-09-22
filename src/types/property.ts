@@ -11,6 +11,30 @@ export type PropertyType =
 /** TradeType.java 대응 */
 export type TradeType = 'MONTHLY_RENT' | 'JEONSE' | 'SALE';
 
+/** PropertyDirection.java 대응 */
+export type PropertyDirection =
+  | 'SOUTH'
+  | 'SOUTHEAST'
+  | 'SOUTHWEST'
+  | 'EAST'
+  | 'WEST'
+  | 'NORTHEAST'
+  | 'NORTHWEST'
+  | 'NORTH'
+  | 'UNKNOWN';
+
+export const PROPERTY_DIRECTION_LABEL: Record<PropertyDirection, string> = {
+  SOUTH: '남향',
+  SOUTHEAST: '남동향',
+  SOUTHWEST: '남서향',
+  EAST: '동향',
+  WEST: '서향',
+  NORTHEAST: '북동향',
+  NORTHWEST: '북서향',
+  NORTH: '북향',
+  UNKNOWN: '정보 없음',
+};
+
 /** PropertyStatus.java 대응 */
 export type PropertyStatus = 'AVAILABLE' | 'MATCHED' | 'COMPLETED';
 
@@ -206,6 +230,8 @@ export interface PropertyDetail {
   maintenanceFee: number | null;
   totalFloors: number;
   currentFloor: number;
+  direction: PropertyDirection;
+  remodelingYear: number | null;
   area: number;
   aiScore: number | null;
   desiredBrokerageFee: number | null;
@@ -216,6 +242,52 @@ export interface PropertyDetail {
   longitude: number;
   favoriteCount: number;
   isSuspicious: boolean;
+}
+
+export type AiEvaluationCategoryKey =
+  | 'SCHOOL'
+  | 'TRANSPORT'
+  | 'NATURE'
+  | 'SUNLIGHT'
+  | 'BUILDING_CONDITION'
+  | 'INFRASTRUCTURE';
+
+export type AiEvaluationScoreStatus =
+  | 'AVAILABLE'
+  | 'PENDING_DATA'
+  | 'INSUFFICIENT_DATA'
+  | 'NOT_APPLICABLE';
+
+export interface AiEvaluationCategory {
+  key: AiEvaluationCategoryKey;
+  label: string;
+  rawScore: number | null;
+  displayScore: number | null;
+  status: AiEvaluationScoreStatus;
+  source: 'GEOSPATIAL_PIPELINE' | 'PROPERTY_RULE' | 'EXTERNAL_DATA' | 'MANUAL' | 'NONE';
+  description: string;
+}
+
+/** AiEvaluationRespDto.java 대응 */
+export interface AiEvaluation {
+  propertyId: number;
+  overall: {
+    rawScore: number | null;
+    displayScore: number | null;
+    evaluatedCategoryCount: number;
+    totalCategoryCount: number;
+    completeness: number;
+  };
+  categories: AiEvaluationCategory[];
+  report: {
+    summary: string;
+    strengths: string[];
+    weaknesses: string[];
+    notice: string | null;
+  };
+  scoreVersion: string;
+  reportModelVersion: string;
+  generatedAt: string;
 }
 
 /** PropertyListRespDto.java 대응 (카드형 리스트 아이템) */

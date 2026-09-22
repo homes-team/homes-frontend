@@ -1,5 +1,6 @@
-import { apiPatchMultipart, apiPostMultipart } from '../client';
-import { PropertyOption, PropertyType, TradeType } from '../../types/property';
+import axios from 'axios';
+import { apiGet, apiPatch, apiPost } from '../client';
+import { PropertyDirection, PropertyOption, PropertyType, TradeType } from '../../types/property';
 
 /** PropertyCreateReqDto(백엔드) 대응. 백엔드 필드명/타입과 1:1로 맞춰뒀다. */
 export interface CreatePropertyPayload {
@@ -15,6 +16,8 @@ export interface CreatePropertyPayload {
   detailAddress: string;
   currentFloor: number;
   totalFloors: number;
+  direction: PropertyDirection;
+  remodelingYear?: number;
   /** m² */
   area: number;
   description: string;
@@ -26,52 +29,58 @@ export interface CreatePropertyPayload {
   images: File[];
 }
 
-function buildPropertyForm(payload: CreatePropertyPayload): FormData {
-  const form = new FormData();
-  form.append('tradeType', payload.tradeType);
-  form.append('propertyType', payload.propertyType);
-  form.append('deposit', String(payload.deposit));
-  form.append('monthlyRent', String(payload.monthlyRent));
-  form.append('maintenanceFee', String(payload.maintenanceFee));
-  form.append('address', payload.address);
-  form.append('detailAddress', payload.detailAddress);
-  form.append('currentFloor', String(payload.currentFloor));
-  form.append('totalFloors', String(payload.totalFloors));
-  form.append('area', String(payload.area));
-  form.append('description', payload.description ?? '');
-  if (payload.desiredBrokerageFee !== undefined && !Number.isNaN(payload.desiredBrokerageFee)) {
-    form.append('desiredBrokerageFee', String(payload.desiredBrokerageFee));
-  }
-  // List<PropertyOption>은 같은 키를 반복 전송 (searchPropertiesOnMap과 동일 규칙)
-  payload.options.forEach((option) => form.append('options', option));
-  form.append('latitude', String(payload.latitude));
-  form.append('longitude', String(payload.longitude));
-  return form;
+interface PresignedUpload {
+  uploadUrl: string;
+  fileUrl: string;
+}
+
+async function uploadPropertyImages(files: File[]): Promise<string[]> {
+  return Promise.all(files.map(async (file) => {
+    const issued = await apiGet<PresignedUpload>(
+      `/properties/presigned-url?fileName=${encodeURIComponent(file.name)}`,
+      { auth: true },
+    );
+    try {
+      await axios.put(issued.uploadUrl, file, {
+        headers: { 'Content-Type': file.type || 'application/octet-stream' },
+      });
+    } catch {
+      throw new Error('매물 사진 업로드가 차단됐어요. S3 CORS 설정에서 현재 프론트 주소의 PUT 요청을 허용해주세요.');
+    }
+    return issued.fileUrl;
+  }));
+}
+
+function buildPropertyRequest(payload: CreatePropertyPayload, imageUrls: string[]) {
+  const { images: _images, ...request } = payload;
+  return {
+    ...request,
+    remodelingYear: payload.remodelingYear ?? null,
+    desiredBrokerageFee: payload.desiredBrokerageFee ?? null,
+    imageUrls,
+  };
 }
 
 /**
- * 매물 등록 — POST /properties (multipart/form-data)
+ * 매물 등록 — POST /properties (application/json)
  * PropertyController.createProperty / PropertyCreateReqDto 대응.
  * 로그인 필요(UserPrincipal이 없으면 백엔드가 401을 던짐).
  */
-export function createProperty(payload: CreatePropertyPayload): Promise<number> {
-  const form = buildPropertyForm(payload);
-  // @RequestPart(value = "images") List<MultipartFile>
-  payload.images.forEach((file) => form.append('images', file));
-  return apiPostMultipart<number>('/properties', form, { auth: true });
+export async function createProperty(payload: CreatePropertyPayload): Promise<number> {
+  const imageUrls = await uploadPropertyImages(payload.images);
+  return apiPost<number>('/properties', buildPropertyRequest(payload, imageUrls), { auth: true });
 }
 
 /**
- * 매물 수정 — PATCH /properties/{propertyId} (multipart/form-data)
+ * 매물 수정 — PATCH /properties/{propertyId} (application/json)
  * ⚠️ 부분 수정이 아니다 — PropertyUpdateReqDto는 서버가 null 병합을 하지 않고 그대로
  * 덮어쓰므로, 안 보낸 필드는 null로 지워진다. payload에 항상 전체 필드를 채워 보내야 한다.
- * newImages를 보내면 기존 이미지는 전부 삭제되고 새 이미지로 교체된다(안 보내면 기존 유지).
+ * newImageUrls를 보내면 기존 이미지는 전부 삭제되고 새 이미지로 교체된다.
  */
-export function updateProperty(propertyId: number, payload: CreatePropertyPayload): Promise<void> {
-  const form = buildPropertyForm(payload);
-  // @RequestPart(value = "newImages") List<MultipartFile>
-  payload.images.forEach((file) => form.append('newImages', file));
-  return apiPatchMultipart<void>(`/properties/${propertyId}`, form, { auth: true });
+export async function updateProperty(propertyId: number, payload: CreatePropertyPayload): Promise<void> {
+  const newImageUrls = await uploadPropertyImages(payload.images);
+  const { imageUrls: _imageUrls, ...request } = buildPropertyRequest(payload, []);
+  return apiPatch<void>(`/properties/${propertyId}`, { ...request, newImageUrls }, { auth: true });
 }
 
 /**

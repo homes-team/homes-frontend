@@ -7,6 +7,7 @@ import Button from '../../components/ui/Button';
 import { Field, Label, Select, Textarea, Input, HelperText } from '../../components/ui/Field';
 import {
   deleteProperty,
+  fetchAiEvaluation,
   fetchBuildingInformation,
   fetchPropertyDetail,
   reportProperty,
@@ -20,7 +21,9 @@ import { getCurrentUser } from '../../utils/auth';
 import { formatMoney } from '../../utils/format';
 import {
   PROPERTY_OPTION_LABEL,
+  PROPERTY_DIRECTION_LABEL,
   PROPERTY_TYPE_LABEL,
+  AiEvaluation,
   BuildingInformation,
   BuildingInformationStatus,
   PropertyDetail,
@@ -28,6 +31,7 @@ import {
   ReportReason,
   TRADE_TYPE_LABEL,
 } from '../../types/property';
+import AiEvaluationCard from './components/AiEvaluationCard';
 
 const REPORT_REASONS: ReportReason[] = ['FAKE_PROPERTY', 'SOLD_OUT', 'PRICE_MISMATCH', 'INFO_MISMATCH', 'OTHER'];
 
@@ -86,6 +90,10 @@ function PropertyDetailPage() {
   const [buildingInformationError, setBuildingInformationError] = useState<string | null>(null);
   const [buildingInformationRetrying, setBuildingInformationRetrying] = useState(false);
   const [buildingInformationPollingVersion, setBuildingInformationPollingVersion] = useState(0);
+  const [aiEvaluation, setAiEvaluation] = useState<AiEvaluation | null>(null);
+  const [aiEvaluationLoading, setAiEvaluationLoading] = useState(true);
+  const [aiEvaluationError, setAiEvaluationError] = useState<string | null>(null);
+  const [aiEvaluationVersion, setAiEvaluationVersion] = useState(0);
   const buildingInformationResolveRequestId = useRef(0);
   const buildingInformationResolveController = useRef<AbortController | null>(null);
   const buildingInformationPropertyId = useRef(id);
@@ -186,6 +194,26 @@ function PropertyDetailPage() {
       if (pollingTimer !== undefined) window.clearTimeout(pollingTimer);
     };
   }, [id, buildingInformationPollingVersion]);
+
+  useEffect(() => {
+    if (!Number.isFinite(id)) return;
+
+    const controller = new AbortController();
+    setAiEvaluationLoading(true);
+    setAiEvaluationError(null);
+
+    fetchAiEvaluation(id, controller.signal)
+      .then(setAiEvaluation)
+      .catch((err) => {
+        if (controller.signal.aborted) return;
+        setAiEvaluationError(err instanceof ApiError ? err.message : 'AI 다면평가를 불러오지 못했어요.');
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setAiEvaluationLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [id, aiEvaluationVersion]);
 
   const handleResolveBuildingInformation = async () => {
     buildingInformationResolveController.current?.abort();
@@ -350,6 +378,10 @@ function PropertyDetailPage() {
             {property.currentFloor}/{property.totalFloors}층 · {property.area}m²
             {property.nearestStation ? ` · ${property.nearestStation} 도보 ${property.walkingTime}분` : ''}
           </p>
+          <p className="text-[13px] text-gray-500">
+            방향 {PROPERTY_DIRECTION_LABEL[property.direction]}
+            {property.remodelingYear ? ` · ${property.remodelingYear}년 리모델링` : ''}
+          </p>
           {property.desiredBrokerageFee !== null && (
             <p className="text-[13px] text-gray-500">희망 중개수수료율 {property.desiredBrokerageFee}%</p>
           )}
@@ -502,6 +534,19 @@ function PropertyDetailPage() {
             {buildingInformationError}
           </p>
         )}
+      </section>
+
+      <section className="mt-12 border-t border-gray-200 pt-8" aria-live="polite">
+        <div className="mb-4">
+          <h2 className="text-xl font-bold text-gray-900">AI 매물 다면평가</h2>
+          <p className="mt-1 text-sm text-gray-500">입지 데이터와 매물 정보를 종합해 5점 만점으로 보여드려요.</p>
+        </div>
+        <AiEvaluationCard
+          evaluation={aiEvaluation}
+          loading={aiEvaluationLoading}
+          error={aiEvaluationError}
+          onRetry={() => setAiEvaluationVersion((version) => version + 1)}
+        />
       </section>
 
       <section className="mt-12 border-t border-gray-200 pt-8">
