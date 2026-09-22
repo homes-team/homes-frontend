@@ -1,11 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import PageShell from '../../components/layout/PageShell';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import { Field, Label, Select, Textarea, Input, HelperText } from '../../components/ui/Field';
-import { deleteProperty, fetchPropertyDetail, reportProperty, toggleFavorite } from '../../api/property/propertyApi';
+import {
+  deleteProperty,
+  fetchBuildingInformation,
+  fetchPropertyDetail,
+  reportProperty,
+  resolveBuildingInformation,
+  toggleFavorite,
+} from '../../api/property/propertyApi';
 import { fetchMyProperties } from '../../api/user/userApi';
 import { createBid } from '../../api/bid/bidApi';
 import { ApiError, isLoggedIn } from '../../api/client';
@@ -14,6 +21,8 @@ import { formatMoney } from '../../utils/format';
 import {
   PROPERTY_OPTION_LABEL,
   PROPERTY_TYPE_LABEL,
+  BuildingInformation,
+  BuildingInformationStatus,
   PropertyDetail,
   REPORT_REASON_LABEL,
   ReportReason,
@@ -21,6 +30,46 @@ import {
 } from '../../types/property';
 
 const REPORT_REASONS: ReportReason[] = ['FAKE_PROPERTY', 'SOLD_OUT', 'PRICE_MISMATCH', 'INFO_MISMATCH', 'OTHER'];
+
+const BUILDING_STATUS: Record<
+  BuildingInformationStatus,
+  { label: string; description: string; badge: 'default' | 'primary' | 'danger' }
+> = {
+  NOT_COLLECTED: {
+    label: '수집 대기',
+    description: '아직 건축물 정보를 수집하지 않았어요.',
+    badge: 'default',
+  },
+  PENDING: {
+    label: '수집 대기',
+    description: '건축물 정보 자동 수집을 기다리고 있어요.',
+    badge: 'primary',
+  },
+  PROCESSING: {
+    label: '수집 중',
+    description: '공공데이터에서 건축물 정보를 확인하고 있어요.',
+    badge: 'primary',
+  },
+  PARTIAL: {
+    label: '일부 정보 수집',
+    description: '확인 가능한 건축물 정보를 먼저 반영했어요.',
+    badge: 'default',
+  },
+  RESOLVED: {
+    label: '수집 완료',
+    description: '건축물 정보 수집을 완료했어요.',
+    badge: 'primary',
+  },
+  FAILED: {
+    label: '수집 실패',
+    description: '건축물 정보를 불러오지 못했어요.',
+    badge: 'danger',
+  },
+};
+
+function displayValue(value: string | number | null, suffix = '') {
+  return value === null || value === '' ? '-' : `${value}${suffix}`;
+}
 
 function PropertyDetailPage() {
   const { propertyId } = useParams<{ propertyId: string }>();
@@ -33,6 +82,14 @@ function PropertyDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [isOwner, setIsOwner] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
+  const [buildingInformation, setBuildingInformation] = useState<BuildingInformation | null>(null);
+  const [buildingInformationError, setBuildingInformationError] = useState<string | null>(null);
+  const [buildingInformationRetrying, setBuildingInformationRetrying] = useState(false);
+  const [buildingInformationPollingVersion, setBuildingInformationPollingVersion] = useState(0);
+  const buildingInformationResolveRequestId = useRef(0);
+  const buildingInformationResolveController = useRef<AbortController | null>(null);
+  const buildingInformationPropertyId = useRef(id);
+  buildingInformationPropertyId.current = id;
 
   const [favoriteMessage, setFavoriteMessage] = useState<string | null>(null);
   const [favorited, setFavorited] = useState<boolean | null>(null);
@@ -47,6 +104,18 @@ function PropertyDetailPage() {
   const [bidContent, setBidContent] = useState('');
   const [bidMessage, setBidMessage] = useState<string | null>(null);
   const [bidSubmitting, setBidSubmitting] = useState(false);
+
+  useEffect(() => {
+    setBuildingInformation(null);
+    setBuildingInformationError(null);
+    setBuildingInformationRetrying(false);
+
+    return () => {
+      buildingInformationResolveRequestId.current += 1;
+      buildingInformationResolveController.current?.abort();
+      buildingInformationResolveController.current = null;
+    };
+  }, [id]);
 
   useEffect(() => {
     if (!Number.isFinite(id)) return;
@@ -81,6 +150,75 @@ function PropertyDetailPage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  useEffect(() => {
+    if (!Number.isFinite(id)) return;
+
+    let cancelled = false;
+    let pollingTimer: number | undefined;
+    let controller: AbortController | undefined;
+
+    const loadBuildingInformation = async () => {
+      controller = new AbortController();
+      try {
+        const data = await fetchBuildingInformation(id, controller.signal);
+        if (cancelled) return;
+
+        setBuildingInformation(data);
+        setBuildingInformationError(null);
+
+        if (data.status === 'PENDING' || data.status === 'PROCESSING') {
+          pollingTimer = window.setTimeout(loadBuildingInformation, 2000);
+        }
+      } catch (err) {
+        if (cancelled || (err instanceof DOMException && err.name === 'AbortError')) return;
+        setBuildingInformationError(
+          err instanceof ApiError ? err.message : '건축물 정보 상태를 확인하지 못했어요.',
+        );
+      }
+    };
+
+    void loadBuildingInformation();
+
+    return () => {
+      cancelled = true;
+      controller?.abort();
+      if (pollingTimer !== undefined) window.clearTimeout(pollingTimer);
+    };
+  }, [id, buildingInformationPollingVersion]);
+
+  const handleResolveBuildingInformation = async () => {
+    buildingInformationResolveController.current?.abort();
+    const controller = new AbortController();
+    const requestId = ++buildingInformationResolveRequestId.current;
+    buildingInformationResolveController.current = controller;
+    const isCurrentRequest = () => (
+      buildingInformationResolveRequestId.current === requestId && buildingInformationPropertyId.current === id
+    );
+
+    setBuildingInformationRetrying(true);
+    setBuildingInformationError(null);
+    try {
+      const result = await resolveBuildingInformation(id, controller.signal);
+      if (!isCurrentRequest()) return;
+
+      setBuildingInformation(result);
+      if (result.status === 'PENDING' || result.status === 'PROCESSING') {
+        setBuildingInformationPollingVersion((version) => version + 1);
+      }
+    } catch (err) {
+      if (!isCurrentRequest() || controller.signal.aborted) return;
+
+      setBuildingInformationError(
+        err instanceof ApiError ? err.message : '건축물 정보 재수집에 실패했어요.',
+      );
+    } finally {
+      if (isCurrentRequest()) {
+        buildingInformationResolveController.current = null;
+        setBuildingInformationRetrying(false);
+      }
+    }
+  };
 
   const handleToggleFavorite = async () => {
     setFavoriteMessage(null);
@@ -293,6 +431,78 @@ function PropertyDetailPage() {
           {bidMessage && <HelperText>{bidMessage}</HelperText>}
         </div>
       </div>
+
+      <section className="mt-12 border-t border-gray-200 pt-8" aria-live="polite">
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <h2 className="text-xl font-bold text-gray-900">건축물 정보</h2>
+          {buildingInformation && (
+            <Badge variant={BUILDING_STATUS[buildingInformation.status].badge}>
+              {BUILDING_STATUS[buildingInformation.status].label}
+            </Badge>
+          )}
+        </div>
+
+        {!buildingInformation && !buildingInformationError && (
+          <p className="text-sm text-gray-500">건축물 정보 상태를 확인하는 중...</p>
+        )}
+
+        {buildingInformation && (
+          <Card className="flex flex-col gap-5">
+            <div>
+              <p className="text-sm font-medium text-gray-900">
+                {BUILDING_STATUS[buildingInformation.status].description}
+              </p>
+              {(buildingInformation.status === 'PENDING' || buildingInformation.status === 'PROCESSING') && (
+                <p className="mt-1 text-xs text-gray-500">완료될 때까지 이 화면에서 자동으로 상태를 갱신합니다.</p>
+              )}
+              {buildingInformation.status === 'FAILED' && buildingInformation.lastErrorMessage && (
+                <p className="mt-1 text-sm text-danger">{buildingInformation.lastErrorMessage}</p>
+              )}
+            </div>
+
+            {(buildingInformation.status === 'RESOLVED' || buildingInformation.status === 'PARTIAL') && (
+              <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3 lg:grid-cols-4">
+                {[
+                  ['건축연도', displayValue(buildingInformation.buildingYear, '년')],
+                  ['사용승인일', displayValue(buildingInformation.approvalDate)],
+                  ['세대 수', displayValue(buildingInformation.householdCount, '세대')],
+                  ['건물 동 수', displayValue(buildingInformation.buildingCount, '동')],
+                  ['지상/지하층', `${displayValue(buildingInformation.groundFloorCount, '층')} / ${displayValue(buildingInformation.undergroundFloorCount, '층')}`],
+                  ['엘리베이터', displayValue(buildingInformation.elevatorCount, '대')],
+                  ['주차', displayValue(buildingInformation.parkingCount, '대')],
+                  ['난방/복도', `${displayValue(buildingInformation.heatingType)} / ${displayValue(buildingInformation.corridorType)}`],
+                ].map(([label, value]) => (
+                  <div key={label}>
+                    <dt className="text-xs text-gray-500">{label}</dt>
+                    <dd className="mt-1 text-sm font-medium text-gray-900">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+
+            {isOwner && (buildingInformation.status === 'FAILED' || buildingInformation.status === 'NOT_COLLECTED') && (
+              <div>
+                <Button
+                  variant="secondary"
+                  onClick={handleResolveBuildingInformation}
+                  disabled={buildingInformationRetrying}
+                >
+                  {buildingInformationRetrying ? '다시 수집 중...' : '건축물 정보 다시 수집'}
+                </Button>
+                {buildingInformation.retryCount !== null && buildingInformation.retryCount > 0 && (
+                  <p className="mt-2 text-xs text-gray-500">현재 주소에서 {buildingInformation.retryCount}회 시도했어요.</p>
+                )}
+              </div>
+            )}
+          </Card>
+        )}
+
+        {buildingInformationError && (
+          <p className="mt-3 rounded-button bg-red-50 p-3 text-sm font-medium text-danger">
+            {buildingInformationError}
+          </p>
+        )}
+      </section>
 
       <section className="mt-12 border-t border-gray-200 pt-8">
         <h2 className="mb-4 text-xl font-bold text-gray-900">상세 설명</h2>

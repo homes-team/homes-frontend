@@ -14,6 +14,42 @@ export type TradeType = 'MONTHLY_RENT' | 'JEONSE' | 'SALE';
 /** PropertyStatus.java 대응 */
 export type PropertyStatus = 'AVAILABLE' | 'MATCHED' | 'COMPLETED';
 
+/** 건축물대장·K-apt 정보 자동 수집 상태 */
+export type BuildingInformationStatus =
+  | 'NOT_COLLECTED'
+  | 'PENDING'
+  | 'PROCESSING'
+  | 'PARTIAL'
+  | 'RESOLVED'
+  | 'FAILED';
+
+/** BuildingInformationRespDto.java 대응 */
+export interface BuildingInformation {
+  propertyId: number;
+  status: BuildingInformationStatus;
+  normalizedAddress: string | null;
+  buildingRegisterId: string | null;
+  kaptCode: string | null;
+  approvalDate: string | null;
+  buildingYear: number | null;
+  householdCount: number | null;
+  buildingCount: number | null;
+  buildingHeightMeters: number | null;
+  groundFloorCount: number | null;
+  undergroundFloorCount: number | null;
+  elevatorCount: number | null;
+  parkingCount: number | null;
+  corridorType: string | null;
+  heatingType: string | null;
+  dataSources: string | null;
+  collectedAt: string | null;
+  retryCount: number | null;
+  lastAttemptAt: string | null;
+  lastErrorCode: string | null;
+  lastErrorMessage: string | null;
+  missingFields: string[];
+}
+
 /** PropertyOption.java 대응 (기존 자유 태그 tags를 대체) */
 export type PropertyOption =
   | 'ELEVATOR'
