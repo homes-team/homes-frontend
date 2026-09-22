@@ -42,8 +42,14 @@ export function fetchBuildingInformation(
 }
 
 /** 건물정보 즉시 재수집 — POST /properties/{propertyId}/building-information/resolve (소유자만) */
-export function resolveBuildingInformation(propertyId: number): Promise<BuildingInformation> {
-  return apiPost<BuildingInformation>(`/properties/${propertyId}/building-information/resolve`, {}, { auth: true });
+export function resolveBuildingInformation(
+  propertyId: number,
+  signal?: AbortSignal,
+): Promise<BuildingInformation> {
+  return apiPost<BuildingInformation>(`/properties/${propertyId}/building-information/resolve`, {}, {
+    auth: true,
+    signal,
+  });
 }
 
 /** 매물 삭제 — DELETE /properties/{propertyId} (소유자만) */

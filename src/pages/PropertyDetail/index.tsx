@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import PageShell from '../../components/layout/PageShell';
 import Card from '../../components/ui/Card';
@@ -85,6 +85,11 @@ function PropertyDetailPage() {
   const [buildingInformation, setBuildingInformation] = useState<BuildingInformation | null>(null);
   const [buildingInformationError, setBuildingInformationError] = useState<string | null>(null);
   const [buildingInformationRetrying, setBuildingInformationRetrying] = useState(false);
+  const [buildingInformationPollingVersion, setBuildingInformationPollingVersion] = useState(0);
+  const buildingInformationResolveRequestId = useRef(0);
+  const buildingInformationResolveController = useRef<AbortController | null>(null);
+  const buildingInformationPropertyId = useRef(id);
+  buildingInformationPropertyId.current = id;
 
   const [favoriteMessage, setFavoriteMessage] = useState<string | null>(null);
   const [favorited, setFavorited] = useState<boolean | null>(null);
@@ -99,6 +104,18 @@ function PropertyDetailPage() {
   const [bidContent, setBidContent] = useState('');
   const [bidMessage, setBidMessage] = useState<string | null>(null);
   const [bidSubmitting, setBidSubmitting] = useState(false);
+
+  useEffect(() => {
+    setBuildingInformation(null);
+    setBuildingInformationError(null);
+    setBuildingInformationRetrying(false);
+
+    return () => {
+      buildingInformationResolveRequestId.current += 1;
+      buildingInformationResolveController.current?.abort();
+      buildingInformationResolveController.current = null;
+    };
+  }, [id]);
 
   useEffect(() => {
     if (!Number.isFinite(id)) return;
@@ -161,8 +178,6 @@ function PropertyDetailPage() {
       }
     };
 
-    setBuildingInformation(null);
-    setBuildingInformationError(null);
     void loadBuildingInformation();
 
     return () => {
@@ -170,20 +185,38 @@ function PropertyDetailPage() {
       controller?.abort();
       if (pollingTimer !== undefined) window.clearTimeout(pollingTimer);
     };
-  }, [id]);
+  }, [id, buildingInformationPollingVersion]);
 
   const handleResolveBuildingInformation = async () => {
+    buildingInformationResolveController.current?.abort();
+    const controller = new AbortController();
+    const requestId = ++buildingInformationResolveRequestId.current;
+    buildingInformationResolveController.current = controller;
+    const isCurrentRequest = () => (
+      buildingInformationResolveRequestId.current === requestId && buildingInformationPropertyId.current === id
+    );
+
     setBuildingInformationRetrying(true);
     setBuildingInformationError(null);
     try {
-      const result = await resolveBuildingInformation(id);
+      const result = await resolveBuildingInformation(id, controller.signal);
+      if (!isCurrentRequest()) return;
+
       setBuildingInformation(result);
+      if (result.status === 'PENDING' || result.status === 'PROCESSING') {
+        setBuildingInformationPollingVersion((version) => version + 1);
+      }
     } catch (err) {
+      if (!isCurrentRequest() || controller.signal.aborted) return;
+
       setBuildingInformationError(
         err instanceof ApiError ? err.message : '건축물 정보 재수집에 실패했어요.',
       );
     } finally {
-      setBuildingInformationRetrying(false);
+      if (isCurrentRequest()) {
+        buildingInformationResolveController.current = null;
+        setBuildingInformationRetrying(false);
+      }
     }
   };
 
