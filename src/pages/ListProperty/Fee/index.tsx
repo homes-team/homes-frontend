@@ -41,6 +41,8 @@ function ListPropertyFeePage() {
         detailAddress: form.detailAddress,
         currentFloor: Number(form.currentFloor) || 0,
         totalFloors: Number(form.totalFloors) || 0,
+        direction: form.direction,
+        remodelingYear: form.remodelingYear.trim() === '' ? undefined : Number(form.remodelingYear),
         area: Number(form.area) || 0,
         description: form.description,
         desiredBrokerageFee: desiredBrokerageFee.trim() === '' ? undefined : Number(desiredBrokerageFee),
