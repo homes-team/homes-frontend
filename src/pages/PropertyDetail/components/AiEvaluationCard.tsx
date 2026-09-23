@@ -30,6 +30,7 @@ function AiEvaluationCard({ evaluation, loading, error, onRetry }: AiEvaluationC
   }
 
   const { overall, report } = evaluation;
+  const categories = Array.isArray(evaluation.categories) ? evaluation.categories : [];
 
   return (
     <Card className="flex flex-col gap-6">
@@ -58,7 +59,7 @@ function AiEvaluationCard({ evaluation, loading, error, onRetry }: AiEvaluationC
       </div>
 
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {evaluation.categories.map((category) => {
+        {categories.map((category) => {
           const available = category.status === 'AVAILABLE' && category.displayScore !== null;
           return (
             <li key={category.key} className="rounded-card border border-gray-200 p-4">

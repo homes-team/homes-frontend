@@ -542,7 +542,7 @@ function PropertyDetailPage() {
           <p className="mt-1 text-sm text-gray-500">입지 데이터와 매물 정보를 종합해 5점 만점으로 보여드려요.</p>
         </div>
         <AiEvaluationCard
-          evaluation={aiEvaluation}
+          evaluation={property.propertyId === id && aiEvaluation?.propertyId === id ? aiEvaluation : null}
           loading={aiEvaluationLoading}
           error={aiEvaluationError}
           onRetry={() => setAiEvaluationVersion((version) => version + 1)}

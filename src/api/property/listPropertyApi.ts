@@ -34,6 +34,8 @@ interface PresignedUpload {
   fileUrl: string;
 }
 
+const IMAGE_UPLOAD_TIMEOUT_MS = 30_000;
+
 async function uploadPropertyImages(files: File[]): Promise<string[]> {
   return Promise.all(files.map(async (file) => {
     const issued = await apiGet<PresignedUpload>(
@@ -43,6 +45,7 @@ async function uploadPropertyImages(files: File[]): Promise<string[]> {
     try {
       await axios.put(issued.uploadUrl, file, {
         headers: { 'Content-Type': file.type || 'application/octet-stream' },
+        timeout: IMAGE_UPLOAD_TIMEOUT_MS,
       });
     } catch {
       throw new Error('매물 사진 업로드가 차단됐어요. S3 CORS 설정에서 현재 프론트 주소의 PUT 요청을 허용해주세요.');
@@ -80,7 +83,11 @@ export async function createProperty(payload: CreatePropertyPayload): Promise<nu
 export async function updateProperty(propertyId: number, payload: CreatePropertyPayload): Promise<void> {
   const newImageUrls = await uploadPropertyImages(payload.images);
   const { imageUrls: _imageUrls, ...request } = buildPropertyRequest(payload, []);
-  return apiPatch<void>(`/properties/${propertyId}`, { ...request, newImageUrls }, { auth: true });
+  return apiPatch<void>(
+    `/properties/${propertyId}`,
+    { ...request, ...(newImageUrls.length > 0 ? { newImageUrls } : {}) },
+    { auth: true },
+  );
 }
 
 /**

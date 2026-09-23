@@ -52,4 +52,12 @@ describe('AiEvaluationCard', () => {
     expect(screen.getByText('수집 대기')).toBeInTheDocument();
     expect(screen.getByText('주실 방향 정보가 필요합니다.')).toBeInTheDocument();
   });
+
+  it('renders when categories are absent from a malformed response', () => {
+    const incompleteEvaluation = { ...evaluation, categories: null } as unknown as AiEvaluation;
+
+    render(<AiEvaluationCard evaluation={incompleteEvaluation} loading={false} error={null} onRetry={() => {}} />);
+
+    expect(screen.getByText('수집된 데이터를 기준으로 평가했습니다.')).toBeTruthy();
+  });
 });
