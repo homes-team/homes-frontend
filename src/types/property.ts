@@ -258,6 +258,21 @@ export type AiEvaluationScoreStatus =
   | 'INSUFFICIENT_DATA'
   | 'NOT_APPLICABLE';
 
+export interface AiEvaluationEvidence {
+  code: string;
+  label: string;
+  value: string;
+  unit: string | null;
+  criterion: string;
+  contribution: number | null;
+  source: string;
+}
+
+export interface AiEvaluationCalculation {
+  formula: string;
+  policyVersion: string;
+}
+
 export interface AiEvaluationCategory {
   key: AiEvaluationCategoryKey;
   label: string;
@@ -266,6 +281,9 @@ export interface AiEvaluationCategory {
   status: AiEvaluationScoreStatus;
   source: 'GEOSPATIAL_PIPELINE' | 'PROPERTY_RULE' | 'EXTERNAL_DATA' | 'MANUAL' | 'NONE';
   description: string;
+  /** 구버전 백엔드 응답과의 호환을 위해 선택값으로 처리한다. */
+  evidence?: AiEvaluationEvidence[];
+  calculation?: AiEvaluationCalculation | null;
 }
 
 /** AiEvaluationRespDto.java 대응 */

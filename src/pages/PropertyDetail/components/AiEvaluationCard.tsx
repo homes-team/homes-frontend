@@ -13,6 +13,16 @@ function formatScore(score: number | null) {
   return score === null ? '-' : score.toFixed(1);
 }
 
+function formatEvidenceValue(value: string, unit: string | null) {
+  return `${value}${unit ?? ''}`;
+}
+
+function formatContribution(contribution: number | null | undefined) {
+  if (contribution === null || contribution === undefined) return null;
+  const sign = contribution > 0 ? '+' : '';
+  return `${sign}${contribution.toFixed(1)}점 반영`;
+}
+
 function AiEvaluationCard({ evaluation, loading, error, onRetry }: AiEvaluationCardProps) {
   if (loading) {
     return <p className="text-sm text-gray-500">AI 다면평가를 불러오는 중...</p>;
@@ -36,7 +46,7 @@ function AiEvaluationCard({ evaluation, loading, error, onRetry }: AiEvaluationC
     <Card className="flex flex-col gap-6">
       <div className="grid gap-5 md:grid-cols-[180px_1fr] md:items-center">
         <div className="rounded-card bg-primary-50 p-5 text-center">
-          <p className="text-xs font-medium text-gray-500">종합 점수</p>
+          <p className="text-xs font-medium text-gray-500">근거 기반 종합 점수</p>
           <p className="mt-1 text-4xl font-bold text-primary">
             {formatScore(overall.displayScore)}
             <span className="ml-1 text-base font-medium text-gray-500">/ 5.0</span>
@@ -49,18 +59,16 @@ function AiEvaluationCard({ evaluation, loading, error, onRetry }: AiEvaluationC
         <div>
           <p className="text-base font-semibold text-gray-900">{report.summary}</p>
           {report.notice && <p className="mt-2 text-sm text-gray-500">{report.notice}</p>}
-          <div className="mt-3 h-2 overflow-hidden rounded-pill bg-gray-100" aria-label={`데이터 완성도 ${overall.completeness}%`}>
-            <div className="h-full rounded-pill bg-primary" style={{ width: `${overall.completeness}%` }} />
-          </div>
-          <p className="mt-1 text-right text-xs text-gray-500">
-            {overall.evaluatedCategoryCount}/{overall.totalCategoryCount}개 항목 평가 완료
+          <p className="mt-3 text-xs leading-relaxed text-gray-500">
+            종합점수는 산정 근거가 확인된 {overall.evaluatedCategoryCount}개 항목을 기준으로 계산합니다.
           </p>
         </div>
       </div>
 
-      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="grid gap-4 lg:grid-cols-2">
         {categories.map((category) => {
           const available = category.status === 'AVAILABLE' && category.displayScore !== null;
+          const evidence = Array.isArray(category.evidence) ? category.evidence : [];
           return (
             <li key={category.key} className="rounded-card border border-gray-200 p-4">
               <div className="flex items-center justify-between gap-2">
@@ -68,7 +76,7 @@ function AiEvaluationCard({ evaluation, loading, error, onRetry }: AiEvaluationC
                 {available ? (
                   <strong className="text-primary">{formatScore(category.displayScore)} / 5.0</strong>
                 ) : (
-                  <Badge>수집 대기</Badge>
+                  <Badge>평가 근거 없음</Badge>
                 )}
               </div>
               <div className="mt-3 h-1.5 overflow-hidden rounded-pill bg-gray-100">
@@ -77,7 +85,38 @@ function AiEvaluationCard({ evaluation, loading, error, onRetry }: AiEvaluationC
                   style={{ width: `${available ? (category.displayScore! / 5) * 100 : 0}%` }}
                 />
               </div>
-              <p className="mt-3 text-xs leading-relaxed text-gray-500">{category.description}</p>
+              <p className="mt-3 text-sm leading-relaxed text-gray-600">{category.description}</p>
+
+              {available && evidence.length > 0 && (
+                <div className="mt-4 border-t border-gray-100 pt-4">
+                  <p className="text-xs font-semibold text-gray-900">왜 이 점수인가요?</p>
+                  <dl className="mt-3 space-y-3">
+                    {evidence.map((item) => {
+                      const contribution = formatContribution(item.contribution);
+                      return (
+                        <div key={item.code} className="rounded-button bg-gray-50 px-3 py-2.5">
+                          <div className="flex items-start justify-between gap-3">
+                            <dt className="text-xs font-medium text-gray-600">{item.label}</dt>
+                            <dd className="shrink-0 text-sm font-semibold text-gray-900">
+                              {formatEvidenceValue(item.value, item.unit)}
+                            </dd>
+                          </div>
+                          <div className="mt-1 flex flex-wrap gap-x-2 text-[11px] leading-relaxed text-gray-500">
+                            <span>기준: {item.criterion}</span>
+                            {contribution && <span className="font-medium text-primary">{contribution}</span>}
+                            <span>출처: {item.source}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </dl>
+                  {category.calculation && (
+                    <p className="mt-3 rounded-button bg-primary-50 px-3 py-2 text-xs leading-relaxed text-primary">
+                      <span className="font-semibold">계산식:</span> {category.calculation.formula}
+                    </p>
+                  )}
+                </div>
+              )}
             </li>
           );
         })}
