@@ -67,8 +67,8 @@ describe('AiEvaluationCard', () => {
     expect(screen.getByText('300m')).toBeInTheDocument();
     expect(screen.getByText('기준: 500m 이하')).toBeInTheDocument();
     expect(screen.getByText('+40.0점 반영')).toBeInTheDocument();
-    expect(screen.getByText('출처: 전국 교육시설 데이터')).toBeInTheDocument();
-    expect(screen.getByText(/학교 거리 점수×60%/)).toBeInTheDocument();
+    expect(screen.queryByText('출처: 전국 교육시설 데이터')).not.toBeInTheDocument();
+    expect(screen.queryByText(/학교 거리 점수×60%/)).not.toBeInTheDocument();
     expect(screen.getByText('평가 근거 없음')).toBeInTheDocument();
     expect(screen.getByText('주실 방향 정보가 필요합니다.')).toBeInTheDocument();
   });

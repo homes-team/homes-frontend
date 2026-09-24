@@ -104,17 +104,11 @@ function AiEvaluationCard({ evaluation, loading, error, onRetry }: AiEvaluationC
                           <div className="mt-1 flex flex-wrap gap-x-2 text-[11px] leading-relaxed text-gray-500">
                             <span>기준: {item.criterion}</span>
                             {contribution && <span className="font-medium text-primary">{contribution}</span>}
-                            <span>출처: {item.source}</span>
                           </div>
                         </div>
                       );
                     })}
                   </dl>
-                  {category.calculation && (
-                    <p className="mt-3 rounded-button bg-primary-50 px-3 py-2 text-xs leading-relaxed text-primary">
-                      <span className="font-semibold">계산식:</span> {category.calculation.formula}
-                    </p>
-                  )}
                 </div>
               )}
             </li>
