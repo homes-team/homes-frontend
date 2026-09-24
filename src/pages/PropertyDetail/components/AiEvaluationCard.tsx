@@ -96,8 +96,8 @@ function AiEvaluationCard({ evaluation, loading, error, onRetry }: AiEvaluationC
                       return (
                         <div key={item.code} className="rounded-button bg-gray-50 px-3 py-2.5">
                           <div className="flex items-start justify-between gap-3">
-                            <dt className="text-xs font-medium text-gray-600">{item.label}</dt>
-                            <dd className="shrink-0 text-sm font-semibold text-gray-900">
+                            <dt className="shrink-0 text-xs font-medium text-gray-600">{item.label}</dt>
+                            <dd className="min-w-0 flex-1 break-words text-right text-sm font-semibold text-gray-900">
                               {formatEvidenceValue(item.value, item.unit)}
                             </dd>
                           </div>
