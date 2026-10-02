@@ -18,14 +18,14 @@ function AiEvaluationSummaryCard({ evaluation, loading, error, onRetry, onDetail
         <p className="mt-1 text-xs leading-relaxed text-gray-500">입지와 매물 정보를 여섯 관점으로 살펴봤어요.</p>
       </div>
 
-      {loading && <p className="px-5 py-10 text-center text-sm text-gray-500">평가를 불러오는 중...</p>}
+      {loading && <p aria-live="polite" className="px-5 py-10 text-center text-sm text-gray-500">평가를 불러오는 중...</p>}
       {!loading && (error || !evaluation) && (
-        <div className="px-5 py-8 text-center text-sm text-danger">
+        <div aria-live="polite" className="px-5 py-8 text-center text-sm text-danger">
           <p>{error ?? 'AI 다면평가를 불러오지 못했어요.'}</p>
           <button type="button" className="mt-2 font-semibold underline" onClick={onRetry}>다시 시도</button>
         </div>
       )}
-      {!loading && evaluation && (
+      {!loading && !error && evaluation && (
         <>
           <div className="px-5 pb-2 pt-5 text-center">
             <p className="text-xs font-medium text-primary">종합 AI 평점</p>

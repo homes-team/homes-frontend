@@ -11,29 +11,40 @@ function AiEvaluationReportPage() {
   const id = Number(propertyId);
   const navigate = useNavigate();
   const [evaluation, setEvaluation] = useState<AiEvaluation | null>(null);
-  const [title, setTitle] = useState('매물');
+  const [propertyTitle, setPropertyTitle] = useState<{ propertyId: number; title: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
+  const title = propertyTitle?.propertyId === id ? propertyTitle.title : '매물';
+  const currentEvaluation = evaluation?.propertyId === id ? evaluation : null;
 
   useEffect(() => {
-    if (!Number.isFinite(id)) return;
+    setPropertyTitle(null);
+    setEvaluation(null);
+    if (!Number.isFinite(id)) {
+      setLoading(false);
+      setError('유효하지 않은 매물 ID입니다.');
+      return;
+    }
     const controller = new AbortController();
     setLoading(true);
     setError(null);
-    Promise.all([
-      fetchAiEvaluation(id, controller.signal),
-      fetchPropertyDetail(id, controller.signal),
-    ])
-      .then(([result, property]) => {
-        setEvaluation(result);
-        setTitle(property.title);
+    fetchAiEvaluation(id, controller.signal)
+      .then((result) => {
+        if (!controller.signal.aborted) setEvaluation(result);
       })
       .catch((reason: Error) => {
         if (!controller.signal.aborted) setError(reason.message);
       })
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false);
+      });
+    fetchPropertyDetail(id, controller.signal)
+      .then((property) => {
+        if (!controller.signal.aborted) setPropertyTitle({ propertyId: id, title: property.title });
+      })
+      .catch(() => {
+        // The title is optional; keep the default when property details are unavailable.
       });
     return () => controller.abort();
   }, [id, version]);
@@ -49,17 +60,17 @@ function AiEvaluationReportPage() {
         <p className="mt-2 text-sm text-gray-500">여섯 가지 관점의 균형과 주변 환경을 한눈에 확인해 보세요.</p>
       </div>
 
-      {evaluation && !loading && !error && (
+      {currentEvaluation && !loading && !error && (
         <div className="mb-8 rounded-card border border-primary-100 bg-primary-50 p-5">
           <div className="mx-auto max-w-[320px] text-center">
-            <p className="text-sm font-semibold text-primary">종합 {evaluation.overall.displayScore?.toFixed(1) ?? '-'} / 5.0</p>
-            <AiRadarChart categories={evaluation.categories ?? []} />
+            <p className="text-sm font-semibold text-primary">종합 {currentEvaluation.overall.displayScore?.toFixed(1) ?? '-'} / 5.0</p>
+            <AiRadarChart categories={currentEvaluation.categories ?? []} />
           </div>
         </div>
       )}
 
       <AiEvaluationCard
-        evaluation={evaluation}
+        evaluation={currentEvaluation}
         loading={loading}
         error={error}
         onRetry={() => setVersion((current) => current + 1)}

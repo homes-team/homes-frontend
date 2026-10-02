@@ -32,9 +32,24 @@ describe('AiEvaluationSummaryCard', () => {
       />,
     );
 
-    expect(screen.getByLabelText('다면평가 육각형 차트')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /다면평가 육각형 차트/ })).toBeInTheDocument();
     expect(screen.getByText('4.2')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '자세히 보기' }));
     expect(onDetails).toHaveBeenCalledOnce();
   });
+});
+
+it('announces status changes and hides stale results while preserving retry', () => {
+  const onRetry = vi.fn();
+  const props = { evaluation, onRetry, onDetails: vi.fn() };
+  const { rerender } = render(<AiEvaluationSummaryCard {...props} loading error={null} />);
+  expect(screen.getByText('평가를 불러오는 중...')).toHaveAttribute('aria-live', 'polite');
+
+  rerender(<AiEvaluationSummaryCard {...props} loading={false} error="요청 실패" />);
+  expect(screen.getByText('요청 실패').parentElement).toHaveAttribute('aria-live', 'polite');
+  expect(screen.queryByRole('img')).not.toBeInTheDocument();
+  expect(screen.queryByText('4.2')).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: '자세히 보기' })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: '다시 시도' }));
+  expect(onRetry).toHaveBeenCalledOnce();
 });
