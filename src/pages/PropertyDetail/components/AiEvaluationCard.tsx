@@ -17,12 +17,6 @@ function formatEvidenceValue(value: string, unit: string | null) {
   return `${value}${unit ?? ''}`;
 }
 
-function formatContribution(contribution: number | null | undefined) {
-  if (contribution === null || contribution === undefined) return null;
-  const sign = contribution > 0 ? '+' : '';
-  return `${sign}${contribution.toFixed(1)}점 반영`;
-}
-
 function AiEvaluationCard({ evaluation, loading, error, onRetry }: AiEvaluationCardProps) {
   if (loading) {
     return <p className="text-sm text-gray-500">AI 다면평가를 불러오는 중...</p>;
@@ -51,17 +45,11 @@ function AiEvaluationCard({ evaluation, loading, error, onRetry }: AiEvaluationC
             {formatScore(overall.displayScore)}
             <span className="ml-1 text-base font-medium text-gray-500">/ 5.0</span>
           </p>
-          <p className="mt-2 text-xs text-gray-500">
-            데이터 완성도 {overall.completeness.toFixed(1)}%
-          </p>
         </div>
 
         <div>
           <p className="text-base font-semibold text-gray-900">{report.summary}</p>
           {report.notice && <p className="mt-2 text-sm text-gray-500">{report.notice}</p>}
-          <p className="mt-3 text-xs leading-relaxed text-gray-500">
-            종합점수는 산정 근거가 확인된 {overall.evaluatedCategoryCount}개 항목을 기준으로 계산합니다.
-          </p>
         </div>
       </div>
 
@@ -89,22 +77,14 @@ function AiEvaluationCard({ evaluation, loading, error, onRetry }: AiEvaluationC
 
               {available && evidence.length > 0 && (
                 <div className="mt-4 border-t border-gray-100 pt-4">
-                  <p className="text-xs font-semibold text-gray-900">왜 이 점수인가요?</p>
-                  <dl className="mt-3 space-y-3">
+                  <dl className="space-y-2">
                     {evidence.map((item) => {
-                      const contribution = formatContribution(item.contribution);
                       return (
-                        <div key={item.code} className="rounded-button bg-gray-50 px-3 py-2.5">
-                          <div className="flex items-start justify-between gap-3">
-                            <dt className="shrink-0 text-xs font-medium text-gray-600">{item.label}</dt>
-                            <dd className="min-w-0 flex-1 break-words text-right text-sm font-semibold text-gray-900">
-                              {formatEvidenceValue(item.value, item.unit)}
-                            </dd>
-                          </div>
-                          <div className="mt-1 flex flex-wrap gap-x-2 text-[11px] leading-relaxed text-gray-500">
-                            <span>기준: {item.criterion}</span>
-                            {contribution && <span className="font-medium text-primary">{contribution}</span>}
-                          </div>
+                        <div key={item.code} className="flex items-start justify-between gap-3 rounded-button bg-gray-50 px-3 py-2.5">
+                          <dt className="shrink-0 text-xs font-medium text-gray-500">{item.label}</dt>
+                          <dd className="min-w-0 flex-1 break-words text-right text-sm font-semibold text-gray-900">
+                            {formatEvidenceValue(item.value, item.unit)}
+                          </dd>
                         </div>
                       );
                     })}

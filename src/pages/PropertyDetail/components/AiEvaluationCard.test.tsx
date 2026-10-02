@@ -48,6 +48,15 @@ const evaluation: AiEvaluation = {
           contribution: 26.7,
           source: '전국 교육시설 데이터',
         },
+        {
+          code: 'SCHOOL_COUNT_WITHIN_1KM',
+          label: '1km 내 학교',
+          value: '7곳',
+          unit: null,
+          criterion: '초·중·고교 합계',
+          contribution: null,
+          source: '전국 교육시설 데이터',
+        },
       ],
       calculation: {
         formula: '학교 거리 점수×60% + 주변 학교 수 점수×40% = 70.0',
@@ -111,14 +120,15 @@ describe('AiEvaluationCard', () => {
 
     expect(screen.getByText('2.7')).toBeInTheDocument();
     expect(screen.getByText('3.5 / 5.0')).toBeInTheDocument();
-    expect(screen.getAllByText('왜 이 점수인가요?')).toHaveLength(2);
+    expect(screen.queryByText('왜 이 점수인가요?')).not.toBeInTheDocument();
     expect(screen.getByText('도봉초등학교 · 300m')).toBeInTheDocument();
     expect(screen.getByText('도봉중학교 · 500m')).toBeInTheDocument();
     expect(screen.getByText('도봉고등학교 · 700m')).toBeInTheDocument();
     expect(screen.getByText('쌍문역 · 420m')).toBeInTheDocument();
     expect(screen.getByText('창동아이파크 · 90m')).toBeInTheDocument();
-    expect(screen.getAllByText('기준: 500m 이하')).toHaveLength(3);
-    expect(screen.getAllByText('+33.3점 반영')).toHaveLength(2);
+    expect(screen.getByText('7곳')).toBeInTheDocument();
+    expect(screen.queryByText('기준: 500m 이하')).not.toBeInTheDocument();
+    expect(screen.queryByText('+33.3점 반영')).not.toBeInTheDocument();
     expect(screen.queryByText('출처: 전국 교육시설 데이터')).not.toBeInTheDocument();
     expect(screen.queryByText(/학교 거리 점수×60%/)).not.toBeInTheDocument();
     expect(screen.getByText('평가 근거 없음')).toBeInTheDocument();
