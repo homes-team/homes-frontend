@@ -19,7 +19,79 @@ const evaluation: AiEvaluation = {
       displayScore: 3.5,
       status: 'AVAILABLE',
       source: 'EXTERNAL_DATA',
-      description: '학교 접근성 점수입니다.',
+      description: '가장 가까운 학교는 초 도봉초등학교, 중 도봉중학교, 고 도봉고등학교입니다.',
+      evidence: [
+        {
+          code: 'NEAREST_ELEMENTARY_SCHOOL',
+          label: '가장 가까운 초등학교',
+          value: '도봉초등학교 · 300m',
+          unit: null,
+          criterion: '500m 이하',
+          contribution: 33.3,
+          source: '전국 교육시설 데이터',
+        },
+        {
+          code: 'NEAREST_MIDDLE_SCHOOL',
+          label: '가장 가까운 중학교',
+          value: '도봉중학교 · 500m',
+          unit: null,
+          criterion: '500m 이하',
+          contribution: 33.3,
+          source: '전국 교육시설 데이터',
+        },
+        {
+          code: 'NEAREST_HIGH_SCHOOL',
+          label: '가장 가까운 고등학교',
+          value: '도봉고등학교 · 700m',
+          unit: null,
+          criterion: '1km 이하',
+          contribution: 26.7,
+          source: '전국 교육시설 데이터',
+        },
+        {
+          code: 'SCHOOL_COUNT_WITHIN_1KM',
+          label: '1km 내 학교',
+          value: '7곳',
+          unit: null,
+          criterion: '초·중·고교 합계',
+          contribution: null,
+          source: '전국 교육시설 데이터',
+        },
+      ],
+      calculation: {
+        formula: '학교 거리 점수×60% + 주변 학교 수 점수×40% = 70.0',
+        policyVersion: 'SCHOOL_V1',
+      },
+    },
+    {
+      key: 'TRANSPORT',
+      label: '교통',
+      rawScore: 84,
+      displayScore: 4.2,
+      status: 'AVAILABLE',
+      source: 'GEOSPATIAL_PIPELINE',
+      description: '가장 가까운 지하철역과 버스정류장을 기준으로 평가했습니다.',
+      evidence: [
+        {
+          code: 'NEAREST_SUBWAY_DISTANCE',
+          label: '가장 가까운 지하철역',
+          value: '쌍문역 · 420m',
+          unit: null,
+          criterion: '500m 이하',
+          contribution: 45,
+          source: '전국 교통 POI',
+        },
+        {
+          code: 'NEAREST_BUS_DISTANCE',
+          label: '가장 가까운 버스정류장',
+          value: '창동아이파크 · 90m',
+          unit: null,
+          criterion: '100m 이하',
+          contribution: 30,
+          source: '전국 교통 POI',
+        },
+      ],
+      calculation: null,
     },
     {
       key: 'SUNLIGHT',
@@ -48,8 +120,18 @@ describe('AiEvaluationCard', () => {
 
     expect(screen.getByText('2.7')).toBeInTheDocument();
     expect(screen.getByText('3.5 / 5.0')).toBeInTheDocument();
-    expect(screen.getByLabelText('데이터 완성도 83.3%')).toBeInTheDocument();
-    expect(screen.getByText('수집 대기')).toBeInTheDocument();
+    expect(screen.queryByText('왜 이 점수인가요?')).not.toBeInTheDocument();
+    expect(screen.getByText('도봉초등학교 · 300m')).toBeInTheDocument();
+    expect(screen.getByText('도봉중학교 · 500m')).toBeInTheDocument();
+    expect(screen.getByText('도봉고등학교 · 700m')).toBeInTheDocument();
+    expect(screen.getByText('쌍문역 · 420m')).toBeInTheDocument();
+    expect(screen.getByText('창동아이파크 · 90m')).toBeInTheDocument();
+    expect(screen.getByText('7곳')).toBeInTheDocument();
+    expect(screen.queryByText('기준: 500m 이하')).not.toBeInTheDocument();
+    expect(screen.queryByText('+33.3점 반영')).not.toBeInTheDocument();
+    expect(screen.queryByText('출처: 전국 교육시설 데이터')).not.toBeInTheDocument();
+    expect(screen.queryByText(/학교 거리 점수×60%/)).not.toBeInTheDocument();
+    expect(screen.getByText('평가 근거 없음')).toBeInTheDocument();
     expect(screen.getByText('주실 방향 정보가 필요합니다.')).toBeInTheDocument();
   });
 

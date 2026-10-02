@@ -31,7 +31,7 @@ import {
   ReportReason,
   TRADE_TYPE_LABEL,
 } from '../../types/property';
-import AiEvaluationCard from './components/AiEvaluationCard';
+import AiEvaluationSummaryCard from './components/AiEvaluationSummaryCard';
 
 const REPORT_REASONS: ReportReason[] = ['FAKE_PROPERTY', 'SOLD_OUT', 'PRICE_MISMATCH', 'INFO_MISMATCH', 'OTHER'];
 
@@ -461,6 +461,16 @@ function PropertyDetailPage() {
             </Card>
           )}
           {bidMessage && <HelperText>{bidMessage}</HelperText>}
+
+          <div className="mt-4">
+            <AiEvaluationSummaryCard
+              evaluation={property.propertyId === id && aiEvaluation?.propertyId === id ? aiEvaluation : null}
+              loading={aiEvaluationLoading}
+              error={aiEvaluationError}
+              onRetry={() => setAiEvaluationVersion((version) => version + 1)}
+              onDetails={() => navigate(`/properties/${id}/ai-report`)}
+            />
+          </div>
         </div>
       </div>
 
@@ -534,19 +544,6 @@ function PropertyDetailPage() {
             {buildingInformationError}
           </p>
         )}
-      </section>
-
-      <section className="mt-12 border-t border-gray-200 pt-8" aria-live="polite">
-        <div className="mb-4">
-          <h2 className="text-xl font-bold text-gray-900">AI 매물 다면평가</h2>
-          <p className="mt-1 text-sm text-gray-500">입지 데이터와 매물 정보를 종합해 5점 만점으로 보여드려요.</p>
-        </div>
-        <AiEvaluationCard
-          evaluation={property.propertyId === id && aiEvaluation?.propertyId === id ? aiEvaluation : null}
-          loading={aiEvaluationLoading}
-          error={aiEvaluationError}
-          onRetry={() => setAiEvaluationVersion((version) => version + 1)}
-        />
       </section>
 
       <section className="mt-12 border-t border-gray-200 pt-8">
