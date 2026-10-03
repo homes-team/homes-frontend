@@ -400,6 +400,11 @@ function PropertyDetailPage() {
             )}
             {isOwner && <Button onClick={() => navigate(`/properties/${id}/bids`)}>받은 입찰 보기</Button>}
             {isOwner && (
+              <Button variant="secondary" onClick={() => navigate(`/properties/${id}/edit`)}>
+                매물 수정
+              </Button>
+            )}
+            {isOwner && (
               <Button variant="secondary" onClick={handleDelete}>
                 매물 삭제
               </Button>

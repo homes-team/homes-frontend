@@ -5,13 +5,13 @@ import TipBox from '../components/TipBox';
 import Button from '../../../components/ui/Button';
 import { Field, Label, Input, HelperText, ErrorText } from '../../../components/ui/Field';
 import { useListPropertyForm } from '../../../context/ListPropertyContext';
-import { createProperty } from '../../../api/property/listPropertyApi';
+import { createProperty, updateProperty } from '../../../api/property/listPropertyApi';
 import { isLoggedIn } from '../../../api/client';
 
 function ListPropertyFeePage() {
   const navigate = useNavigate();
-  const { form, resetForm } = useListPropertyForm();
-  const [desiredBrokerageFee, setDesiredBrokerageFee] = useState('');
+  const { form, updateForm, resetForm, editingPropertyId } = useListPropertyForm();
+  const isEditing = editingPropertyId !== null;
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [completedId, setCompletedId] = useState<number | null>(null);
@@ -31,7 +31,7 @@ function ListPropertyFeePage() {
     setSubmitting(true);
     setSubmitError(null);
     try {
-      const propertyId = await createProperty({
+      const payload = {
         tradeType: form.tradeType,
         propertyType: form.propertyType,
         deposit: Number(form.deposit) || 0,
@@ -45,15 +45,26 @@ function ListPropertyFeePage() {
         remodelingYear: form.remodelingYear.trim() === '' ? undefined : Number(form.remodelingYear),
         area: Number(form.area) || 0,
         description: form.description,
-        desiredBrokerageFee: desiredBrokerageFee.trim() === '' ? undefined : Number(desiredBrokerageFee),
+        desiredBrokerageFee: form.desiredBrokerageFee.trim() === '' ? undefined : Number(form.desiredBrokerageFee),
         options: form.options,
         latitude: form.latitude,
         longitude: form.longitude,
         images: form.images,
-      });
-      setCompletedId(propertyId);
+      };
+
+      if (isEditing) {
+        await updateProperty(editingPropertyId, payload);
+        setCompletedId(editingPropertyId);
+      } else {
+        const propertyId = await createProperty(payload);
+        setCompletedId(propertyId);
+      }
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : '매물 등록에 실패했어요. 잠시 후 다시 시도해주세요.');
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : `매물 ${isEditing ? '수정' : '등록'}에 실패했어요. 잠시 후 다시 시도해주세요.`,
+      );
     } finally {
       setSubmitting(false);
     }
@@ -66,21 +77,26 @@ function ListPropertyFeePage() {
       <WizardShell
         step={6}
         totalSteps={6}
-        title="매물 등록이 완료되었어요!"
-        description={`매물 번호 #${completedId} 로 등록되었습니다.`}
+        title={isEditing ? '매물 수정이 완료되었어요!' : '매물 등록이 완료되었어요!'}
+        description={
+          isEditing ? `매물 번호 #${completedId} 정보를 수정했습니다.` : `매물 번호 #${completedId} 로 등록되었습니다.`
+        }
         footer={
           <Button
             fullWidth
             onClick={() => {
+              const id = completedId;
               resetForm();
-              navigate('/');
+              navigate(isEditing ? `/properties/${id}` : '/');
             }}
           >
-            홈으로 가기
+            {isEditing ? '매물로 돌아가기' : '홈으로 가기'}
           </Button>
         }
       >
-        <TipBox>💡 AI 중개사 매칭·방문 예약 기능은 준비 중이에요. 곧 이어서 제공될 예정입니다.</TipBox>
+        {!isEditing && (
+          <TipBox>💡 AI 중개사 매칭·방문 예약 기능은 준비 중이에요. 곧 이어서 제공될 예정입니다.</TipBox>
+        )}
       </WizardShell>
     );
   }
@@ -95,7 +111,7 @@ function ListPropertyFeePage() {
         <>
           {submitError && <ErrorText>{submitError}</ErrorText>}
           <Button fullWidth disabled={submitting} onClick={handleSubmit}>
-            {submitting ? '등록 중...' : '매물 등록하기'}
+            {submitting ? '처리 중...' : isEditing ? '수정 완료' : '매물 등록하기'}
           </Button>
         </>
       }
@@ -119,8 +135,8 @@ function ListPropertyFeePage() {
             step="0.01"
             className="pr-10"
             placeholder="예) 0.5"
-            value={desiredBrokerageFee}
-            onChange={(e) => setDesiredBrokerageFee(e.target.value)}
+            value={form.desiredBrokerageFee}
+            onChange={(e) => updateForm({ desiredBrokerageFee: e.target.value })}
           />
           <span className="absolute right-4 text-sm text-gray-500">%</span>
         </div>

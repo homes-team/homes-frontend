@@ -36,6 +36,15 @@ export interface ListPropertyFormState {
   desiredBrokerageFee: string;
 }
 
+export interface ListPropertyContextValue {
+  form: ListPropertyFormState;
+  updateForm: (patch: Partial<ListPropertyFormState>) => void;
+  resetForm: () => void;
+  /** 수정 모드일 때 수정 대상 매물 ID. 새 매물 등록 흐름이면 null. */
+  editingPropertyId: number | null;
+  setEditingPropertyId: (propertyId: number | null) => void;
+}
+
 export const INITIAL_LIST_PROPERTY_FORM: ListPropertyFormState = {
   tradeType: null,
   propertyType: null,
@@ -57,24 +66,22 @@ export const INITIAL_LIST_PROPERTY_FORM: ListPropertyFormState = {
   desiredBrokerageFee: '',
 };
 
-interface ListPropertyContextValue {
-  form: ListPropertyFormState;
-  updateForm: (patch: Partial<ListPropertyFormState>) => void;
-  resetForm: () => void;
-}
-
 const ListPropertyContext = createContext<ListPropertyContextValue | null>(null);
 
 export function ListPropertyProvider({ children }: { children: ReactNode }) {
   const [form, setForm] = useState<ListPropertyFormState>(INITIAL_LIST_PROPERTY_FORM);
+  const [editingPropertyId, setEditingPropertyId] = useState<number | null>(null);
 
   const updateForm = (patch: Partial<ListPropertyFormState>) =>
     setForm((prev) => ({ ...prev, ...patch }));
 
-  const resetForm = () => setForm(INITIAL_LIST_PROPERTY_FORM);
+  const resetForm = () => {
+    setForm(INITIAL_LIST_PROPERTY_FORM);
+    setEditingPropertyId(null);
+  };
 
   return (
-    <ListPropertyContext.Provider value={{ form, updateForm, resetForm }}>
+    <ListPropertyContext.Provider value={{ form, updateForm, resetForm, editingPropertyId, setEditingPropertyId }}>
       {children}
     </ListPropertyContext.Provider>
   );

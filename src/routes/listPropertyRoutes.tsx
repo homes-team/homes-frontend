@@ -6,6 +6,7 @@ import ListPropertyOptionsPage from '../pages/ListProperty/Options';
 import ListPropertyPhotoPage from '../pages/ListProperty/Photo';
 import ListPropertyPricePage from '../pages/ListProperty/Price';
 import ListPropertyFeePage from '../pages/ListProperty/Fee';
+import ListPropertyEditLoader from '../pages/ListProperty/Edit';
 
 function ListPropertyLayout() {
   return (
@@ -25,6 +26,7 @@ export const listPropertyRoutes: RouteObject[] = [
       { path: '/list-property/photo', element: <ListPropertyPhotoPage /> },
       { path: '/list-property/price', element: <ListPropertyPricePage /> },
       { path: '/list-property/fee', element: <ListPropertyFeePage /> },
+      { path: '/properties/:propertyId/edit', element: <ListPropertyEditLoader /> },
     ],
   },
 ];
