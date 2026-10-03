@@ -6,6 +6,7 @@ import FindPasswordPage from './pages/FindPasswordPage';
 import SignupPage from './pages/SignupPage';
 import SignupWizardPage from './pages/SignupWizardPage';
 import SignupAgentWizardPage from './pages/SignupAgentWizardPage';
+import OAuthGoogleCallbackPage from './pages/OAuthGoogleCallbackPage';
 
 /** react-router-dom 정식 라우터. 전체 새로고침 없이 페이지 간 이동한다. */
 function App() {
@@ -19,6 +20,7 @@ function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/signup/user" element={<SignupWizardPage />} />
         <Route path="/signup/realtor" element={<SignupAgentWizardPage />} />
+        <Route path="/oauth/google/callback" element={<OAuthGoogleCallbackPage />} />
         {/* 정의되지 않은 경로는 홈으로 */}
         <Route path="*" element={<HomePage />} />
       </Routes>

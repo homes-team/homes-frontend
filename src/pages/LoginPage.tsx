@@ -4,7 +4,9 @@ import { login } from '../api/authApi';
 import { ApiError } from '../api/client';
 import { saveTokens } from '../utils/auth';
 import AuthLayout from '../components/auth/AuthLayout';
+import GoogleIcon from '../components/auth/GoogleIcon';
 import formStyles from '../components/auth/AuthForm.module.css';
+import { buildGoogleAuthUrl } from '../utils/googleOAuth';
 
 /**
  * 이메일/비밀번호를 틀렸을 때 어느 쪽이 틀렸는지 노출하지 않기 위해
@@ -105,6 +107,23 @@ function LoginPage() {
 
         <button type="submit" className={formStyles.submit} disabled={submitting}>
           {submitting ? '로그인 중...' : '로그인'}
+        </button>
+
+        <div className={formStyles.divider}>
+          <span className={formStyles.dividerLine} />
+          또는
+          <span className={formStyles.dividerLine} />
+        </div>
+
+        <button
+          type="button"
+          className={formStyles.googleButton}
+          onClick={() => {
+            window.location.href = buildGoogleAuthUrl();
+          }}
+        >
+          <GoogleIcon />
+          Google로 로그인
         </button>
 
         <p className={formStyles.bottomLinks}>

@@ -1,6 +1,7 @@
 import {
   IdentityVerificationResult,
   LoginRequest,
+  OAuthLoginRequest,
   RealtorSignupRequest,
   RealtorSignupResult,
   SignupRequest,
@@ -12,6 +13,11 @@ import { apiPost } from './client';
 /** 이메일/비밀번호 로그인 — POST /users/login */
 export function login(request: LoginRequest): Promise<TokenDto> {
   return apiPost<TokenDto>('/users/login', request);
+}
+
+/** 구글 OAuth 로그인/자동가입 — POST /users/oauth/google */
+export function loginWithGoogle(request: OAuthLoginRequest): Promise<TokenDto> {
+  return apiPost<TokenDto>('/users/oauth/google', request);
 }
 
 /** 이메일 중복 확인 — POST /users/check-email (중복이면 DUPLICATE_EMAIL 에러) */

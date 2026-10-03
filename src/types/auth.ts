@@ -24,6 +24,11 @@ export interface SignupResult {
   name: string | null;
 }
 
+/** OAuthLoginReqDto.java 대응 — 구글 로그인/자동가입 */
+export interface OAuthLoginRequest {
+  authorizationCode: string;
+}
+
 /** IdentityVerificationResDto.java 대응 */
 export interface IdentityVerificationResult {
   userId: number;
