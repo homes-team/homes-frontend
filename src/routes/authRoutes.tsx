@@ -5,6 +5,7 @@ import SignupWizardPage from '../pages/SignupWizard';
 import SignupAgentWizardPage from '../pages/SignupAgentWizard';
 import FindIdPage from '../pages/FindId';
 import FindPasswordPage from '../pages/FindPassword';
+import OAuthGoogleCallback from '../pages/OAuthGoogleCallback';
 
 export const authRoutes: RouteObject[] = [
   { path: '/login', element: <LoginPage /> },
@@ -13,4 +14,5 @@ export const authRoutes: RouteObject[] = [
   { path: '/signup/realtor', element: <SignupAgentWizardPage /> },
   { path: '/find-id', element: <FindIdPage /> },
   { path: '/find-password', element: <FindPasswordPage /> },
+  { path: '/oauth/google/callback', element: <OAuthGoogleCallback /> },
 ];
