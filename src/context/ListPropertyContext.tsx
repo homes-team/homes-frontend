@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useContext, useState } from 'react';
-import { PropertyOption, PropertyType, TradeType } from '../types/property';
+import { PropertyDirection, PropertyOption, PropertyType, TradeType } from '../types/property';
 
 /**
  * "/list-property-*" 6단계 위저드 전체가 공유하는 입력 상태.
@@ -17,6 +17,8 @@ export interface ListPropertyFormState {
   detailAddress: string;
   currentFloor: string;
   totalFloors: string;
+  direction: PropertyDirection;
+  remodelingYear: string;
   area: string;
   /** 주소를 좌표로 변환(geocode)해야 다음 단계로 넘어갈 수 있다 */
   latitude: number | null;
@@ -41,6 +43,8 @@ export const INITIAL_LIST_PROPERTY_FORM: ListPropertyFormState = {
   detailAddress: '',
   currentFloor: '',
   totalFloors: '',
+  direction: 'UNKNOWN',
+  remodelingYear: '',
   area: '',
   latitude: null,
   longitude: null,

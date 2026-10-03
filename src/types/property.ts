@@ -11,8 +11,68 @@ export type PropertyType =
 /** TradeType.java 대응 */
 export type TradeType = 'MONTHLY_RENT' | 'JEONSE' | 'SALE';
 
+/** PropertyDirection.java 대응 */
+export type PropertyDirection =
+  | 'SOUTH'
+  | 'SOUTHEAST'
+  | 'SOUTHWEST'
+  | 'EAST'
+  | 'WEST'
+  | 'NORTHEAST'
+  | 'NORTHWEST'
+  | 'NORTH'
+  | 'UNKNOWN';
+
+export const PROPERTY_DIRECTION_LABEL: Record<PropertyDirection, string> = {
+  SOUTH: '남향',
+  SOUTHEAST: '남동향',
+  SOUTHWEST: '남서향',
+  EAST: '동향',
+  WEST: '서향',
+  NORTHEAST: '북동향',
+  NORTHWEST: '북서향',
+  NORTH: '북향',
+  UNKNOWN: '정보 없음',
+};
+
 /** PropertyStatus.java 대응 */
 export type PropertyStatus = 'AVAILABLE' | 'MATCHED' | 'COMPLETED';
+
+/** 건축물대장·K-apt 정보 자동 수집 상태 */
+export type BuildingInformationStatus =
+  | 'NOT_COLLECTED'
+  | 'PENDING'
+  | 'PROCESSING'
+  | 'PARTIAL'
+  | 'RESOLVED'
+  | 'FAILED';
+
+/** BuildingInformationRespDto.java 대응 */
+export interface BuildingInformation {
+  propertyId: number;
+  status: BuildingInformationStatus;
+  normalizedAddress: string | null;
+  buildingRegisterId: string | null;
+  kaptCode: string | null;
+  approvalDate: string | null;
+  buildingYear: number | null;
+  householdCount: number | null;
+  buildingCount: number | null;
+  buildingHeightMeters: number | null;
+  groundFloorCount: number | null;
+  undergroundFloorCount: number | null;
+  elevatorCount: number | null;
+  parkingCount: number | null;
+  corridorType: string | null;
+  heatingType: string | null;
+  dataSources: string | null;
+  collectedAt: string | null;
+  retryCount: number | null;
+  lastAttemptAt: string | null;
+  lastErrorCode: string | null;
+  lastErrorMessage: string | null;
+  missingFields: string[];
+}
 
 /** PropertyOption.java 대응 (기존 자유 태그 tags를 대체) */
 export type PropertyOption =
@@ -170,6 +230,8 @@ export interface PropertyDetail {
   maintenanceFee: number | null;
   totalFloors: number;
   currentFloor: number;
+  direction: PropertyDirection;
+  remodelingYear: number | null;
   area: number;
   aiScore: number | null;
   desiredBrokerageFee: number | null;
@@ -180,6 +242,70 @@ export interface PropertyDetail {
   longitude: number;
   favoriteCount: number;
   isSuspicious: boolean;
+}
+
+export type AiEvaluationCategoryKey =
+  | 'SCHOOL'
+  | 'TRANSPORT'
+  | 'NATURE'
+  | 'SUNLIGHT'
+  | 'BUILDING_CONDITION'
+  | 'INFRASTRUCTURE';
+
+export type AiEvaluationScoreStatus =
+  | 'AVAILABLE'
+  | 'PENDING_DATA'
+  | 'INSUFFICIENT_DATA'
+  | 'NOT_APPLICABLE';
+
+export interface AiEvaluationEvidence {
+  code: string;
+  label: string;
+  value: string;
+  unit: string | null;
+  criterion: string;
+  contribution: number | null;
+  source: string;
+}
+
+export interface AiEvaluationCalculation {
+  formula: string;
+  policyVersion: string;
+}
+
+export interface AiEvaluationCategory {
+  key: AiEvaluationCategoryKey;
+  label: string;
+  rawScore: number | null;
+  displayScore: number | null;
+  status: AiEvaluationScoreStatus;
+  source: 'GEOSPATIAL_PIPELINE' | 'PROPERTY_RULE' | 'EXTERNAL_DATA' | 'MANUAL' | 'NONE';
+  description: string;
+  /** 구버전 백엔드 응답과의 호환을 위해 선택값으로 처리한다. */
+  evidence?: AiEvaluationEvidence[];
+  calculation?: AiEvaluationCalculation | null;
+}
+
+/** AiEvaluationRespDto.java 대응 */
+export interface AiEvaluation {
+  propertyId: number;
+  overall: {
+    rawScore: number | null;
+    displayScore: number | null;
+    evaluatedCategoryCount: number;
+    totalCategoryCount: number;
+    completeness: number;
+  };
+  categories: AiEvaluationCategory[];
+  report: {
+    summary: string;
+    strengths: string[];
+    weaknesses: string[];
+    notice: string | null;
+  };
+  scoreVersion: string;
+  reportModelVersion: string;
+  generatedAt: string;
 }
 
 /** PropertyListRespDto.java 대응 (카드형 리스트 아이템) */

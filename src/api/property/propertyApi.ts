@@ -1,4 +1,6 @@
 import {
+  AiEvaluation,
+  BuildingInformation,
   PropertyDetail,
   PropertyListItem,
   PropertyOption,
@@ -25,7 +27,35 @@ export function fetchSurgeRankings(): Promise<PropertyListItem[]> {
  * 응답에 status가 없어 목록 API 값을 따로 들고 있어야 할 수 있다 (PropertyDetail 타입 주석 참고).
  */
 export function fetchPropertyDetail(propertyId: number, signal?: AbortSignal): Promise<PropertyDetail> {
-  return apiGet<PropertyDetail>(`/properties/${propertyId}`, { auth: true, signal });
+  return apiGet<PropertyDetail>(`/properties/${propertyId}`, {
+    auth: true,
+    allowAnonymousFallback: true,
+    signal,
+  });
+}
+
+/** 건축물대장·K-apt 자동 수집 결과 조회 — GET /properties/{propertyId}/building-information */
+export function fetchBuildingInformation(
+  propertyId: number,
+  signal?: AbortSignal,
+): Promise<BuildingInformation> {
+  return apiGet<BuildingInformation>(`/properties/${propertyId}/building-information`, { signal });
+}
+
+/** AI 매물 다면평가 조회 — GET /properties/{propertyId}/ai-evaluation */
+export function fetchAiEvaluation(propertyId: number, signal?: AbortSignal): Promise<AiEvaluation> {
+  return apiGet<AiEvaluation>(`/properties/${propertyId}/ai-evaluation`, { signal });
+}
+
+/** 건물정보 즉시 재수집 — POST /properties/{propertyId}/building-information/resolve (소유자만) */
+export function resolveBuildingInformation(
+  propertyId: number,
+  signal?: AbortSignal,
+): Promise<BuildingInformation> {
+  return apiPost<BuildingInformation>(`/properties/${propertyId}/building-information/resolve`, {}, {
+    auth: true,
+    signal,
+  });
 }
 
 /** 매물 삭제 — DELETE /properties/{propertyId} (소유자만) */
@@ -137,6 +167,7 @@ export function searchPropertiesOnMap(
 ): Promise<PropertyListItem[]> {
   return apiGet<PropertyListItem[]>(`/properties/map?${buildSearchQuery(params)}`, {
     auth: true,
+    allowAnonymousFallback: true,
     signal,
   });
 }

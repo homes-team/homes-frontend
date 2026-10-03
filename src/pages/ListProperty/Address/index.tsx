@@ -2,9 +2,14 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import WizardShell from '../components/WizardShell';
 import Button from '../../../components/ui/Button';
-import { Field, Label, Input, HelperText, ErrorText } from '../../../components/ui/Field';
+import { Field, Label, Input, Select, HelperText, ErrorText } from '../../../components/ui/Field';
 import { useListPropertyForm } from '../../../context/ListPropertyContext';
 import { geocodeAddress } from '../../../api/property/listPropertyApi';
+import { PROPERTY_DIRECTION_LABEL, PropertyDirection } from '../../../types/property';
+
+const DIRECTIONS: PropertyDirection[] = [
+  'UNKNOWN', 'SOUTH', 'SOUTHEAST', 'SOUTHWEST', 'EAST', 'WEST', 'NORTHEAST', 'NORTHWEST', 'NORTH',
+];
 
 function ListPropertyAddressPage() {
   const navigate = useNavigate();
@@ -13,6 +18,9 @@ function ListPropertyAddressPage() {
   const [checkError, setCheckError] = useState<string | null>(null);
 
   const addressConfirmed = form.latitude !== null && form.longitude !== null;
+  const remodelingYear = form.remodelingYear.trim() === '' ? null : Number(form.remodelingYear);
+  const remodelingYearValid = remodelingYear === null
+    || (Number.isInteger(remodelingYear) && remodelingYear >= 1800 && remodelingYear <= new Date().getFullYear());
 
   async function handleCheckAddress() {
     const trimmed = form.address.trim();
@@ -35,7 +43,8 @@ function ListPropertyAddressPage() {
   }
 
   const canProceed =
-    addressConfirmed && form.currentFloor.trim() !== '' && form.totalFloors.trim() !== '' && form.area.trim() !== '';
+    addressConfirmed && form.currentFloor.trim() !== '' && form.totalFloors.trim() !== ''
+    && form.area.trim() !== '' && remodelingYearValid;
 
   return (
     <WizardShell
@@ -116,6 +125,44 @@ function ListPropertyAddressPage() {
             />
           </Field>
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <Field>
+          <Label htmlFor="direction">
+            주실 방향 <span className="font-normal text-gray-500">(선택)</span>
+          </Label>
+          <Select
+            id="direction"
+            value={form.direction}
+            onChange={(event) => updateForm({ direction: event.target.value as PropertyDirection })}
+          >
+            {DIRECTIONS.map((direction) => (
+              <option key={direction} value={direction}>{PROPERTY_DIRECTION_LABEL[direction]}</option>
+            ))}
+          </Select>
+          <HelperText>거실이나 주된 창문이 향하는 방향을 선택해주세요.</HelperText>
+        </Field>
+
+        <Field>
+          <Label htmlFor="remodelingYear">
+            리모델링 연도 <span className="font-normal text-gray-500">(선택)</span>
+          </Label>
+          <Input
+            id="remodelingYear"
+            type="number"
+            min="1800"
+            max={new Date().getFullYear()}
+            placeholder="예) 2022"
+            value={form.remodelingYear}
+            onChange={(event) => updateForm({ remodelingYear: event.target.value })}
+          />
+          {!remodelingYearValid ? (
+            <ErrorText>1800년부터 현재 연도 사이로 입력해주세요.</ErrorText>
+          ) : (
+            <HelperText>리모델링 이력이 없다면 비워두세요.</HelperText>
+          )}
+        </Field>
       </div>
 
       <Field>
