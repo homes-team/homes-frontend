@@ -9,6 +9,7 @@ import {
   deleteProperty,
   fetchAiEvaluation,
   fetchBuildingInformation,
+  fetchPricePrediction,
   fetchPropertyDetail,
   reportProperty,
   resolveBuildingInformation,
@@ -27,11 +28,13 @@ import {
   BuildingInformation,
   BuildingInformationStatus,
   PropertyDetail,
+  PropertyPricePrediction,
   REPORT_REASON_LABEL,
   ReportReason,
   TRADE_TYPE_LABEL,
 } from '../../types/property';
 import AiEvaluationSummaryCard from './components/AiEvaluationSummaryCard';
+import PricePredictionCard from './components/PricePredictionCard';
 
 const REPORT_REASONS: ReportReason[] = ['FAKE_PROPERTY', 'SOLD_OUT', 'PRICE_MISMATCH', 'INFO_MISMATCH', 'OTHER'];
 
@@ -94,6 +97,10 @@ function PropertyDetailPage() {
   const [aiEvaluationLoading, setAiEvaluationLoading] = useState(true);
   const [aiEvaluationError, setAiEvaluationError] = useState<string | null>(null);
   const [aiEvaluationVersion, setAiEvaluationVersion] = useState(0);
+  const [pricePrediction, setPricePrediction] = useState<PropertyPricePrediction | null>(null);
+  const [pricePredictionLoading, setPricePredictionLoading] = useState(true);
+  const [pricePredictionError, setPricePredictionError] = useState<string | null>(null);
+  const [pricePredictionVersion, setPricePredictionVersion] = useState(0);
   const buildingInformationResolveRequestId = useRef(0);
   const buildingInformationResolveController = useRef<AbortController | null>(null);
   const buildingInformationPropertyId = useRef(id);
@@ -214,6 +221,29 @@ function PropertyDetailPage() {
 
     return () => controller.abort();
   }, [id, aiEvaluationVersion]);
+
+  useEffect(() => {
+    if (!Number.isFinite(id)) return;
+
+    const controller = new AbortController();
+    setPricePrediction(null);
+    setPricePredictionLoading(true);
+    setPricePredictionError(null);
+
+    fetchPricePrediction(id, controller.signal)
+      .then((result) => {
+        if (!controller.signal.aborted) setPricePrediction(result);
+      })
+      .catch((err) => {
+        if (controller.signal.aborted) return;
+        setPricePredictionError(err instanceof ApiError ? err.message : '가격 예측 정보를 불러오지 못했어요.');
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setPricePredictionLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [id, pricePredictionVersion]);
 
   const handleResolveBuildingInformation = async () => {
     buildingInformationResolveController.current?.abort();
@@ -463,6 +493,15 @@ function PropertyDetailPage() {
           {bidMessage && <HelperText>{bidMessage}</HelperText>}
 
           <div className="mt-4">
+            <PricePredictionCard
+              prediction={property.propertyId === id && pricePrediction?.propertyId === id ? pricePrediction : null}
+              loading={pricePredictionLoading}
+              error={pricePredictionError}
+              onRetry={() => setPricePredictionVersion((version) => version + 1)}
+            />
+          </div>
+
+          <div className="mt-2">
             <AiEvaluationSummaryCard
               evaluation={property.propertyId === id && aiEvaluation?.propertyId === id ? aiEvaluation : null}
               loading={aiEvaluationLoading}

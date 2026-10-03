@@ -308,6 +308,48 @@ export interface AiEvaluation {
   generatedAt: string;
 }
 
+export type PricePredictionStatus =
+  | 'AVAILABLE'
+  | 'INSUFFICIENT_DATA'
+  | 'UNSUPPORTED'
+  | 'ADDRESS_UNAVAILABLE'
+  | 'PROVIDER_UNAVAILABLE';
+
+export type PricePredictionConfidence = 'HIGH' | 'MEDIUM' | 'LOW' | 'UNAVAILABLE';
+
+export type PricePredictionComparisonScope =
+  | 'SAME_COMPLEX'
+  | 'SAME_LEGAL_DONG'
+  | 'SAME_DISTRICT'
+  | 'UNAVAILABLE';
+
+export interface ComparableTrade {
+  apartmentName: string | null;
+  legalDongName: string | null;
+  areaSquareMeters: number;
+  floor: number;
+  buildYear: number | null;
+  priceTenThousandWon: number;
+  contractDate: string;
+}
+
+export interface PropertyPricePrediction {
+  propertyId: number;
+  status: PricePredictionStatus;
+  tradeType: TradeType;
+  predictedPrice: number | null;
+  minimumPrice: number | null;
+  maximumPrice: number | null;
+  confidence: PricePredictionConfidence;
+  comparisonScope: PricePredictionComparisonScope;
+  sampleCount: number;
+  referenceFrom: string | null;
+  referenceTo: string | null;
+  representativeTrades: ComparableTrade[];
+  method: string;
+  description: string;
+}
+
 /** PropertyListRespDto.java 대응 (카드형 리스트 아이템) */
 export interface PropertyListItem {
   propertyId: number;

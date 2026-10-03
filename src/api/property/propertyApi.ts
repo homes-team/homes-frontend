@@ -4,6 +4,7 @@ import {
   PropertyDetail,
   PropertyListItem,
   PropertyOption,
+  PropertyPricePrediction,
   PropertyType,
   ReportCreateRequest,
   SortBy,
@@ -45,6 +46,18 @@ export function fetchBuildingInformation(
 /** AI 매물 다면평가 조회 — GET /properties/{propertyId}/ai-evaluation */
 export function fetchAiEvaluation(propertyId: number, signal?: AbortSignal): Promise<AiEvaluation> {
   return apiGet<AiEvaluation>(`/properties/${propertyId}/ai-evaluation`, { signal });
+}
+
+/** 공공 실거래가 기반 가격 예측 — GET /properties/{propertyId}/price-prediction */
+export function fetchPricePrediction(
+  propertyId: number,
+  signal?: AbortSignal,
+): Promise<PropertyPricePrediction> {
+  return apiGet<PropertyPricePrediction>(`/properties/${propertyId}/price-prediction`, {
+    auth: true,
+    allowAnonymousFallback: true,
+    signal,
+  });
 }
 
 /** 건물정보 즉시 재수집 — POST /properties/{propertyId}/building-information/resolve (소유자만) */
