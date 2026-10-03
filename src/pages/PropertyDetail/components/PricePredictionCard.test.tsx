@@ -22,6 +22,14 @@ const prediction: PropertyPricePrediction = {
     buildYear: 1991,
     priceTenThousandWon: 42900,
     contractDate: '2026-06-10',
+  }, {
+    apartmentName: '벽산아파트1',
+    legalDongName: '방학동',
+    areaSquareMeters: 63.38,
+    floor: 2,
+    buildYear: 1991,
+    priceTenThousandWon: 44800,
+    contractDate: '2026-09-28',
   }],
   method: 'COMPARABLE_WEIGHTED_MEDIAN_V2',
   description: '최근 동일 단지 유사 거래 11건을 기준으로 계산했습니다.',
@@ -36,9 +44,12 @@ describe('PricePredictionCard', () => {
     expect(screen.getByText('신뢰도 높음')).toBeInTheDocument();
     expect(screen.getByText('동일 단지')).toBeInTheDocument();
     expect(screen.getByText('11건')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /대표 실거래 가격 추이 2건, 미래 예상가 4억 1,900만 원/ }))
+      .toBeInTheDocument();
+    expect(screen.getByText('미래 예상')).toBeInTheDocument();
 
     fireEvent.click(screen.getByText('대표 실거래 보기'));
-    expect(screen.getByText('벽산아파트1')).toBeInTheDocument();
+    expect(screen.getAllByText('벽산아파트1')).toHaveLength(2);
     expect(screen.getByText('4억 2,900만 원')).toBeInTheDocument();
   });
 

@@ -2,6 +2,7 @@ import Badge from '../../../components/ui/Badge';
 import Card from '../../../components/ui/Card';
 import { PropertyPricePrediction } from '../../../types/property';
 import { formatKoreanWon } from '../../../utils/format';
+import PricePredictionTrendChart from './PricePredictionTrendChart';
 
 interface Props {
   prediction: PropertyPricePrediction | null;
@@ -99,6 +100,11 @@ function PricePredictionCard({ prediction, loading, error, onRetry }: Props) {
               예상 범위 {formatKoreanWon(prediction.minimumPrice!)} ~ {formatKoreanWon(prediction.maximumPrice!)}
             </p>
           </div>
+
+          <PricePredictionTrendChart
+            trades={prediction.representativeTrades}
+            predictedPrice={prediction.predictedPrice!}
+          />
 
           <dl className="mt-5 grid grid-cols-2 gap-3 rounded-button bg-gray-50 p-4 text-sm">
             <div>
