@@ -7,7 +7,8 @@ import { useListPropertyForm } from '../../../context/ListPropertyContext';
 
 function ListPropertyPhotoPage() {
   const navigate = useNavigate();
-  const { form, updateForm } = useListPropertyForm();
+  const { form, updateForm, editingPropertyId } = useListPropertyForm();
+  const isEditing = editingPropertyId !== null;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function handleFilesSelected(fileList: FileList | null) {
@@ -21,14 +22,18 @@ function ListPropertyPhotoPage() {
     updateForm({ images: form.images.filter((_, i) => i !== index) });
   }
 
-  const canProceed = form.images.length >= 1;
+  const canProceed = form.images.length >= 1 || isEditing;
 
   return (
     <WizardShell
       step={4}
       totalSteps={6}
       title="매물 사진을 올려주세요"
-      description="좋은 사진일수록 더 많은 관심을 받아요 (최소 1장)"
+      description={
+        isEditing
+          ? '새 사진을 선택하지 않으면 기존 사진이 그대로 유지돼요'
+          : '좋은 사진일수록 더 많은 관심을 받아요 (최소 1장)'
+      }
       footer={
         <Button fullWidth disabled={!canProceed} onClick={() => navigate('/list-property/price')}>
           다음
@@ -54,6 +59,10 @@ function ListPropertyPhotoPage() {
         hidden
         onChange={(e) => handleFilesSelected(e.target.files)}
       />
+
+      {isEditing && form.images.length === 0 && (
+        <p className="text-[13px] text-gray-500">사진을 선택하면 기존 사진 전체가 새 사진으로 교체돼요.</p>
+      )}
 
       {form.images.length > 0 && (
         <div className="grid grid-cols-3 gap-3">
