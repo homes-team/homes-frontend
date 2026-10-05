@@ -8,7 +8,7 @@ import {
   SignupResult,
   TokenDto,
 } from '../../types/auth';
-import { apiPost, apiPostMultipart } from '../client';
+import { apiPost } from '../client';
 
 /** 이메일/비밀번호 로그인 — POST /users/login */
 export function login(request: LoginRequest): Promise<TokenDto> {
@@ -59,28 +59,13 @@ export function verifyIdentity(identityVerificationId: string): Promise<Identity
 }
 
 /**
- * 중개사 회원가입 — POST /users/realtors (multipart/form-data)
+ * 중개사 회원가입 — POST /users/realtors (application/json)
  * checkEmailDuplicate/sendSignupEmailCode/verifySignupEmailCode와 동일한 이메일 인증
  * 절차를 사전에 통과해야 한다 (일반 회원가입과 같은 Redis AUTH_SUCCESS 플래그를 공유).
- * 텍스트 필드는 RealtorSignupReqDto와 1:1로 매핑되는 폼 파트로, 서류 이미지는
- * businessCertImage/agentCertImage(필수)/profileImage(선택) 파일 파트로 함께 보낸다.
+ * 서류 이미지는 호출하기 전에 presigned URL로 S3에 미리 업로드해서 URL로 전달해야 한다.
  */
 export function signupRealtor(request: RealtorSignupRequest): Promise<RealtorSignupResult> {
-  const form = new FormData();
-  form.append('email', request.email);
-  form.append('password', request.password);
-  form.append('name', request.name);
-  form.append('phone', request.phone);
-  form.append('officeName', request.officeName);
-  form.append('businessNum', request.businessNum);
-  if (request.officeAddress) form.append('officeAddress', request.officeAddress);
-  if (request.officeLatitude !== undefined) form.append('officeLatitude', String(request.officeLatitude));
-  if (request.officeLongitude !== undefined) form.append('officeLongitude', String(request.officeLongitude));
-  form.append('businessCertImage', request.businessCertImage);
-  form.append('agentCertImage', request.agentCertImage);
-  if (request.profileImage) form.append('profileImage', request.profileImage);
-
-  return apiPostMultipart<RealtorSignupResult>('/users/realtors', form);
+  return apiPost<RealtorSignupResult>('/users/realtors', request);
 }
 
 /* ------------------------------------------------------------------ *
