@@ -493,21 +493,21 @@ function PropertyDetailPage() {
           {bidMessage && <HelperText>{bidMessage}</HelperText>}
 
           <div className="mt-4">
-            <PricePredictionCard
-              prediction={property.propertyId === id && pricePrediction?.propertyId === id ? pricePrediction : null}
-              loading={pricePredictionLoading}
-              error={pricePredictionError}
-              onRetry={() => setPricePredictionVersion((version) => version + 1)}
-            />
-          </div>
-
-          <div className="mt-2">
             <AiEvaluationSummaryCard
               evaluation={property.propertyId === id && aiEvaluation?.propertyId === id ? aiEvaluation : null}
               loading={aiEvaluationLoading}
               error={aiEvaluationError}
               onRetry={() => setAiEvaluationVersion((version) => version + 1)}
               onDetails={() => navigate(`/properties/${id}/ai-report`)}
+            />
+          </div>
+
+          <div className="mt-2">
+            <PricePredictionCard
+              prediction={property.propertyId === id && pricePrediction?.propertyId === id ? pricePrediction : null}
+              loading={pricePredictionLoading}
+              error={pricePredictionError}
+              onRetry={() => setPricePredictionVersion((version) => version + 1)}
             />
           </div>
         </div>

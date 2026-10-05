@@ -16,12 +16,14 @@ it('distinguishes zero, null and missing scores visually and in its accessible n
   expect(chart.querySelectorAll('circle')).toHaveLength(2);
   expect(chart.querySelector('circle[cx="110"][cy="110"]')).toBeInTheDocument();
   expect(chart.querySelector('polygon[stroke="#2563eb"]')).not.toBeInTheDocument();
+  expect(chart.querySelectorAll('.ai-radar-segment')).toHaveLength(0);
+  expect(chart.querySelectorAll('.ai-radar-point')).toHaveLength(2);
 });
 
 it('retains the filled polygon when all six scores are available', () => {
   render(<AiRadarChart categories={keys.map((key) => category(key, 5))} />);
   const chart = screen.getByRole('img');
-  expect(chart.querySelector('polygon[stroke="#2563eb"]')).toBeInTheDocument();
+  expect(chart.querySelector('polygon[stroke="#2563eb"]')).toHaveClass('ai-radar-shape');
   expect(screen.queryByText('평가 불가')).not.toBeInTheDocument();
   expect(chart.getAttribute('aria-label')?.match(/5 \/ 5점/g)).toHaveLength(6);
 });

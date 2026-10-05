@@ -96,6 +96,41 @@
   50% { opacity: 0.9; transform: scale(1.15); }
 }
 
+@keyframes ai-radar-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes ai-radar-fill {
+  from { fill-opacity: 0; }
+  to { fill-opacity: 1; }
+}
+
+@keyframes ai-radar-point-appear {
+  from { opacity: 0; transform: scale(0.4); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.ai-radar-shape {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  fill-opacity: 0;
+  animation: ai-radar-draw 1.15s ease-out forwards, ai-radar-fill 0.5s ease-out 0.72s forwards;
+}
+
+.ai-radar-segment {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: ai-radar-draw 0.45s ease-out forwards;
+}
+
+.ai-radar-point {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ai-radar-point-appear 0.3s ease-out forwards;
+}
+
 .price-chart-history-line {
   stroke-dasharray: 900;
   stroke-dashoffset: 900;
@@ -130,9 +165,13 @@
   .price-chart-forecast-line,
   .price-chart-history-point,
   .price-chart-prediction-point,
-  .price-chart-pulse {
+  .price-chart-pulse,
+  .ai-radar-shape,
+  .ai-radar-segment,
+  .ai-radar-point {
     animation: none;
     opacity: 1;
     stroke-dashoffset: 0;
+    fill-opacity: 1;
   }
 }
