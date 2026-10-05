@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapBounds, PropertyFilter } from '../../api/property/propertyApi';
 import Header from '../../components/layout/Header';
 import CategoryChips from './components/CategoryChips';
@@ -36,6 +36,7 @@ function readDetailFilter(params: URLSearchParams): DetailFilter {
 }
 
 function SearchPage() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { items, loading, error, searched, search } = usePropertySearch();
   const initialPropertyType = searchParams.get('propertyType');
@@ -193,6 +194,7 @@ function SearchPage() {
           </div>
         </aside>
         <PropertyMap items={items} selectedId={selectedId} onSelectProperty={setSelectedId}
+          onOpenProperty={(propertyId) => navigate(`/properties/${propertyId}`)}
           onBoundsChanged={handleBoundsChanged} showResearch={boundsChanged} onResearch={() => runSearch()} moveTo={moveTo} />
       </div>
       <FilterModal open={filterOpen} value={detailFilter} onClose={() => setFilterOpen(false)} onApply={(value) => {
