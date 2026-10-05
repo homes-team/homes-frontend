@@ -54,14 +54,40 @@ function AiRadarChart({ categories }: { categories: AiEvaluationCategory[] }) {
         return <line key={key} x1="110" y1="110" x2={x} y2={y} stroke={scores[index] === null ? '#9ca3af' : '#e5e7eb'} strokeDasharray={scores[index] === null ? '3 3' : undefined} strokeWidth="1" />;
       })}
       {complete ? (
-        <polygon points={scorePoints.map((p) => p!.join(',')).join(' ')} fill="rgba(37, 99, 235, 0.24)" stroke="#2563eb" strokeWidth="2.5" />
+        <polygon
+          points={scorePoints.map((p) => p!.join(',')).join(' ')}
+          fill="rgba(37, 99, 235, 0.24)"
+          stroke="#2563eb"
+          strokeWidth="2.5"
+          pathLength="1"
+          className="ai-radar-shape"
+        />
       ) : scorePoints.map((p, index) => {
         if (!p) return null;
         const next = scorePoints[(index + 1) % ORDER.length];
         return (
           <g key={ORDER[index]}>
-            {next && <line x1={p[0]} y1={p[1]} x2={next[0]} y2={next[1]} stroke="#2563eb" strokeWidth="2.5" />}
-            <circle cx={p[0]} cy={p[1]} r="3" fill="#2563eb" />
+            {next && (
+              <line
+                x1={p[0]}
+                y1={p[1]}
+                x2={next[0]}
+                y2={next[1]}
+                stroke="#2563eb"
+                strokeWidth="2.5"
+                pathLength="1"
+                className="ai-radar-segment"
+                style={{ animationDelay: `${index * 0.12}s` }}
+              />
+            )}
+            <circle
+              cx={p[0]}
+              cy={p[1]}
+              r="3"
+              fill="#2563eb"
+              className="ai-radar-point"
+              style={{ animationDelay: `${0.25 + index * 0.12}s` }}
+            />
           </g>
         );
       })}

@@ -22,6 +22,16 @@ export function formatMoney(manwon: number): string {
   return manwon.toLocaleString();
 }
 
+/** 만원 단위 금액을 완전한 원화 문구로 변환한다. 예: 41900 → "4억 1,900만 원" */
+export function formatKoreanWon(manwon: number): string {
+  const eok = Math.floor(manwon / 10000);
+  const remainder = manwon % 10000;
+  const parts: string[] = [];
+  if (eok > 0) parts.push(`${eok.toLocaleString()}억`);
+  if (remainder > 0 || eok === 0) parts.push(`${remainder.toLocaleString()}만`);
+  return `${parts.join(' ')} 원`;
+}
+
 /** 거래 유형에 맞는 가격 라벨: "월세 1000/80", "전세 2.5억", "매매 8.5억" */
 export function formatPrice(item: PropertyListItem): string {
   const label = TRADE_TYPE_LABEL[item.tradeType];
