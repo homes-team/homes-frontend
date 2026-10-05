@@ -8,6 +8,7 @@ interface PropertyMapProps {
   items: PropertyListItem[];
   selectedId: number | null;
   onSelectProperty: (propertyId: number) => void;
+  onOpenProperty: (propertyId: number) => void;
   /** 지도 이동이 멈췄을 때. 초기 렌더 직후에도 한 번 호출된다. */
   onBoundsChanged: (bounds: MapBounds, isInitial: boolean) => void;
   /** 지도를 움직여 현재 결과와 영역이 어긋난 상태 */
@@ -24,8 +25,73 @@ interface PropertyMapProps {
  */
 const MARKER_BASE =
   'cursor-pointer rounded-pill border-[1.5px] border-primary bg-white px-3.5 py-[7px] text-[13px] font-bold whitespace-nowrap text-primary shadow-[0_2px_8px_rgba(0,0,0,0.16)] hover:bg-primary-50';
-const MARKER_SELECTED =
-  'scale-105 cursor-pointer rounded-pill border-[1.5px] border-primary bg-primary px-3.5 py-[7px] text-[13px] font-bold whitespace-nowrap text-white shadow-[0_2px_8px_rgba(0,0,0,0.16)] hover:bg-primary-dark';
+const PREVIEW_CARD =
+  'flex w-[320px] max-w-[calc(100vw-32px)] cursor-pointer items-center gap-4 overflow-hidden rounded-card border border-primary-100 bg-white p-3.5 text-left shadow-[0_10px_30px_rgba(15,23,42,0.22)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_34px_rgba(15,23,42,0.26)] focus-visible:outline-2 focus-visible:outline-primary';
+
+/**
+ * 카카오 CustomOverlay에 삽입할 DOM을 만든다.
+ * 첫 클릭 전에는 가격 마커, 선택 후에는 상세 이동이 가능한 미리보기 카드가 된다.
+ */
+export function createPropertyOverlayContent(
+  item: PropertyListItem,
+  isSelected: boolean,
+  onSelect: (propertyId: number) => void,
+  onOpen: (propertyId: number) => void,
+): HTMLButtonElement {
+  const button = document.createElement('button');
+  button.type = 'button';
+
+  if (!isSelected) {
+    button.className = MARKER_BASE;
+    button.textContent = formatPrice(item);
+    button.setAttribute('aria-label', `${item.title} 매물 선택`);
+    button.addEventListener('click', (event) => {
+      event.stopPropagation();
+      onSelect(item.propertyId);
+    });
+    return button;
+  }
+
+  button.className = PREVIEW_CARD;
+  button.setAttribute('aria-label', `${item.title} 상세보기`);
+
+  const thumbnail = document.createElement('div');
+  thumbnail.className = 'relative h-[92px] w-[112px] shrink-0 overflow-hidden rounded-button bg-gray-100';
+  if (item.thumbnailUrl) {
+    const image = document.createElement('img');
+    image.src = item.thumbnailUrl;
+    image.alt = `${item.title} 매물 사진`;
+    image.className = 'h-full w-full object-cover';
+    thumbnail.appendChild(image);
+  } else {
+    const placeholder = document.createElement('span');
+    placeholder.className = 'absolute inset-0 grid place-items-center text-xs text-gray-400';
+    placeholder.textContent = '사진 준비 중';
+    thumbnail.appendChild(placeholder);
+  }
+
+  const content = document.createElement('span');
+  content.className = 'flex min-w-0 flex-1 flex-col gap-1.5';
+  const price = document.createElement('strong');
+  price.className = 'text-lg font-bold text-gray-900';
+  price.textContent = formatPrice(item);
+  const title = document.createElement('span');
+  title.className = 'truncate text-[15px] font-semibold text-gray-900';
+  title.textContent = item.title;
+  const meta = document.createElement('span');
+  meta.className = 'truncate text-[13px] text-gray-500';
+  meta.textContent = `${item.currentFloor}/${item.totalFloors}층 · ${item.area}㎡`;
+  const hint = document.createElement('span');
+  hint.className = 'text-[13px] font-semibold text-primary';
+  hint.textContent = '상세보기 →';
+  content.append(price, title, meta, hint);
+  button.append(thumbnail, content);
+  button.addEventListener('click', (event) => {
+    event.stopPropagation();
+    onOpen(item.propertyId);
+  });
+  return button;
+}
 
 function readBounds(map: kakao.maps.Map): MapBounds {
   const bounds = map.getBounds();
@@ -43,6 +109,7 @@ function PropertyMap({
   items,
   selectedId,
   onSelectProperty,
+  onOpenProperty,
   onBoundsChanged,
   showResearch,
   onResearch,
@@ -57,6 +124,8 @@ function PropertyMap({
   onBoundsChangedRef.current = onBoundsChanged;
   const onSelectRef = useRef(onSelectProperty);
   onSelectRef.current = onSelectProperty;
+  const onOpenRef = useRef(onOpenProperty);
+  onOpenRef.current = onOpenProperty;
 
   /* 지도 idle 이벤트 → 영역 변경 알림 */
   useEffect(() => {
@@ -88,16 +157,17 @@ function PropertyMap({
     items.forEach((item) => {
       const isSelected = item.propertyId === selectedId;
 
-      const marker = document.createElement('button');
-      marker.type = 'button';
-      marker.className = isSelected ? MARKER_SELECTED : MARKER_BASE;
-      marker.textContent = formatPrice(item);
-      marker.addEventListener('click', () => onSelectRef.current(item.propertyId));
+      const marker = createPropertyOverlayContent(
+        item,
+        isSelected,
+        (propertyId) => onSelectRef.current(propertyId),
+        (propertyId) => onOpenRef.current(propertyId),
+      );
 
       const overlay = new maps.CustomOverlay({
         position: new maps.LatLng(item.latitude, item.longitude),
         content: marker,
-        yAnchor: 1.15, // 말풍선 꼬리가 좌표를 가리키도록 위로 띄운다
+        yAnchor: isSelected ? 1.08 : 1.15, // 미리보기 카드는 마커 좌표 위에 자연스럽게 배치한다
         zIndex: isSelected ? 10 : 1,
         clickable: true,
       });
