@@ -30,6 +30,11 @@ export function acceptBid(propertyId: number, bidId: number): Promise<void> {
   return apiPost<void>(`/properties/${propertyId}/bids/${bidId}/accept`, {}, { auth: true });
 }
 
+/** 제안서 거절(PENDING 상태만) — POST /properties/{propertyId}/bids/{bidId}/reject (집주인 전용) */
+export function rejectBid(propertyId: number, bidId: number): Promise<void> {
+  return apiPost<void>(`/properties/${propertyId}/bids/${bidId}/reject`, {}, { auth: true });
+}
+
 /** 매칭 취소 — POST /properties/{propertyId}/bids/{bidId}/cancel (집주인/매칭된 중개사) */
 export function cancelBid(propertyId: number, bidId: number): Promise<void> {
   return apiPost<void>(`/properties/${propertyId}/bids/${bidId}/cancel`, {}, { auth: true });

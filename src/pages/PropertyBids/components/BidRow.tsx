@@ -5,7 +5,7 @@ import Badge from '../../../components/ui/Badge';
 import Button from '../../../components/ui/Button';
 import { HelperText } from '../../../components/ui/Field';
 import NegotiationThread from './NegotiationThread';
-import { acceptBid, cancelBid, completeBid } from '../../../api/bid/bidApi';
+import { acceptBid, cancelBid, completeBid, rejectBid } from '../../../api/bid/bidApi';
 import { ApiError } from '../../../api/client';
 import { formatRelativeTime } from '../../../utils/format';
 import { BID_STATUS_LABEL, BidListItem } from '../../../types/bid';
@@ -54,9 +54,18 @@ function BidRow({ propertyId, bid, onChanged }: { propertyId: number; bid: BidLi
           {expanded ? '협상 내역 닫기' : '협상 내역 보기'}
         </Button>
         {bid.status === 'PENDING' && (
-          <Button disabled={busy} onClick={() => runAction(() => acceptBid(propertyId, bid.bidId), '매칭을 확정했어요.')}>
-            수락하기
-          </Button>
+          <>
+            <Button disabled={busy} onClick={() => runAction(() => acceptBid(propertyId, bid.bidId), '매칭을 확정했어요.')}>
+              수락하기
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={busy}
+              onClick={() => runAction(() => rejectBid(propertyId, bid.bidId), '제안서를 거절했어요.')}
+            >
+              거절하기
+            </Button>
+          </>
         )}
         {bid.status === 'ACCEPTED' && (
           <>
