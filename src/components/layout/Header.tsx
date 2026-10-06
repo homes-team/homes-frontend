@@ -4,6 +4,7 @@ import { AUTH_STATE_CHANGED_EVENT, isLoggedIn } from '../../api/client';
 import { logout as logoutRequest } from '../../api/auth/authApi';
 import { fetchNotifications, subscribeToNotifications } from '../../api/notification/notificationApi';
 import { clearTokens, getCurrentUser } from '../../utils/auth';
+import Logo from '../ui/Logo';
 
 const NAV_ITEMS = [
   { label: '원룸·투룸', to: '/search' },
@@ -75,7 +76,7 @@ function Header() {
     <header className="flex items-center justify-between px-10 py-3.5 bg-white">
       <div className="flex items-center gap-8">
         <button type="button" onClick={() => navigate('/')} className="flex items-center gap-2">
-          <span className="h-[30px] w-[30px] rounded-lg bg-primary" aria-hidden="true" />
+          <Logo />
           <span className="text-xl font-bold text-primary">홈즈</span>
         </button>
         <nav className="hidden items-center gap-8 md:flex" aria-label="주요 메뉴">

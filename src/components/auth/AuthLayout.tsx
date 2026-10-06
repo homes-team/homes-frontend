@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Logo from '../ui/Logo';
 
 export interface AuthStep {
   label: string;
@@ -27,7 +28,7 @@ function AuthLayout({ title, showSignupLink = false, steps, children }: AuthLayo
     <div className="flex min-h-screen flex-col bg-gray-100">
       <header className="bg-white px-10 py-3.5">
         <button type="button" onClick={() => navigate('/')} className="inline-flex items-center gap-2">
-          <span className="h-[30px] w-[30px] rounded-lg bg-primary" aria-hidden="true" />
+          <Logo />
           <span className="text-xl font-bold text-primary">홈즈</span>
         </button>
       </header>
