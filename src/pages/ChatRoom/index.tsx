@@ -41,14 +41,20 @@ function ChatRoomPage() {
     connectChatSocket(
       id,
       (message) => setMessages((prev) => [...prev, message]),
-      () => setConnectionError('실시간 연결이 끊겼어요. 새로고침해주세요.'),
-    ).then((handle) => {
-      if (cancelled) {
-        handle.disconnect();
-        return;
-      }
-      socketRef.current = handle;
-    });
+      () => {
+        if (!cancelled) setConnectionError('실시간 연결이 끊겼어요. 새로고침해주세요.');
+      },
+    )
+      .then((handle) => {
+        if (cancelled) {
+          handle.disconnect();
+          return;
+        }
+        socketRef.current = handle;
+      })
+      .catch(() => {
+        if (!cancelled) setConnectionError('실시간 연결에 실패했어요. 새로고침해주세요.');
+      });
 
     return () => {
       cancelled = true;
