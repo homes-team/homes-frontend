@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PageShell from '../../components/layout/PageShell';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -16,6 +17,7 @@ import { PROPERTY_TYPE_LABEL } from '../../types/property';
 import { AgentDashboardStats, AgentProfile, NearbyProperty } from '../../types/realtor';
 
 function RealtorMyPage() {
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<AgentProfile | null>(null);
   const [stats, setStats] = useState<AgentDashboardStats | null>(null);
   const [nearby, setNearby] = useState<NearbyProperty[]>([]);
@@ -59,7 +61,12 @@ function RealtorMyPage() {
 
   return (
     <PageShell>
-      <h1 className="mb-4 text-xl font-bold text-gray-900">중개사 마이페이지</h1>
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-xl font-bold text-gray-900">중개사 마이페이지</h1>
+        <Button variant="secondary" onClick={() => navigate('/realtor/mypage/bids')}>
+          내가 제출한 제안서
+        </Button>
+      </div>
 
       {loading && <p className="py-12 text-center text-sm text-gray-500">불러오는 중...</p>}
       {!loading && error && <p className="rounded-button bg-red-50 p-4 text-sm font-medium text-danger">{error}</p>}
