@@ -2,6 +2,7 @@ import { ChangeEvent, FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login, signupRealtor } from '../../api/auth/authApi';
 import { ApiError } from '../../api/client';
+import { uploadFileToS3 } from '../../api/upload/presignedUpload';
 import { saveTokens } from '../../utils/auth';
 import { buildAuthSteps } from '../../utils/authSteps';
 import { RealtorSignupResult } from '../../types/auth';
@@ -32,9 +33,9 @@ const STEP_LABELS = ['가입 유형', '계정 정보', '개인 정보', '중개�
  * - step4 "중개사 등록번호"는 예시가 지자체 중개업 등록번호 형식이었지만, 백엔드
  *   `businessNum`은 사업자등록번호 형식(`123-45-67890`)만 허용해서 검증/예시만 교체했다.
  * - "사무소 주소"의 "주소 검색"은 지도 API 연동이 필요해 지금은 직접 입력 텍스트필드로
- *   대체했다. officeLatitude/officeLongitude는 이번엔 전송하지 않는다 (선택값이라 안전).
- * - 이미지는 실제 파일 그대로 signupRealtor()에 넘겨 /users/realtors 멀티파트 요청의
- *   businessCertImage/agentCertImage/profileImage 파트로 전송한다 (RealtorController 참고).
+ *   대체했다. 위경도는 백엔드가 이 주소를 기반으로 자동으로 채운다.
+ * - 이미지는 제출 직전에 presigned URL로 S3에 먼저 업로드하고, 그 결과 URL을
+ *   businessCertUrl/agentCertUrl/profileImageUrl로 담아 signupRealtor()에 전달한다.
  */
 function SignupAgentWizardPage() {
   const navigate = useNavigate();
@@ -79,18 +80,26 @@ function SignupAgentWizardPage() {
     setDocumentsError(null);
     setSubmitting(true);
     try {
+      const email = accountStep.email.trim();
+      setUploadStage('서류 업로드 중...');
+      const [businessCertUrl, agentCertUrl, profileImageUrl] = await Promise.all([
+        uploadFileToS3(businessCertImage as File, { email }),
+        uploadFileToS3(agentCertImage as File, { email }),
+        profileImage ? uploadFileToS3(profileImage, { email }) : Promise.resolve(undefined),
+      ]);
+
       setUploadStage('가입 정보 제출 중...');
       const signupResult = await signupRealtor({
-        email: accountStep.email.trim(),
+        email,
         password: accountStep.password,
         name: name.trim(),
         phone: phone.trim(),
         officeName: officeName.trim(),
         businessNum: businessNum.trim(),
         officeAddress: officeAddress.trim() || undefined,
-        businessCertImage: businessCertImage as File,
-        agentCertImage: agentCertImage as File,
-        profileImage: profileImage ?? undefined,
+        businessCertUrl,
+        agentCertUrl,
+        profileImageUrl,
       });
       const tokenDto = await login({ email: accountStep.email.trim(), password: accountStep.password });
       saveTokens(tokenDto);

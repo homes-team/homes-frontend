@@ -5,7 +5,9 @@ import { ApiError } from '../../api/client';
 import { saveTokens } from '../../utils/auth';
 import AuthLayout from '../../components/auth/AuthLayout';
 import Button from '../../components/ui/Button';
+import GoogleIcon from '../../components/ui/GoogleIcon';
 import { Field, Label, Input, ErrorText } from '../../components/ui/Field';
+import { buildGoogleAuthUrl } from '../../utils/googleOAuth';
 
 /**
  * 이메일/비밀번호를 틀렸을 때 어느 쪽이 틀렸는지 노출하지 않기 위해
@@ -99,6 +101,23 @@ function LoginPage() {
         <Button type="submit" disabled={submitting}>
           {submitting ? '로그인 중...' : '로그인'}
         </Button>
+
+        <div className="flex items-center gap-3 text-xs text-gray-400">
+          <div className="h-px flex-1 bg-gray-200" />
+          또는
+          <div className="h-px flex-1 bg-gray-200" />
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            window.location.href = buildGoogleAuthUrl();
+          }}
+          className="flex items-center justify-center gap-2.5 rounded-button border border-gray-200 py-[15px] text-[15px] font-medium text-gray-900 hover:bg-gray-50"
+        >
+          <GoogleIcon />
+          Google로 로그인
+        </button>
 
         <p className="flex items-center justify-center gap-2 text-[13px] text-gray-500">
           <button type="button" onClick={() => navigate('/find-id')} className="hover:text-primary">
