@@ -32,9 +32,10 @@ export interface IdentityVerificationResult {
 }
 
 /**
- * RealtorSignupReqDto.java 대응.
- * 백엔드가 실제로는 multipart/form-data로 받는다 — 텍스트 필드는 ModelAttribute 파트로,
- * 파일은 businessCertImage/agentCertImage(필수)/profileImage(선택) 파트로 함께 전송한다.
+ * RealtorSignupReqDto.java 대응 (application/json).
+ * 서류 이미지는 미리 GET /properties/presigned-url로 S3에 업로드한 뒤 그 결과 URL을
+ * businessCertUrl/agentCertUrl(필수)/profileImageUrl(선택)로 전달한다. S3 버킷 도메인이
+ * 아닌 URL은 백엔드가 거부한다.
  */
 export interface RealtorSignupRequest {
   email: string;
@@ -44,11 +45,9 @@ export interface RealtorSignupRequest {
   officeName: string;
   businessNum: string;
   officeAddress?: string;
-  officeLatitude?: number;
-  officeLongitude?: number;
-  businessCertImage: File;
-  agentCertImage: File;
-  profileImage?: File;
+  businessCertUrl: string;
+  agentCertUrl: string;
+  profileImageUrl?: string;
 }
 
 /** RealtorSignupResDto.java 대응 */
