@@ -68,6 +68,11 @@ function ChatRoomPage() {
     setInput('');
   };
 
+  const handleSuggestVisitDate = () => {
+    if (!socketRef.current) return;
+    socketRef.current.send('방문 가능하신 날짜와 시간대를 알려주시면 일정을 조율해볼게요 📅');
+  };
+
   const handleLeave = async () => {
     if (!window.confirm('채팅방을 나가시겠어요?')) return;
     try {
@@ -118,7 +123,17 @@ function ChatRoomPage() {
             </div>
           )}
 
-          <form className="flex gap-2 border-t border-gray-200 p-3" onSubmit={handleSend}>
+          <div className="flex gap-2 border-t border-gray-200 px-3 pt-3">
+            <button
+              type="button"
+              onClick={handleSuggestVisitDate}
+              className="rounded-pill border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
+            >
+              📅 방문 날짜 제안하기
+            </button>
+          </div>
+
+          <form className="flex gap-2 p-3" onSubmit={handleSend}>
             <Input
               className="flex-1"
               value={input}
