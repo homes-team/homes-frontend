@@ -6,6 +6,7 @@ import Button from '../../../components/ui/Button';
 import { HelperText } from '../../../components/ui/Field';
 import NegotiationThread from './NegotiationThread';
 import { acceptBid, cancelBid, completeBid } from '../../../api/bid/bidApi';
+import { createChatRoom } from '../../../api/chat/chatApi';
 import { ApiError } from '../../../api/client';
 import { formatRelativeTime } from '../../../utils/format';
 import { BID_STATUS_LABEL, BidListItem } from '../../../types/bid';
@@ -25,6 +26,19 @@ function BidRow({ propertyId, bid, onChanged }: { propertyId: number; bid: BidLi
       onChanged();
     } catch (err) {
       setActionMessage(err instanceof ApiError ? err.message : '처리에 실패했어요.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleStartChat = async () => {
+    setBusy(true);
+    setActionMessage(null);
+    try {
+      const room = await createChatRoom({ propertyId, realtorId: bid.agentId });
+      navigate(`/chats/${room.chatId}`);
+    } catch (err) {
+      setActionMessage(err instanceof ApiError ? err.message : '채팅방을 여는 데 실패했어요.');
     } finally {
       setBusy(false);
     }
@@ -52,6 +66,9 @@ function BidRow({ propertyId, bid, onChanged }: { propertyId: number; bid: BidLi
       <div className="mt-3 flex gap-2">
         <Button variant="secondary" onClick={() => setExpanded((prev) => !prev)}>
           {expanded ? '협상 내역 닫기' : '협상 내역 보기'}
+        </Button>
+        <Button variant="secondary" disabled={busy} onClick={handleStartChat}>
+          채팅하기
         </Button>
         {bid.status === 'PENDING' && (
           <Button disabled={busy} onClick={() => runAction(() => acceptBid(propertyId, bid.bidId), '매칭을 확정했어요.')}>
