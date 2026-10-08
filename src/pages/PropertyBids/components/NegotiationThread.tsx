@@ -6,7 +6,15 @@ import { ApiError } from '../../../api/client';
 import { formatRelativeTime } from '../../../utils/format';
 import { NegotiationListItem } from '../../../types/bid';
 
-function NegotiationThread({ propertyId, bidId }: { propertyId: number; bidId: number }) {
+function NegotiationThread({
+  propertyId,
+  bidId,
+  editable = true,
+}: {
+  propertyId: number;
+  bidId: number;
+  editable?: boolean;
+}) {
   const [negotiations, setNegotiations] = useState<NegotiationListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [suggestedFee, setSuggestedFee] = useState('');
@@ -46,28 +54,30 @@ function NegotiationThread({ propertyId, bidId }: { propertyId: number; bidId: n
       {negotiations.map((item) => (
         <div key={item.negotiationId} className="flex flex-wrap items-center gap-2 text-[13px]">
           <Badge>{item.senderRole === 'USER' ? '집주인' : '중개사'}</Badge>
-          <span className="font-bold text-gray-900">{item.suggestedFee.toLocaleString()}만원</span>
+          <span className="font-bold text-gray-900">{item.suggestedFee.toLocaleString()}%</span>
           {item.message && <span className="text-gray-600">{item.message}</span>}
           <span className="ml-auto text-gray-400">{formatRelativeTime(item.createdAt)}</span>
         </div>
       ))}
 
-      <div className="mt-2 flex gap-2">
-        <Input
-          type="number"
-          placeholder="제안 수수료 (만원)"
-          value={suggestedFee}
-          onChange={(event) => setSuggestedFee(event.target.value)}
-        />
-        <Input placeholder="메모 (선택)" value={message} onChange={(event) => setMessage(event.target.value)} />
-        <button
-          type="button"
-          onClick={handleSend}
-          className="shrink-0 whitespace-nowrap rounded-button bg-primary px-4 py-3 text-sm font-bold text-white hover:bg-primary-dark"
-        >
-          역제안 보내기
-        </button>
-      </div>
+      {editable && (
+        <div className="mt-2 flex gap-2">
+          <Input
+            type="number"
+            placeholder="제안 수수료 (%)"
+            value={suggestedFee}
+            onChange={(event) => setSuggestedFee(event.target.value)}
+          />
+          <Input placeholder="메모 (선택)" value={message} onChange={(event) => setMessage(event.target.value)} />
+          <button
+            type="button"
+            onClick={handleSend}
+            className="shrink-0 whitespace-nowrap rounded-button bg-primary px-4 py-3 text-sm font-bold text-white hover:bg-primary-dark"
+          >
+            역제안 보내기
+          </button>
+        </div>
+      )}
       {error && <ErrorText>{error}</ErrorText>}
     </div>
   );

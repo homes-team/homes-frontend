@@ -8,20 +8,14 @@ import NegotiationThread from '../../PropertyBids/components/NegotiationThread';
 import { cancelBid } from '../../../api/bid/bidApi';
 import { fetchChatRooms } from '../../../api/chat/chatApi';
 import { ApiError } from '../../../api/client';
-import { formatMoney, formatRelativeTime } from '../../../utils/format';
+import { formatRelativeTime } from '../../../utils/format';
 import { BID_STATUS_LABEL, MyBidListItem } from '../../../types/bid';
-import { TRADE_TYPE_LABEL } from '../../../types/property';
 
 function MyBidRow({ bid, onChanged }: { bid: MyBidListItem; onChanged: () => void }) {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
-
-  const priceLabel =
-    bid.tradeType === 'MONTHLY_RENT'
-      ? `${TRADE_TYPE_LABEL[bid.tradeType]} ${formatMoney(bid.deposit)}/${bid.monthlyRent}`
-      : `${TRADE_TYPE_LABEL[bid.tradeType]} ${formatMoney(bid.deposit)}`;
 
   const handleCancel = async () => {
     setBusy(true);
@@ -64,22 +58,20 @@ function MyBidRow({ bid, onChanged }: { bid: MyBidListItem; onChanged: () => voi
           className="text-left text-[15px] font-bold text-gray-900 hover:text-primary"
         >
           {bid.propertyTitle}
-          <p className="mt-0.5 text-xs font-normal text-gray-500">{priceLabel} · {bid.propertyAddress}</p>
+          <p className="mt-0.5 text-xs font-normal text-gray-500">{bid.propertyAddress}</p>
         </button>
         <Badge>{BID_STATUS_LABEL[bid.status]}</Badge>
       </div>
 
       <p className="mt-2 text-xs text-gray-500">
         내가 제안한 수수료 {bid.proposedFee.toLocaleString()}%
-        {bid.finalFee !== null ? ` · 확정 수수료 ${bid.finalFee.toLocaleString()}%` : ''} · {formatRelativeTime(bid.createdAt)}
+        {bid.currentFee !== bid.proposedFee ? ` · 현재 협상 수수료 ${bid.currentFee.toLocaleString()}%` : ''} · {formatRelativeTime(bid.createdAt)}
       </p>
 
       <div className="mt-3 flex gap-2">
-        {bid.status === 'PENDING' && (
-          <Button variant="secondary" onClick={() => setExpanded((prev) => !prev)}>
-            {expanded ? '협상 내역 닫기' : '재협상 보기'}
-          </Button>
-        )}
+        <Button variant="secondary" onClick={() => setExpanded((prev) => !prev)}>
+          {expanded ? '제안 상세 닫기' : '제안 상세 보기'}
+        </Button>
         {bid.status === 'ACCEPTED' && (
           <>
             <Button disabled={busy} onClick={handleOpenChat}>
@@ -93,7 +85,13 @@ function MyBidRow({ bid, onChanged }: { bid: MyBidListItem; onChanged: () => voi
       </div>
       {actionMessage && <HelperText>{actionMessage}</HelperText>}
 
-      {expanded && <NegotiationThread propertyId={bid.propertyId} bidId={bid.bidId} />}
+      {expanded && (
+        <NegotiationThread
+          propertyId={bid.propertyId}
+          bidId={bid.bidId}
+          editable={bid.status === 'PENDING'}
+        />
+      )}
     </Card>
   );
 }
