@@ -1,34 +1,52 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { fetchAiEvaluation, fetchPropertyDetail } from '../../api/property/propertyApi';
+import {
+  fetchAiEvaluation,
+  fetchNearbyFacilities,
+  fetchPropertyDetail,
+} from '../../api/property/propertyApi';
 import PageShell from '../../components/layout/PageShell';
-import { AiEvaluation } from '../../types/property';
+import { AiEvaluation, NearbyFacilities, PropertyDirection } from '../../types/property';
 import AiEvaluationCard from '../PropertyDetail/components/AiEvaluationCard';
 import AiRadarChart from '../PropertyDetail/components/AiRadarChart';
+import AiInfrastructureMap from './components/AiInfrastructureMap';
 
 function AiEvaluationReportPage() {
   const { propertyId } = useParams<{ propertyId: string }>();
   const id = Number(propertyId);
   const navigate = useNavigate();
   const [evaluation, setEvaluation] = useState<AiEvaluation | null>(null);
-  const [propertyTitle, setPropertyTitle] = useState<{ propertyId: number; title: string } | null>(null);
+  const [facilities, setFacilities] = useState<NearbyFacilities | null>(null);
+  const [propertyMeta, setPropertyMeta] = useState<{
+    propertyId: number;
+    title: string;
+    direction: PropertyDirection;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [facilitiesLoading, setFacilitiesLoading] = useState(true);
+  const [facilitiesError, setFacilitiesError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
-  const title = propertyTitle?.propertyId === id ? propertyTitle.title : '매물';
+  const title = propertyMeta?.propertyId === id ? propertyMeta.title : '매물';
+  const direction = propertyMeta?.propertyId === id ? propertyMeta.direction : null;
   const currentEvaluation = evaluation?.propertyId === id ? evaluation : null;
+  const currentFacilities = facilities?.propertyId === id ? facilities : null;
 
   useEffect(() => {
-    setPropertyTitle(null);
+    setPropertyMeta(null);
     setEvaluation(null);
+    setFacilities(null);
     if (!Number.isFinite(id)) {
       setLoading(false);
+      setFacilitiesLoading(false);
       setError('유효하지 않은 매물 ID입니다.');
       return;
     }
     const controller = new AbortController();
     setLoading(true);
     setError(null);
+    setFacilitiesLoading(true);
+    setFacilitiesError(null);
     fetchAiEvaluation(id, controller.signal)
       .then((result) => {
         if (!controller.signal.aborted) setEvaluation(result);
@@ -41,10 +59,22 @@ function AiEvaluationReportPage() {
       });
     fetchPropertyDetail(id, controller.signal)
       .then((property) => {
-        if (!controller.signal.aborted) setPropertyTitle({ propertyId: id, title: property.title });
+        if (!controller.signal.aborted) {
+          setPropertyMeta({ propertyId: id, title: property.title, direction: property.direction });
+        }
       })
       .catch(() => {
         // The title is optional; keep the default when property details are unavailable.
+      });
+    fetchNearbyFacilities(id, controller.signal)
+      .then((result) => {
+        if (!controller.signal.aborted) setFacilities(result);
+      })
+      .catch((reason: Error) => {
+        if (!controller.signal.aborted) setFacilitiesError(reason.message);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setFacilitiesLoading(false);
       });
     return () => controller.abort();
   }, [id, version]);
@@ -68,6 +98,15 @@ function AiEvaluationReportPage() {
           </div>
         </div>
       )}
+
+      <AiInfrastructureMap
+        evaluation={currentEvaluation}
+        facilities={currentFacilities}
+        direction={direction}
+        loading={facilitiesLoading}
+        error={facilitiesError}
+        onRetry={() => setVersion((current) => current + 1)}
+      />
 
       <AiEvaluationCard
         evaluation={currentEvaluation}

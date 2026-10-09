@@ -308,6 +308,36 @@ export interface AiEvaluation {
   generatedAt: string;
 }
 
+export type NearbyFacilityType =
+  | 'SUBWAY'
+  | 'BUS_STOP'
+  | 'SCHOOL'
+  | 'HOSPITAL'
+  | 'CULTURE'
+  | 'PARK'
+  | 'MART';
+
+export interface NearbyFacility {
+  id: string;
+  type: NearbyFacilityType;
+  name: string;
+  latitude: number;
+  longitude: number;
+  distanceMeters: number;
+  address: string | null;
+  source: 'NATIONWIDE_TRANSPORT_POI' | 'KAKAO_LOCAL';
+}
+
+export interface NearbyFacilities {
+  propertyId: number;
+  center: {
+    latitude: number;
+    longitude: number;
+  };
+  radiusMeters: number;
+  facilities: NearbyFacility[];
+}
+
 export type PricePredictionStatus =
   | 'AVAILABLE'
   | 'INSUFFICIENT_DATA'

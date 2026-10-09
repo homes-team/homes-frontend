@@ -1,6 +1,7 @@
 import {
   AiEvaluation,
   BuildingInformation,
+  NearbyFacilities,
   PropertyDetail,
   PropertyListItem,
   PropertyOption,
@@ -46,6 +47,11 @@ export function fetchBuildingInformation(
 /** AI 매물 다면평가 조회 — GET /properties/{propertyId}/ai-evaluation */
 export function fetchAiEvaluation(propertyId: number, signal?: AbortSignal): Promise<AiEvaluation> {
   return apiGet<AiEvaluation>(`/properties/${propertyId}/ai-evaluation`, { signal });
+}
+
+/** AI 평가 지도용 주변 인프라 좌표 조회. */
+export function fetchNearbyFacilities(propertyId: number, signal?: AbortSignal): Promise<NearbyFacilities> {
+  return apiGet<NearbyFacilities>(`/properties/${propertyId}/nearby-facilities`, { signal });
 }
 
 /** 공공 실거래가 기반 가격 예측 — GET /properties/{propertyId}/price-prediction */
