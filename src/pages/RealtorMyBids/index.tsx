@@ -5,11 +5,7 @@ import MyBidRow from './components/MyBidRow';
 import { fetchMyBids } from '../../api/realtor/realtorApi';
 import { MyBidListItem } from '../../types/bid';
 
-/**
- * 중개사가 제출한 입찰 제안서 현황 — GET /realtors/me/bids
- * ⚠️ 이 API는 백엔드에 아직 없다. 필요한 스펙은
- * docs/api-requests/realtor-my-bids.md 에 정리해 백엔드팀에 전달했다.
- */
+/** 중개사가 제출한 입찰 제안서 현황 — GET /realtors/me/bids */
 function RealtorMyBidsPage() {
   const navigate = useNavigate();
   const [bids, setBids] = useState<MyBidListItem[]>([]);

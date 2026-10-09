@@ -105,7 +105,13 @@ function BidRow({ propertyId, bid, onChanged }: { propertyId: number; bid: BidLi
       </div>
       {actionMessage && <HelperText>{actionMessage}</HelperText>}
 
-      {expanded && <NegotiationThread propertyId={propertyId} bidId={bid.bidId} />}
+      {expanded && (
+        <NegotiationThread
+          propertyId={propertyId}
+          bidId={bid.bidId}
+          editable={bid.status === 'PENDING'}
+        />
+      )}
     </Card>
   );
 }

@@ -35,11 +35,7 @@ export function fetchAgentDashboardStats(): Promise<AgentDashboardStats> {
   return apiGet<AgentDashboardStats>('/realtors/me/stats', { auth: true });
 }
 
-/**
- * ⚠️ 백엔드 미구현 — GET /realtors/me/bids
- * 내가 제출한 입찰 제안서 목록(상태/매물 정보 포함)을 조회한다. 백엔드팀에 API 스펙을
- * 별도로 전달해야 한다 (하단 docs/api-requests/realtor-my-bids.md 참고).
- */
+/** 내가 제출한 입찰 제안서 목록(상태/매물 정보/작성 내용 포함) 조회. */
 export function fetchMyBids(): Promise<MyBidListItem[]> {
   return apiGet<MyBidListItem[]>('/realtors/me/bids', { auth: true });
 }

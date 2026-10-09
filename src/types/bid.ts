@@ -1,12 +1,11 @@
-import { TradeType } from './property';
-
 /** BidStatus.java 대응 */
-export type BidStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED';
+export type BidStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'WITHDRAWN' | 'CANCELLED';
 
 export const BID_STATUS_LABEL: Record<BidStatus, string> = {
   PENDING: '대기 중',
   ACCEPTED: '매칭 확정',
   REJECTED: '거절됨',
+  WITHDRAWN: '철회됨',
   CANCELLED: '취소됨',
 };
 
@@ -29,19 +28,16 @@ export interface BidListItem {
 }
 
 /**
- * (백엔드 미구현, 제안 스펙) AgentBidListRespDto 대응 — GET /realtors/me/bids
- * 중개사가 본인이 제출한 입찰 제안서 목록을 매물 정보와 함께 조회한다.
+ * MyBidListRespDto 대응 — GET /realtors/me/bids
+ * 중개사가 본인이 제출한 제안서와 최신 협상 수수료를 조회한다.
  */
 export interface MyBidListItem {
   bidId: number;
   propertyId: number;
   propertyTitle: string;
   propertyAddress: string;
-  tradeType: TradeType;
-  deposit: number;
-  monthlyRent: number;
   proposedFee: number;
-  finalFee: number | null;
+  currentFee: number;
   status: BidStatus;
   createdAt: string;
 }
