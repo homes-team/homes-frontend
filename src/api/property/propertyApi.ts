@@ -1,6 +1,7 @@
 import {
   AiEvaluation,
   BuildingInformation,
+  PropertyCluster,
   PropertyDetail,
   PropertyListItem,
   PropertyOption,
@@ -106,6 +107,25 @@ export interface MapBounds {
   swLng: number;
   neLat: number;
   neLng: number;
+}
+
+/**
+ * 지도 영역 안의 매물을 격자 단위로 묶은 개수 — GET /properties/clusters
+ * 격자 크기는 백엔드가 zoomLevel(카카오 레벨)로 정한다. 검색 필터는 반영되지 않는다.
+ */
+export function fetchPropertyClusters(
+  bounds: MapBounds,
+  zoomLevel: number,
+  signal?: AbortSignal,
+): Promise<PropertyCluster[]> {
+  const params = new URLSearchParams({
+    minLat: String(bounds.swLat),
+    minLon: String(bounds.swLng),
+    maxLat: String(bounds.neLat),
+    maxLon: String(bounds.neLng),
+    zoomLevel: String(zoomLevel),
+  });
+  return apiGet<PropertyCluster[]>(`/properties/clusters?${params.toString()}`, { signal });
 }
 
 /** 사용자가 조작하는 필터 값. 지도 영역과 분리해 두어야 상태 관리가 단순해진다. */

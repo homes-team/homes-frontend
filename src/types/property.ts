@@ -351,6 +351,13 @@ export interface PropertyPricePrediction {
 }
 
 /** PropertyListRespDto.java 대응 (카드형 리스트 아이템) */
+/** PropertyClusterResDto.java 대응 — 격자 단위로 묶은 매물 개수 */
+export interface PropertyCluster {
+  lat: number;
+  lon: number;
+  count: number;
+}
+
 export interface PropertyListItem {
   propertyId: number;
   thumbnailUrl: string | null;
