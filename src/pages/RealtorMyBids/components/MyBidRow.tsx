@@ -91,7 +91,6 @@ function MyBidRow({ bid, onChanged }: { bid: MyBidListItem; onChanged: () => voi
           propertyId={bid.propertyId}
           bidId={bid.bidId}
           editable={bid.status === 'PENDING'}
-          feeUnit="%"
           onChanged={onChanged}
         />
       )}

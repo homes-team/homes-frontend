@@ -41,7 +41,12 @@ import CompareToggleButton from '../../components/compare/CompareToggleButton';
 import InfrastructureCard from './components/InfrastructureCard';
 import MaintenanceFeeCard from './components/MaintenanceFeeCard';
 import PropertyStatusManager from './components/PropertyStatusManager';
+import LegalFeeCapCard from './components/LegalFeeCapCard';
+import { checkProposedRate, commissionCalculatorPath, legalFeeCap } from '../../utils/legalFeeCap';
 import { PROPERTY_STATUS_VARIANT } from '../../utils/statusStyle';
+
+/** 입찰 수수료(%)로 받아들이는 최댓값. 만원 단위 숫자를 잘못 넣는 실수를 걸러낸다 */
+const MAX_BID_RATE = 10;
 
 const REPORT_REASONS: ReportReason[] = ['FAKE_PROPERTY', 'SOLD_OUT', 'PRICE_MISMATCH', 'INFO_MISMATCH', 'OTHER'];
 
@@ -322,9 +327,16 @@ function PropertyDetailPage() {
 
   const handleSubmitBid = async () => {
     const fee = Number(proposedFee);
-    if (!fee || fee <= 0) {
-      setBidMessage('희망 수수료를 올바르게 입력해주세요.');
+    if (!fee || fee <= 0 || fee > MAX_BID_RATE) {
+      setBidMessage('희망 수수료는 % 단위로 입력해주세요. 예: 0.4');
       return;
+    }
+    const cap = property ? legalFeeCap(property) : null;
+    if (cap && checkProposedRate(cap, fee).exceeds) {
+      const proceed = window.confirm(
+        '입력한 수수료가 법정 상한을 넘어요. 상한을 넘는 금액은 받을 수 없어요. 그래도 제출할까요?',
+      );
+      if (!proceed) return;
     }
     setBidSubmitting(true);
     setBidMessage(null);
@@ -471,11 +483,7 @@ function PropertyDetailPage() {
             )}
             <Button
               variant="secondary"
-              onClick={() => {
-                const trade = { SALE: 'sale', JEONSE: 'jeonse', MONTHLY_RENT: 'monthly' }[property.tradeType];
-                const rent = property.tradeType === 'MONTHLY_RENT' ? `&rent=${property.monthlyRent}` : '';
-                navigate(`/calculator?tab=commission&trade=${trade}&price=${property.deposit}${rent}`);
-              }}
+              onClick={() => navigate(commissionCalculatorPath(property))}
             >
               🧾 중개보수 계산
             </Button>
@@ -513,15 +521,21 @@ function PropertyDetailPage() {
           )}
           {reportMessage && <HelperText>{reportMessage}</HelperText>}
 
+          {isLoggedIn() && user?.role === 'AGENT' && !isOwner && (
+            <LegalFeeCapCard property={property} proposedRate={showBidForm ? Number(proposedFee) : undefined} />
+          )}
+
           {showBidForm && (
             <Card className="flex flex-col gap-4">
               <Field>
-                <Label>희망 중개 수수료 (만원)</Label>
+                <Label>희망 중개 수수료 (%)</Label>
                 <Input
                   type="number"
+                  step="0.01"
+                  min="0"
                   value={proposedFee}
                   onChange={(event) => setProposedFee(event.target.value)}
-                  placeholder="예: 50"
+                  placeholder="예: 0.4"
                 />
               </Field>
               <Field>
