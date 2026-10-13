@@ -37,6 +37,7 @@ function ListPropertyFeePage() {
         deposit: Number(form.deposit) || 0,
         monthlyRent: form.tradeType === 'MONTHLY_RENT' ? Number(form.monthlyRent) || 0 : 0,
         maintenanceFee: Number(form.maintenanceFee) || 0,
+        maintenanceItems: form.maintenanceItems,
         address: form.address,
         detailAddress: form.detailAddress,
         currentFloor: Number(form.currentFloor) || 0,

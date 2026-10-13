@@ -107,6 +107,52 @@ export type PropertyOption =
   | 'VERANDA'
   | 'FULL_OPTION';
 
+/**
+ * 관리비에 포함된 항목 종류 (백엔드 미구현, 제안 스펙 — docs/api-requests/maintenance-fee-breakdown.md).
+ * 관리비 상세 내역 공개 의무화에 맞춰 항목별로 적도록 한다.
+ */
+export type MaintenanceItemType =
+  | 'INTERNET'
+  | 'WATER'
+  | 'ELECTRICITY'
+  | 'GAS'
+  | 'HEATING'
+  | 'CLEANING'
+  | 'SECURITY'
+  | 'PARKING'
+  | 'TV';
+
+/** 관리비 한 항목. amount가 null이면 "포함(금액 미기재)"을 뜻한다. 만원 단위. */
+export interface MaintenanceItem {
+  type: MaintenanceItemType;
+  amount: number | null;
+}
+
+export const MAINTENANCE_ITEM_LABEL: Record<MaintenanceItemType, string> = {
+  INTERNET: '인터넷',
+  WATER: '수도',
+  ELECTRICITY: '전기',
+  GAS: '가스',
+  HEATING: '난방',
+  CLEANING: '청소',
+  SECURITY: '경비',
+  PARKING: '주차',
+  TV: 'TV(케이블)',
+};
+
+/** 입력/표시 순서 — 임차인이 가장 많이 묻는 항목(인터넷·수도·전기)을 앞에 둔다 */
+export const MAINTENANCE_ITEM_ORDER: MaintenanceItemType[] = [
+  'INTERNET',
+  'WATER',
+  'ELECTRICITY',
+  'GAS',
+  'HEATING',
+  'CLEANING',
+  'SECURITY',
+  'PARKING',
+  'TV',
+];
+
 /** 정렬 기준 — 백엔드 sortBy 파라미터 값 */
 export type SortBy = 'RECOMMENDED' | 'LATEST' | 'FAVORITE';
 
@@ -240,6 +286,8 @@ export interface PropertyDetail {
   deposit: number;
   monthlyRent: number;
   maintenanceFee: number | null;
+  /** (백엔드 미구현) 관리비 포함 내역. 내려오기 전에는 undefined */
+  maintenanceItems?: MaintenanceItem[];
   totalFloors: number;
   currentFloor: number;
   direction: PropertyDirection;

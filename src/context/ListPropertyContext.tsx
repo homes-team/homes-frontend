@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useContext, useState } from 'react';
-import { PropertyDirection, PropertyOption, PropertyType, TradeType } from '../types/property';
+import { MaintenanceItem, PropertyDirection, PropertyOption, PropertyType, TradeType } from '../types/property';
 
 /**
  * "/list-property-*" 6단계 위저드 전체가 공유하는 입력 상태.
@@ -31,6 +31,8 @@ export interface ListPropertyFormState {
   deposit: string;
   monthlyRent: string;
   maintenanceFee: string;
+  /** 관리비에 포함된 항목 (인터넷·수도·전기 등) */
+  maintenanceItems: MaintenanceItem[];
   description: string;
 
   desiredBrokerageFee: string;
@@ -62,6 +64,7 @@ export const INITIAL_LIST_PROPERTY_FORM: ListPropertyFormState = {
   deposit: '',
   monthlyRent: '',
   maintenanceFee: '',
+  maintenanceItems: [],
   description: '',
   desiredBrokerageFee: '',
 };
