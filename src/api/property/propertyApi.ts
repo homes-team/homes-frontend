@@ -12,7 +12,6 @@ import {
   TradeType,
 } from '../../types/property';
 import { PropertyRealtorInfo } from '../../types/realtor';
-import { apiDelete, apiGet, apiPost } from '../client';
 import { apiDelete, apiGet, apiPatch, apiPost } from '../client';
 
 /** 전체 매물 리스트 조회 (최신 등록순) — GET /properties */
@@ -66,6 +65,8 @@ export function fetchPricePrediction(
 /** 매물 담당 중개사 + 그 중개사의 다른 매물 — GET /properties/{propertyId}/realtors (비로그인 가능) */
 export function fetchPropertyRealtorInfo(propertyId: number, signal?: AbortSignal): Promise<PropertyRealtorInfo> {
   return apiGet<PropertyRealtorInfo>(`/properties/${propertyId}/realtors`, { signal });
+}
+
 /**
  * ⚠️ 백엔드 미구현 — 매물 상태 직접 변경 PATCH /properties/{propertyId}/status (집주인 전용)
  * 광고 중(AVAILABLE) / 거래 완료(COMPLETED) / 숨김(HIDDEN)을 오간다. 스펙은
