@@ -5,6 +5,7 @@ import Badge from '../../../components/ui/Badge';
 import { HelperText } from '../../../components/ui/Field';
 import { updatePropertyStatus } from '../../../api/property/propertyApi';
 import { ApiError } from '../../../api/client';
+import { PROPERTY_STATUS_VARIANT } from '../../../utils/statusStyle';
 import { ManagedPropertyStatus, PROPERTY_STATUS_LABEL, PropertyStatus } from '../../../types/property';
 
 const MANAGED_STATUSES: ManagedPropertyStatus[] = ['AVAILABLE', 'COMPLETED', 'HIDDEN'];
@@ -53,7 +54,7 @@ function PropertyStatusManager({ propertyId, status, onChanged }: PropertyStatus
     <Card className="mt-4 flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-base font-bold text-gray-900">매물 상태 관리</h2>
-        <Badge variant={status === 'AVAILABLE' ? 'primary' : 'default'}>{PROPERTY_STATUS_LABEL[status]}</Badge>
+        <Badge variant={PROPERTY_STATUS_VARIANT[status]}>{PROPERTY_STATUS_LABEL[status]}</Badge>
       </div>
 
       <div className="grid grid-cols-3 gap-2" role="group" aria-label="매물 상태">

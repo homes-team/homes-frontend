@@ -39,7 +39,11 @@ function PropertyCard({ property, dateLabel }: PropertyCardProps) {
           </span>
         )}
         {(property.status === 'COMPLETED' || property.status === 'HIDDEN') && (
-          <span className="absolute top-3 right-3 rounded-lg bg-gray-500 px-3 py-1.5 text-xs font-bold text-white">
+          <span
+            className={`absolute top-3 right-3 rounded-lg px-3 py-1.5 text-xs font-bold text-white ${
+              property.status === 'COMPLETED' ? 'bg-success' : 'bg-gray-500'
+            }`}
+          >
             {PROPERTY_STATUS_LABEL[property.status]}
           </span>
         )}
