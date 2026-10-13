@@ -1,6 +1,7 @@
 import {
   AiEvaluation,
   BuildingInformation,
+  ManagedPropertyStatus,
   PropertyDetail,
   PropertyListItem,
   PropertyOption,
@@ -12,6 +13,7 @@ import {
 } from '../../types/property';
 import { apiDelete, apiGet, apiPost } from '../client';
 import { applyClientSideFilters, serverSupportedOptions } from '../../utils/searchFilter';
+import { apiDelete, apiGet, apiPatch, apiPost } from '../client';
 
 /** 전체 매물 리스트 조회 (최신 등록순) — GET /properties */
 export function fetchAllProperties(): Promise<PropertyListItem[]> {
@@ -59,6 +61,15 @@ export function fetchPricePrediction(
     allowAnonymousFallback: true,
     signal,
   });
+}
+
+/**
+ * ⚠️ 백엔드 미구현 — 매물 상태 직접 변경 PATCH /properties/{propertyId}/status (집주인 전용)
+ * 광고 중(AVAILABLE) / 거래 완료(COMPLETED) / 숨김(HIDDEN)을 오간다. 스펙은
+ * docs/api-requests/property-status.md 참고.
+ */
+export function updatePropertyStatus(propertyId: number, status: ManagedPropertyStatus): Promise<void> {
+  return apiPatch<void>(`/properties/${propertyId}/status`, { status }, { auth: true });
 }
 
 /** 건물정보 즉시 재수집 — POST /properties/{propertyId}/building-information/resolve (소유자만) */

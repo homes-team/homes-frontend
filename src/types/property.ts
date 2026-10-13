@@ -35,8 +35,22 @@ export const PROPERTY_DIRECTION_LABEL: Record<PropertyDirection, string> = {
   UNKNOWN: '정보 없음',
 };
 
-/** PropertyStatus.java 대응 */
-export type PropertyStatus = 'AVAILABLE' | 'MATCHED' | 'COMPLETED';
+/**
+ * PropertyStatus.java 대응. HIDDEN(숨김)은 아직 백엔드에 없는 제안 값이다
+ * (docs/api-requests/property-status.md). DELETED는 소프트 삭제된 매물(관리자에게만 보임).
+ */
+export type PropertyStatus = 'AVAILABLE' | 'MATCHED' | 'COMPLETED' | 'HIDDEN' | 'DELETED';
+
+/** 집주인이 직접 바꿀 수 있는 상태. MATCHED는 제안서 수락/취소 흐름으로만 바뀐다. */
+export type ManagedPropertyStatus = 'AVAILABLE' | 'COMPLETED' | 'HIDDEN';
+
+export const PROPERTY_STATUS_LABEL: Record<PropertyStatus, string> = {
+  AVAILABLE: '광고 중',
+  MATCHED: '매칭 진행 중',
+  COMPLETED: '거래 완료',
+  HIDDEN: '숨김',
+  DELETED: '삭제됨',
+};
 
 /** 건축물대장·K-apt 정보 자동 수집 상태 */
 export type BuildingInformationStatus =
@@ -227,10 +241,8 @@ export interface ReportListItem {
 
 /**
  * PropertyDetailRespDto.java 대응.
- * 목록(PropertyListItem)과 달리 status/favoriteCount일부/썸네일 구분이 없고
+ * 목록(PropertyListItem)과 달리 썸네일 구분이 없고
  * 대신 전체 이미지 목록·상세주소·희망 중개수수료율을 내려준다.
- * ⚠️ 백엔드 응답에 status 필드가 없다 — 상세 화면에서 거래 상태를 보여줘야 하면
- * 목록 API(PropertyListItem.status)에서 가져온 값을 함께 들고 있어야 한다.
  */
 export interface PropertyDetail {
   propertyId: number;
@@ -258,6 +270,7 @@ export interface PropertyDetail {
   longitude: number;
   favoriteCount: number;
   isSuspicious: boolean;
+  status: PropertyStatus;
 }
 
 export type AiEvaluationCategoryKey =
