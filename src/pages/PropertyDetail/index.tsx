@@ -38,6 +38,7 @@ import AiEvaluationSummaryCard from './components/AiEvaluationSummaryCard';
 import PricePredictionCard from './components/PricePredictionCard';
 import RealtorContactCard from './components/RealtorContactCard';
 import CompareToggleButton from '../../components/compare/CompareToggleButton';
+import InfrastructureCard from './components/InfrastructureCard';
 import MaintenanceFeeCard from './components/MaintenanceFeeCard';
 import PropertyStatusManager from './components/PropertyStatusManager';
 import { PROPERTY_STATUS_VARIANT } from '../../utils/statusStyle';
@@ -609,6 +610,11 @@ function PropertyDetailPage() {
             {buildingInformationError}
           </p>
         )}
+      </section>
+
+      <section className="mt-12 border-t border-gray-200 pt-8">
+        <h2 className="mb-4 text-xl font-bold text-gray-900">주변 인프라</h2>
+        <InfrastructureCard latitude={property.latitude} longitude={property.longitude} />
       </section>
 
       {((property.maintenanceFee ?? 0) > 0 || (property.maintenanceItems?.length ?? 0) > 0) && (
