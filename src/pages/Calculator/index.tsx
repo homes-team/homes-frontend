@@ -1,16 +1,20 @@
 import { KeyboardEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import PageShell from '../../components/layout/PageShell';
+import AcquisitionTaxCalculator from './components/AcquisitionTaxCalculator';
 import BrokerageFeeCalculator from './components/BrokerageFeeCalculator';
+import LoanInterestCalculator from './components/LoanInterestCalculator';
 import RentCompareCalculator from './components/RentCompareCalculator';
 import RentConversionCalculator from './components/RentConversionCalculator';
 
-export type CalculatorTab = 'commission' | 'conversion' | 'compare';
+export type CalculatorTab = 'commission' | 'conversion' | 'compare' | 'acquisition' | 'loan';
 
 const TABS: ReadonlyArray<{ id: CalculatorTab; label: string; description: string }> = [
   { id: 'commission', label: '중개보수', description: '매매·전세·월세 거래의 중개수수료(복비) 법정 상한을 계산해요.' },
   { id: 'conversion', label: '전월세 전환', description: '전세와 월세를 전환율로 서로 바꿔 보고, 전환율을 역산해요.' },
   { id: 'compare', label: '전세 vs 월세', description: '전세대출 이자와 월세를 한 달 기준으로 비교해서 어느 쪽이 유리한지 알려드려요.' },
+  { id: 'acquisition', label: '취득세', description: '주택·주택 외 부동산을 살 때 내는 취득세와 지방교육세, 농어촌특별세를 계산해요.' },
+  { id: 'loan', label: '대출 이자', description: '원리금균등·원금균등·만기일시 상환 방식별 월 상환액과 총 이자를 계산해요.' },
 ];
 
 function isTab(value: string | null): value is CalculatorTab {
@@ -68,6 +72,8 @@ function CalculatorPage() {
         {active === 'commission' && <BrokerageFeeCalculator />}
         {active === 'conversion' && <RentConversionCalculator />}
         {active === 'compare' && <RentCompareCalculator />}
+        {active === 'acquisition' && <AcquisitionTaxCalculator />}
+        {active === 'loan' && <LoanInterestCalculator />}
       </div>
     </PageShell>
   );

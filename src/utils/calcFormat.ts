@@ -27,3 +27,11 @@ export function formatWon(won: number): string {
 export function formatRate(rate: number): string {
   return String(Math.round(rate * 100) / 100);
 }
+
+/** 부동소수점 오차(예: 1.5e9 x 0.7 = 1.0499999e9)로 1원이 깎이지 않게, 원 단위 절사 전에 더하는 아주 작은 값 */
+const FLOOR_EPSILON = 1e-6;
+
+/** 원 단위 이하 절사 (부동소수점 오차 보정 포함) */
+export function floorWon(value: number): number {
+  return Math.floor(value + FLOOR_EPSILON);
+}
