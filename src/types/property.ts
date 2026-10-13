@@ -105,7 +105,55 @@ export type PropertyOption =
   | 'CLOSET'
   | 'SINK'
   | 'VERANDA'
-  | 'FULL_OPTION';
+  | 'FULL_OPTION'
+  | 'PET_ALLOWED'
+  | 'JEONSE_LOAN';
+
+/**
+ * 관리비에 포함된 항목 종류 (백엔드 미구현, 제안 스펙 — docs/api-requests/maintenance-fee-breakdown.md).
+ * 관리비 상세 내역 공개 의무화에 맞춰 항목별로 적도록 한다.
+ */
+export type MaintenanceItemType =
+  | 'INTERNET'
+  | 'WATER'
+  | 'ELECTRICITY'
+  | 'GAS'
+  | 'HEATING'
+  | 'CLEANING'
+  | 'SECURITY'
+  | 'PARKING'
+  | 'TV';
+
+/** 관리비 한 항목. amount가 null이면 "포함(금액 미기재)"을 뜻한다. 만원 단위. */
+export interface MaintenanceItem {
+  type: MaintenanceItemType;
+  amount: number | null;
+}
+
+export const MAINTENANCE_ITEM_LABEL: Record<MaintenanceItemType, string> = {
+  INTERNET: '인터넷',
+  WATER: '수도',
+  ELECTRICITY: '전기',
+  GAS: '가스',
+  HEATING: '난방',
+  CLEANING: '청소',
+  SECURITY: '경비',
+  PARKING: '주차',
+  TV: 'TV(케이블)',
+};
+
+/** 입력/표시 순서 — 임차인이 가장 많이 묻는 항목(인터넷·수도·전기)을 앞에 둔다 */
+export const MAINTENANCE_ITEM_ORDER: MaintenanceItemType[] = [
+  'INTERNET',
+  'WATER',
+  'ELECTRICITY',
+  'GAS',
+  'HEATING',
+  'CLEANING',
+  'SECURITY',
+  'PARKING',
+  'TV',
+];
 
 /** 정렬 기준 — 백엔드 sortBy 파라미터 값 */
 export type SortBy = 'RECOMMENDED' | 'LATEST' | 'FAVORITE';
@@ -144,6 +192,8 @@ export const PROPERTY_OPTION_LABEL: Record<PropertyOption, string> = {
   SINK: '싱크대',
   VERANDA: '베란다',
   FULL_OPTION: '풀옵션',
+  PET_ALLOWED: '반려동물 가능',
+  JEONSE_LOAN: '전세자금대출 가능',
 };
 
 /** 필터 모달의 체크박스 노출 순서 */
@@ -167,6 +217,16 @@ export const PROPERTY_OPTION_ORDER: PropertyOption[] = [
 ];
 
 /**
+ * 아직 백엔드 PropertyOption enum(및 property_options CHECK 제약)에 없는 옵션.
+ * 서버로 보내면 400이 나므로 검색 요청에서는 빼고 프론트에서 결과를 직접 거른다.
+ * 백엔드에 추가되면 PROPERTY_OPTION_ORDER로 옮기고 이 목록을 비운다.
+ */
+export const FRONTEND_ONLY_OPTIONS: PropertyOption[] = ['PET_ALLOWED', 'JEONSE_LOAN'];
+
+/** 검색 필터에만 노출하는 옵션 순서 (등록 마법사는 서버가 저장할 수 있는 PROPERTY_OPTION_ORDER만 쓴다) */
+export const FILTER_OPTION_ORDER: PropertyOption[] = [...PROPERTY_OPTION_ORDER, ...FRONTEND_ONLY_OPTIONS];
+
+/**
  * 카드에 노출할 옵션 우선순위.
  *
  * 백엔드는 옵션 전체 배열을 내려주고, 그중 무엇을 몇 개 보여줄지는 프론트가 정한다.
@@ -177,6 +237,8 @@ export const CARD_OPTION_PRIORITY: PropertyOption[] = [
   'PARKING',
   'ELEVATOR',
   'SECURITY_GUARD',
+  'PET_ALLOWED',
+  'JEONSE_LOAN',
   'AIR_CONDITIONER',
   'VERANDA',
   'WASHING_MACHINE',
@@ -240,6 +302,8 @@ export interface PropertyDetail {
   deposit: number;
   monthlyRent: number;
   maintenanceFee: number | null;
+  /** (백엔드 미구현) 관리비 포함 내역. 내려오기 전에는 undefined */
+  maintenanceItems?: MaintenanceItem[];
   totalFloors: number;
   currentFloor: number;
   direction: PropertyDirection;

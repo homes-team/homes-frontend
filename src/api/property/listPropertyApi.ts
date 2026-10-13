@@ -1,6 +1,6 @@
 import { apiPatch, apiPost } from '../client';
 import { uploadFileToS3 } from '../upload/presignedUpload';
-import { PropertyDirection, PropertyOption, PropertyType, TradeType } from '../../types/property';
+import { MaintenanceItem, PropertyDirection, PropertyOption, PropertyType, TradeType } from '../../types/property';
 
 /** PropertyCreateReqDto(백엔드) 대응. 백엔드 필드명/타입과 1:1로 맞춰뒀다. */
 export interface CreatePropertyPayload {
@@ -12,6 +12,8 @@ export interface CreatePropertyPayload {
   monthlyRent: number;
   /** 만원 단위 */
   maintenanceFee: number;
+  /** (백엔드 미구현) 관리비 포함 내역. 백엔드가 모르는 필드는 무시하므로 지금 같이 보내도 안전하다 */
+  maintenanceItems?: MaintenanceItem[];
   address: string;
   detailAddress: string;
   currentFloor: number;
