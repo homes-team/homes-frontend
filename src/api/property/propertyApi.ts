@@ -10,6 +10,7 @@ import {
   SortBy,
   TradeType,
 } from '../../types/property';
+import { PropertyRealtorInfo } from '../../types/realtor';
 import { apiDelete, apiGet, apiPost } from '../client';
 
 /** 전체 매물 리스트 조회 (최신 등록순) — GET /properties */
@@ -58,6 +59,11 @@ export function fetchPricePrediction(
     allowAnonymousFallback: true,
     signal,
   });
+}
+
+/** 매물 담당 중개사 + 그 중개사의 다른 매물 — GET /properties/{propertyId}/realtors (비로그인 가능) */
+export function fetchPropertyRealtorInfo(propertyId: number, signal?: AbortSignal): Promise<PropertyRealtorInfo> {
+  return apiGet<PropertyRealtorInfo>(`/properties/${propertyId}/realtors`, { signal });
 }
 
 /** 건물정보 즉시 재수집 — POST /properties/{propertyId}/building-information/resolve (소유자만) */

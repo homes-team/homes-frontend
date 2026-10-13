@@ -1,4 +1,4 @@
-import { PropertyType, TradeType } from './property';
+import { PropertyListItem, PropertyType, TradeType } from './property';
 
 /** AgentProfileResDto.java 대응 — 중개사 본인 마이페이지 */
 export interface AgentProfile {
@@ -65,4 +65,23 @@ export interface ReviewListItem {
   content: string | null;
   reviewerNickname: string;
   createdAt: string;
+}
+
+/** PropertyRealtorInfoResDto.AgentSummaryResDto 대응 — 매물 상세에 보여주는 담당 중개사 */
+export interface PropertyRealtor {
+  agentId: number;
+  officeName: string;
+  officeAddress: string | null;
+  isVerified: boolean;
+  /**
+   * (백엔드 미구현, 제안 스펙) 중개사 대표 연락처. 내려오기 전에는 undefined라서
+   * 화면은 "전화번호 준비 중"으로 보여준다. docs/api-requests/realtor-contact.md 참고.
+   */
+  phone?: string | null;
+}
+
+/** PropertyRealtorInfoResDto.java 대응 — 아직 매칭된 중개사가 없으면 agent가 null */
+export interface PropertyRealtorInfo {
+  agent: PropertyRealtor | null;
+  otherProperties: PropertyListItem[];
 }

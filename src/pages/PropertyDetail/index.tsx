@@ -35,6 +35,7 @@ import {
 } from '../../types/property';
 import AiEvaluationSummaryCard from './components/AiEvaluationSummaryCard';
 import PricePredictionCard from './components/PricePredictionCard';
+import RealtorContactCard from './components/RealtorContactCard';
 
 const REPORT_REASONS: ReportReason[] = ['FAKE_PROPERTY', 'SOLD_OUT', 'PRICE_MISMATCH', 'INFO_MISMATCH', 'OTHER'];
 
@@ -496,6 +497,8 @@ function PropertyDetailPage() {
             </Card>
           )}
           {bidMessage && <HelperText>{bidMessage}</HelperText>}
+
+          <RealtorContactCard propertyId={id} />
 
           <div className="mt-4">
             <AiEvaluationSummaryCard
