@@ -455,6 +455,30 @@ function PropertyDetailPage() {
             {isLoggedIn() && user?.role === 'AGENT' && !isOwner && (
               <Button onClick={() => setShowBidForm((prev) => !prev)}>입찰하기</Button>
             )}
+            {property.tradeType !== 'SALE' && (
+              <Button
+                variant="secondary"
+                onClick={() =>
+                  navigate(
+                    property.tradeType === 'JEONSE'
+                      ? `/calculator?tab=compare&jeonse=${property.deposit}`
+                      : `/calculator?tab=compare&deposit=${property.deposit}&rent=${property.monthlyRent}`,
+                  )
+                }
+              >
+                🧮 전세·월세 계산
+              </Button>
+            )}
+            <Button
+              variant="secondary"
+              onClick={() => {
+                const trade = { SALE: 'sale', JEONSE: 'jeonse', MONTHLY_RENT: 'monthly' }[property.tradeType];
+                const rent = property.tradeType === 'MONTHLY_RENT' ? `&rent=${property.monthlyRent}` : '';
+                navigate(`/calculator?tab=commission&trade=${trade}&price=${property.deposit}${rent}`);
+              }}
+            >
+              🧾 중개보수 계산
+            </Button>
           </div>
           {favoriteMessage && <HelperText>{favoriteMessage}</HelperText>}
 
