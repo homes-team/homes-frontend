@@ -1,5 +1,5 @@
 import { PropertyListItem } from '../../../types/property';
-import { createPropertyOverlayContent } from './PropertyMap';
+import { createClusterOverlayContent, createPropertyOverlayContent } from './PropertyMap';
 
 const property: PropertyListItem = {
   propertyId: 21,
@@ -61,5 +61,26 @@ describe('createPropertyOverlayContent', () => {
     const preview = createPropertyOverlayContent({ ...property, thumbnailUrl: null }, true, vi.fn(), vi.fn());
     expect(preview).toHaveTextContent('사진 준비 중');
     expect(preview.querySelector('img')).not.toBeInTheDocument();
+  });
+});
+
+describe('createClusterOverlayContent', () => {
+  it('shows the property count and zooms in on click', () => {
+    const onClick = vi.fn();
+    const cluster = createClusterOverlayContent({ lat: 37.6, lon: 127.0, count: 1234 }, onClick);
+
+    expect(cluster).toHaveTextContent('1,234');
+    expect(cluster).toHaveAccessibleName('매물 1234개, 확대해서 보기');
+    cluster.click();
+
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('grows with the number of properties', () => {
+    const small = createClusterOverlayContent({ lat: 0, lon: 0, count: 3 }, vi.fn());
+    const large = createClusterOverlayContent({ lat: 0, lon: 0, count: 150 }, vi.fn());
+
+    expect(small).toHaveClass('h-10');
+    expect(large).toHaveClass('h-14');
   });
 });
