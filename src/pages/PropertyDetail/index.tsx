@@ -449,6 +449,20 @@ function PropertyDetailPage() {
             {isLoggedIn() && user?.role === 'AGENT' && !isOwner && (
               <Button onClick={() => setShowBidForm((prev) => !prev)}>입찰하기</Button>
             )}
+            {property.tradeType !== 'SALE' && (
+              <Button
+                variant="secondary"
+                onClick={() =>
+                  navigate(
+                    property.tradeType === 'JEONSE'
+                      ? `/calculator?jeonse=${property.deposit}`
+                      : `/calculator?deposit=${property.deposit}&rent=${property.monthlyRent}`,
+                  )
+                }
+              >
+                🧮 전세·월세 계산
+              </Button>
+            )}
           </div>
           {favoriteMessage && <HelperText>{favoriteMessage}</HelperText>}
 
