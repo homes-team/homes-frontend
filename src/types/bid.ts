@@ -25,6 +25,9 @@ export interface BidListItem {
   content: string | null;
   status: BidStatus;
   createdAt: string;
+  /** (백엔드 미구현) 입찰한 중개사의 평균 평점·리뷰 수. 내려오기 전에는 undefined (docs/api-requests/bid-list-realtor-rating.md) */
+  averageReviewScore?: number | null;
+  reviewCount?: number;
 }
 
 /**
