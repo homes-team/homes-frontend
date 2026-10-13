@@ -11,7 +11,6 @@ import {
   SortBy,
   TradeType,
 } from '../../types/property';
-import { apiDelete, apiGet, apiPost } from '../client';
 import { applyClientSideFilters, serverSupportedOptions } from '../../utils/searchFilter';
 import { apiDelete, apiGet, apiPatch, apiPost } from '../client';
 
