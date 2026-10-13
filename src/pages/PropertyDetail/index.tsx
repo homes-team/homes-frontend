@@ -459,14 +459,24 @@ function PropertyDetailPage() {
                 onClick={() =>
                   navigate(
                     property.tradeType === 'JEONSE'
-                      ? `/calculator?jeonse=${property.deposit}`
-                      : `/calculator?deposit=${property.deposit}&rent=${property.monthlyRent}`,
+                      ? `/calculator?tab=compare&jeonse=${property.deposit}`
+                      : `/calculator?tab=compare&deposit=${property.deposit}&rent=${property.monthlyRent}`,
                   )
                 }
               >
                 🧮 전세·월세 계산
               </Button>
             )}
+            <Button
+              variant="secondary"
+              onClick={() => {
+                const trade = { SALE: 'sale', JEONSE: 'jeonse', MONTHLY_RENT: 'monthly' }[property.tradeType];
+                const rent = property.tradeType === 'MONTHLY_RENT' ? `&rent=${property.monthlyRent}` : '';
+                navigate(`/calculator?tab=commission&trade=${trade}&price=${property.deposit}${rent}`);
+              }}
+            >
+              🧾 중개보수 계산
+            </Button>
           </div>
           {favoriteMessage && <HelperText>{favoriteMessage}</HelperText>}
 
