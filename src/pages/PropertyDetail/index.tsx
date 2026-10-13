@@ -23,6 +23,7 @@ import { formatMoney } from '../../utils/format';
 import {
   PROPERTY_OPTION_LABEL,
   PROPERTY_DIRECTION_LABEL,
+  PROPERTY_STATUS_LABEL,
   PROPERTY_TYPE_LABEL,
   AiEvaluation,
   BuildingInformation,
@@ -35,6 +36,10 @@ import {
 } from '../../types/property';
 import AiEvaluationSummaryCard from './components/AiEvaluationSummaryCard';
 import PricePredictionCard from './components/PricePredictionCard';
+import RealtorContactCard from './components/RealtorContactCard';
+import CompareToggleButton from '../../components/compare/CompareToggleButton';
+import MaintenanceFeeCard from './components/MaintenanceFeeCard';
+import PropertyStatusManager from './components/PropertyStatusManager';
 
 const REPORT_REASONS: ReportReason[] = ['FAKE_PROPERTY', 'SOLD_OUT', 'PRICE_MISMATCH', 'INFO_MISMATCH', 'OTHER'];
 
@@ -397,6 +402,11 @@ function PropertyDetailPage() {
         <div className="flex flex-col gap-2.5">
           {property.isSuspicious && <Badge variant="danger">! 의심 매물</Badge>}
           <Badge>{PROPERTY_TYPE_LABEL[property.propertyType]}</Badge>
+          {property.status !== 'AVAILABLE' && (
+            <div className="flex">
+              <Badge variant="primary">{PROPERTY_STATUS_LABEL[property.status]}</Badge>
+            </div>
+          )}
           <h1 className="text-[26px] font-bold text-gray-900">{priceLabel}</h1>
           {property.maintenanceFee ? (
             <p className="text-sm text-gray-500">관리비 {formatMoney(property.maintenanceFee)}만원</p>
@@ -423,6 +433,7 @@ function PropertyDetailPage() {
                 {favorited ? '♥ 찜 취소' : '♡ 찜하기'}
               </Button>
             )}
+            <CompareToggleButton item={{ propertyId: id, title: property.title }} />
             {isLoggedIn() && (
               <Button variant="secondary" onClick={() => setShowReportForm((prev) => !prev)}>
                 신고하기
@@ -496,6 +507,15 @@ function PropertyDetailPage() {
             </Card>
           )}
           {bidMessage && <HelperText>{bidMessage}</HelperText>}
+
+          <RealtorContactCard propertyId={id} />
+          {isOwner && (
+            <PropertyStatusManager
+              propertyId={id}
+              status={property.status}
+              onChanged={(status) => setProperty((prev) => (prev ? { ...prev, status } : prev))}
+            />
+          )}
 
           <div className="mt-4">
             <AiEvaluationSummaryCard
@@ -589,6 +609,13 @@ function PropertyDetailPage() {
           </p>
         )}
       </section>
+
+      {((property.maintenanceFee ?? 0) > 0 || (property.maintenanceItems?.length ?? 0) > 0) && (
+        <section className="mt-12 border-t border-gray-200 pt-8">
+          <h2 className="mb-4 text-xl font-bold text-gray-900">관리비 상세</h2>
+          <MaintenanceFeeCard maintenanceFee={property.maintenanceFee} items={property.maintenanceItems} />
+        </section>
+      )}
 
       <section className="mt-12 border-t border-gray-200 pt-8">
         <h2 className="mb-4 text-xl font-bold text-gray-900">상세 설명</h2>

@@ -3,6 +3,7 @@ import WizardShell from '../components/WizardShell';
 import Button from '../../../components/ui/Button';
 import { Field, Label, Input, Textarea } from '../../../components/ui/Field';
 import { useListPropertyForm } from '../../../context/ListPropertyContext';
+import MaintenanceItemsField from '../components/MaintenanceItemsField';
 
 /** 거래 유형별로 "보증금/전세금/매매가" 입력란 라벨과 안내 문구가 달라진다 */
 const DEPOSIT_LABEL: Record<string, string> = {
@@ -80,6 +81,12 @@ function ListPropertyPricePage() {
           <span className="absolute right-4 text-sm text-gray-500">만원</span>
         </div>
       </Field>
+
+      <MaintenanceItemsField
+        value={form.maintenanceItems}
+        onChange={(maintenanceItems) => updateForm({ maintenanceItems })}
+        totalFee={form.maintenanceFee.trim() === '' ? null : Number(form.maintenanceFee)}
+      />
 
       <Field>
         <Label htmlFor="description">

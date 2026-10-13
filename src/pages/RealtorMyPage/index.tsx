@@ -5,6 +5,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { Field, Label, Input, HelperText } from '../../components/ui/Field';
 import NearbyPropertyRow from './components/NearbyPropertyRow';
+import ProfilePhotoCard from './components/ProfilePhotoCard';
 import {
   fetchAgentDashboardStats,
   fetchAvailableBidProperties,
@@ -73,6 +74,8 @@ function RealtorMyPage() {
 
       {!loading && profile && (
         <div className="flex flex-col gap-6">
+          <ProfilePhotoCard profile={profile} onProfileUpdated={setProfile} />
+
           <Card>
             <div className="flex flex-col gap-3 rounded-[10px] bg-gray-50 p-4">
               <div className="flex justify-between text-sm">
