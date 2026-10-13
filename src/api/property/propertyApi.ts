@@ -11,6 +11,7 @@ import {
   SortBy,
   TradeType,
 } from '../../types/property';
+import { PropertyRealtorInfo } from '../../types/realtor';
 import { applyClientSideFilters, serverSupportedOptions } from '../../utils/searchFilter';
 import { apiDelete, apiGet, apiPatch, apiPost } from '../client';
 
@@ -60,6 +61,11 @@ export function fetchPricePrediction(
     allowAnonymousFallback: true,
     signal,
   });
+}
+
+/** 매물 담당 중개사 + 그 중개사의 다른 매물 — GET /properties/{propertyId}/realtors (비로그인 가능) */
+export function fetchPropertyRealtorInfo(propertyId: number, signal?: AbortSignal): Promise<PropertyRealtorInfo> {
+  return apiGet<PropertyRealtorInfo>(`/properties/${propertyId}/realtors`, { signal });
 }
 
 /**

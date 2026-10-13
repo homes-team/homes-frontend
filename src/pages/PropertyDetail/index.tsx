@@ -36,6 +36,7 @@ import {
 } from '../../types/property';
 import AiEvaluationSummaryCard from './components/AiEvaluationSummaryCard';
 import PricePredictionCard from './components/PricePredictionCard';
+import RealtorContactCard from './components/RealtorContactCard';
 import CompareToggleButton from '../../components/compare/CompareToggleButton';
 import MaintenanceFeeCard from './components/MaintenanceFeeCard';
 import PropertyStatusManager from './components/PropertyStatusManager';
@@ -507,6 +508,7 @@ function PropertyDetailPage() {
           )}
           {bidMessage && <HelperText>{bidMessage}</HelperText>}
 
+          <RealtorContactCard propertyId={id} />
           {isOwner && (
             <PropertyStatusManager
               propertyId={id}
