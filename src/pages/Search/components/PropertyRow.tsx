@@ -1,4 +1,4 @@
-import { PROPERTY_OPTION_LABEL, PropertyListItem, PROPERTY_TYPE_LABEL } from '../../../types/property';
+import { PROPERTY_OPTION_LABEL, PROPERTY_STATUS_LABEL, PropertyListItem, PROPERTY_TYPE_LABEL } from '../../../types/property';
 import { formatPrice, formatRelativeTime, formatSearchMeta, formatWalking, pickCardOptions } from '../../../utils/format';
 
 interface PropertyRowProps {
@@ -47,6 +47,11 @@ function PropertyRow({ property, selected, onSelect }: PropertyRowProps) {
             {property.status === 'MATCHED' && (
               <span className="rounded bg-warning px-1.5 py-0.5 text-[11px] font-medium whitespace-nowrap text-white">
                 중개 진행중
+              </span>
+            )}
+            {(property.status === 'COMPLETED' || property.status === 'HIDDEN') && (
+              <span className="rounded bg-gray-500 px-1.5 py-0.5 text-[11px] font-medium whitespace-nowrap text-white">
+                {PROPERTY_STATUS_LABEL[property.status]}
               </span>
             )}
             {property.isSuspicious && (
