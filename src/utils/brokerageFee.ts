@@ -7,6 +7,8 @@
  *
  * 금액 단위: 입력과 한도액은 만원, 결과 수수료는 원.
  */
+import { floorWon } from './calcFormat';
+
 export type BrokerageDealType = 'SALE' | 'JEONSE' | 'MONTHLY';
 export type BrokerageTarget = 'HOUSE' | 'OFFICETEL' | 'PRESALE' | 'OTHER';
 
@@ -47,12 +49,6 @@ export const OFFICETEL_LEASE_RATE = 0.4;
 export const OTHER_MAX_RATE = 0.9;
 
 export const DEFAULT_VAT_RATE = 10;
-
-/** 부동소수점 오차(예: 1.5e9 x 0.7 = 1.0499999e9)로 1원이 깎이지 않게, 원 단위 절사 전에 더하는 아주 작은 값 */
-const FLOOR_EPSILON = 1e-6;
-
-/** 원 단위 이하 절사 */
-const floorWon = (value: number) => Math.floor(value + FLOOR_EPSILON);
 
 /** 월세를 환산할 때 월차임에 곱하는 수: 보증금 + 월세×100, 합계가 5천만원 미만이면 보증금 + 월세×70 */
 const RENT_MULTIPLIER = 100;

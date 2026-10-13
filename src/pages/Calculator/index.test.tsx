@@ -169,3 +169,124 @@ describe('rent vs jeonse tab', () => {
     expect(status()).toContain('월세가 월 5만원 더 유리해요');
   });
 });
+
+describe('acquisition tax tab', () => {
+  const open = (url = '/calculator?tab=acquisition') => renderPage(url);
+
+  it('calculates a 1-house purchase under 600 million won', () => {
+    open();
+
+    expect(status()).toContain('5,500,000원');
+    expect(dd('취득세 (1%)')).toBe('5,000,000원');
+    expect(dd('지방교육세 (0.1%)')).toBe('500,000원');
+    expect(dd('농어촌특별세')).toBe('없음 (85㎡ 이하)');
+  });
+
+  it('adds the rural special tax above 85 square meters', () => {
+    open();
+    fireEvent.click(screen.getByLabelText('전용면적 85㎡ 초과예요'));
+
+    expect(dd('농어촌특별세 (0.2%)')).toBe('1,000,000원');
+    expect(status()).toContain('6,500,000원');
+  });
+
+  it('applies the 8% heavy rate for a second house in an adjusted area and explains why', () => {
+    open();
+    type('취득가액 (매매가)', '120000');
+    fireEvent.click(screen.getByRole('radio', { name: '2주택' }));
+    fireEvent.click(screen.getByLabelText('조정대상지역 주택이에요'));
+
+    expect(dd('취득세 (8%)')).toBe('96,000,000원');
+    expect(screen.getByText(/조정대상지역 2주택은 8%가 적용돼요/)).toBeInTheDocument();
+    expect(status()).toContain('100,800,000원');
+  });
+
+  it('offers the temporary two-house exemption only in that situation', () => {
+    open();
+    expect(screen.queryByLabelText(/일시적 2주택/)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('radio', { name: '2주택' }));
+    fireEvent.click(screen.getByLabelText('조정대상지역 주택이에요'));
+    fireEvent.click(screen.getByLabelText(/일시적 2주택/));
+
+    expect(dd('취득세 (1%)')).toBe('5,000,000원');
+  });
+
+  it('applies the first-home reduction and explains when it does not apply', () => {
+    open();
+    fireEvent.click(screen.getByLabelText(/생애최초 주택 구입/));
+
+    expect(dd('생애최초 감면')).toBe('-2,000,000원');
+    expect(status()).toContain('3,500,000원');
+
+    type('취득가액 (매매가)', '130000');
+    expect(screen.getByRole('alert')).toHaveTextContent('12억원');
+  });
+
+  it('uses 4% for non-house property and hides the house-only options', () => {
+    open();
+    fireEvent.click(screen.getByRole('radio', { name: /주택 외/ }));
+    type('취득가액 (매매가)', '100000');
+
+    expect(dd('취득세 (4%)')).toBe('40,000,000원');
+    expect(status()).toContain('46,000,000원');
+    expect(screen.queryByRole('radio', { name: '2주택' })).not.toBeInTheDocument();
+  });
+
+  it('prefills the price from a listing', () => {
+    open('/calculator?tab=acquisition&price=70000');
+    expect(screen.getByLabelText('취득가액 (매매가)')).toHaveValue(70000);
+    expect(dd('취득세 (1.67%)')).toBe('11,690,000원');
+  });
+});
+
+describe('loan interest tab', () => {
+  const open = () => renderPage('/calculator?tab=loan');
+
+  it('shows the monthly payment for an equal-payment loan', () => {
+    open();
+    type('대출 금액', '10000');
+    type('대출 기간', '1');
+    // 1억, 연 4%, 12개월 → 월 8,514,990원
+    expect(status()).toContain('8,514,990원');
+    expect(dd('총 이자')).toBe('2,179,885원');
+  });
+
+  it('shows the first and last payments for equal-principal repayment', () => {
+    open();
+    type('대출 금액', '12000');
+    type('연 이율', '6');
+    type('대출 기간', '1');
+    fireEvent.click(screen.getByRole('radio', { name: '원금균등' }));
+
+    expect(status()).toContain('10,600,000원 → 10,050,000원');
+    expect(dd('총 이자')).toBe('3,900,000원');
+  });
+
+  it('shows only interest each month for a bullet loan and hides the grace period', () => {
+    open();
+    type('대출 금액', '10000');
+    type('대출 기간', '1');
+    fireEvent.click(screen.getByRole('radio', { name: '만기일시' }));
+
+    expect(status()).toContain('333,333원');
+    expect(screen.queryByLabelText('거치 기간')).not.toBeInTheDocument();
+  });
+
+  it('lets the user expand the repayment schedule', () => {
+    open();
+    expect(screen.getByText('상환 스케줄 보기 (360회차)')).toBeInTheDocument();
+    expect(screen.getAllByRole('row')).toHaveLength(1 + 12);
+
+    fireEvent.click(screen.getByRole('button', { name: '전체 360회차 보기' }));
+    expect(screen.getAllByRole('row')).toHaveLength(1 + 360);
+  });
+
+  it('adds extra months to the term', () => {
+    open();
+    type('대출 기간', '1');
+    type('추가 개월', '6');
+    expect(screen.getByText('총 1년 6개월')).toBeInTheDocument();
+    expect(screen.getByText('상환 스케줄 보기 (18회차)')).toBeInTheDocument();
+  });
+});

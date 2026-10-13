@@ -479,6 +479,11 @@ function PropertyDetailPage() {
             >
               🧾 중개보수 계산
             </Button>
+            {property.tradeType === 'SALE' && (
+              <Button variant="secondary" onClick={() => navigate(`/calculator?tab=acquisition&price=${property.deposit}`)}>
+                🏛 취득세 계산
+              </Button>
+            )}
           </div>
           {favoriteMessage && <HelperText>{favoriteMessage}</HelperText>}
 
