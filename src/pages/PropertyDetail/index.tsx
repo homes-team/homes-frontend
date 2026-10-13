@@ -40,6 +40,7 @@ import RealtorContactCard from './components/RealtorContactCard';
 import CompareToggleButton from '../../components/compare/CompareToggleButton';
 import MaintenanceFeeCard from './components/MaintenanceFeeCard';
 import PropertyStatusManager from './components/PropertyStatusManager';
+import { PROPERTY_STATUS_VARIANT } from '../../utils/statusStyle';
 
 const REPORT_REASONS: ReportReason[] = ['FAKE_PROPERTY', 'SOLD_OUT', 'PRICE_MISMATCH', 'INFO_MISMATCH', 'OTHER'];
 
@@ -404,7 +405,7 @@ function PropertyDetailPage() {
           <Badge>{PROPERTY_TYPE_LABEL[property.propertyType]}</Badge>
           {property.status !== 'AVAILABLE' && (
             <div className="flex">
-              <Badge variant="primary">{PROPERTY_STATUS_LABEL[property.status]}</Badge>
+              <Badge variant={PROPERTY_STATUS_VARIANT[property.status]}>{PROPERTY_STATUS_LABEL[property.status]}</Badge>
             </div>
           )}
           <h1 className="text-[26px] font-bold text-gray-900">{priceLabel}</h1>

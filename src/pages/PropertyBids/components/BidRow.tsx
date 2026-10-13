@@ -11,6 +11,7 @@ import { createChatRoom } from '../../../api/chat/chatApi';
 import { ApiError } from '../../../api/client';
 import { formatRelativeTime } from '../../../utils/format';
 import { BID_STATUS_LABEL, BidListItem } from '../../../types/bid';
+import { BID_STATUS_VARIANT } from '../../../utils/statusStyle';
 
 function BidRow({ propertyId, bid, onChanged }: { propertyId: number; bid: BidListItem; onChanged: () => void }) {
   const navigate = useNavigate();
@@ -61,7 +62,7 @@ function BidRow({ propertyId, bid, onChanged }: { propertyId: number; bid: BidLi
           </p>
           {bid.content && <p className="mt-1.5 text-[13px] text-gray-600">{bid.content}</p>}
         </div>
-        <Badge>{BID_STATUS_LABEL[bid.status]}</Badge>
+        <Badge variant={BID_STATUS_VARIANT[bid.status]}>{BID_STATUS_LABEL[bid.status]}</Badge>
       </div>
 
       <div className="mt-3 flex gap-2">

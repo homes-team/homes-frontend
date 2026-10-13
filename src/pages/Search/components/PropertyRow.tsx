@@ -51,7 +51,11 @@ function PropertyRow({ property, selected, onSelect }: PropertyRowProps) {
               </span>
             )}
             {(property.status === 'COMPLETED' || property.status === 'HIDDEN') && (
-              <span className="rounded bg-gray-500 px-1.5 py-0.5 text-[11px] font-medium whitespace-nowrap text-white">
+              <span
+                className={`rounded px-1.5 py-0.5 text-[11px] font-medium whitespace-nowrap text-white ${
+                  property.status === 'COMPLETED' ? 'bg-success' : 'bg-gray-500'
+                }`}
+              >
                 {PROPERTY_STATUS_LABEL[property.status]}
               </span>
             )}
