@@ -36,6 +36,7 @@ import {
 } from '../../types/property';
 import AiEvaluationSummaryCard from './components/AiEvaluationSummaryCard';
 import PricePredictionCard from './components/PricePredictionCard';
+import CompareToggleButton from '../../components/compare/CompareToggleButton';
 import MaintenanceFeeCard from './components/MaintenanceFeeCard';
 import PropertyStatusManager from './components/PropertyStatusManager';
 
@@ -431,6 +432,7 @@ function PropertyDetailPage() {
                 {favorited ? '♥ 찜 취소' : '♡ 찜하기'}
               </Button>
             )}
+            <CompareToggleButton item={{ propertyId: id, title: property.title }} />
             {isLoggedIn() && (
               <Button variant="secondary" onClick={() => setShowReportForm((prev) => !prev)}>
                 신고하기
