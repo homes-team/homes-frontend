@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import PageShell from '../../components/layout/PageShell';
 import Card from '../../components/ui/Card';
@@ -22,7 +22,6 @@ import { getCurrentUser } from '../../utils/auth';
 import { formatMoney } from '../../utils/format';
 import {
   PROPERTY_OPTION_LABEL,
-  PROPERTY_DIRECTION_LABEL,
   PROPERTY_STATUS_LABEL,
   PROPERTY_TYPE_LABEL,
   AiEvaluation,
@@ -42,6 +41,8 @@ import InfrastructureCard from './components/InfrastructureCard';
 import MaintenanceFeeCard from './components/MaintenanceFeeCard';
 import PropertyStatusManager from './components/PropertyStatusManager';
 import LegalFeeCapCard from './components/LegalFeeCapCard';
+import PropertyOverview from './components/PropertyOverview';
+import SectionNav from './components/SectionNav';
 import { checkProposedRate, commissionCalculatorPath, legalFeeCap } from '../../utils/legalFeeCap';
 import { PROPERTY_STATUS_VARIANT } from '../../utils/statusStyle';
 
@@ -88,6 +89,35 @@ const BUILDING_STATUS: Record<
 
 function displayValue(value: string | number | null, suffix = '') {
   return value === null || value === '' ? '-' : `${value}${suffix}`;
+}
+
+interface DetailSectionProps {
+  id: string;
+  title: string;
+  /** 제목 옆에 붙는 요소 (상태 뱃지 등) */
+  extra?: ReactNode;
+  /** 내용이 자동으로 바뀌는 섹션(스크린리더에 변경을 알린다) */
+  live?: boolean;
+  /** 맨 위 섹션은 위 구분선이 필요 없다 */
+  first?: boolean;
+  children: ReactNode;
+}
+
+/** 상세 페이지의 섹션 한 덩어리. 섹션 탭(SectionNav)이 id로 찾아 스크롤한다 */
+function DetailSection({ id, title, extra, live, first, children }: DetailSectionProps) {
+  return (
+    <section
+      id={id}
+      aria-live={live ? 'polite' : undefined}
+      className={`scroll-mt-16 pb-10 ${first ? 'pt-8' : 'border-t border-gray-200 pt-10'}`}
+    >
+      <div className="mb-5 flex flex-wrap items-center gap-3">
+        <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+        {extra}
+      </div>
+      {children}
+    </section>
+  );
 }
 
 function PropertyDetailPage() {
@@ -374,18 +404,28 @@ function PropertyDetailPage() {
       ? `${TRADE_TYPE_LABEL[property.tradeType]} ${formatMoney(property.deposit)}/${property.monthlyRent}`
       : `${TRADE_TYPE_LABEL[property.tradeType]} ${formatMoney(property.deposit)}`;
 
+  const isAgentViewer = isLoggedIn() && user?.role === 'AGENT' && !isOwner;
+  const showMaintenance = (property.maintenanceFee ?? 0) > 0 || (property.maintenanceItems?.length ?? 0) > 0;
+  const sections = [
+    { id: 'overview', label: '매물 정보' },
+    { id: 'analysis', label: 'AI 분석·시세' },
+    { id: 'building', label: '건축물 정보' },
+    { id: 'infra', label: '주변 인프라' },
+    ...(showMaintenance ? [{ id: 'maintenance', label: '관리비' }] : []),
+  ];
+
   return (
     <PageShell>
       <button type="button" onClick={() => navigate('/search')} className="mb-4 text-[13px] font-medium text-gray-500 hover:text-primary">
         ← 목록으로
       </button>
 
-      <div className="grid grid-cols-1 gap-10 md:grid-cols-[3fr_2fr]">
+      <div className="grid grid-cols-1 gap-x-8 gap-y-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="flex flex-col gap-3">
           {property.imageUrls.length > 0 ? (
             <>
               <img
-                className="aspect-4/3 w-full rounded-card bg-gray-100 object-cover"
+                className="aspect-16/10 w-full rounded-card bg-gray-100 object-cover"
                 src={property.imageUrls[activeImage]}
                 alt={property.title}
               />
@@ -407,93 +447,115 @@ function PropertyDetailPage() {
               )}
             </>
           ) : (
-            <div className="flex aspect-4/3 items-center justify-center rounded-card bg-gray-100 text-sm text-gray-400">
+            <div className="flex aspect-16/10 items-center justify-center rounded-card bg-gray-100 text-sm text-gray-400">
               사진 준비 중
             </div>
           )}
         </div>
 
-        <div className="flex flex-col gap-2.5">
-          {property.isSuspicious && <Badge variant="danger">! 의심 매물</Badge>}
-          <Badge>{PROPERTY_TYPE_LABEL[property.propertyType]}</Badge>
-          {property.status !== 'AVAILABLE' && (
-            <div className="flex">
-              <Badge variant={PROPERTY_STATUS_VARIANT[property.status]}>{PROPERTY_STATUS_LABEL[property.status]}</Badge>
+        <aside className="flex flex-col gap-4 lg:sticky lg:top-4 lg:row-span-2 lg:max-h-[calc(100vh-2rem)] lg:self-start lg:overflow-y-auto lg:[scrollbar-width:thin]">
+          <Card className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap items-center gap-1.5">
+                {property.isSuspicious && <Badge variant="danger">! 의심 매물</Badge>}
+                <Badge>{PROPERTY_TYPE_LABEL[property.propertyType]}</Badge>
+                {property.status !== 'AVAILABLE' && (
+                  <Badge variant={PROPERTY_STATUS_VARIANT[property.status]}>{PROPERTY_STATUS_LABEL[property.status]}</Badge>
+                )}
+              </div>
+              <h1 className="text-[28px] leading-tight font-bold text-gray-900">{priceLabel}</h1>
+              {property.maintenanceFee ? (
+                <p className="text-sm text-gray-500">관리비 {formatMoney(property.maintenanceFee)}만원</p>
+              ) : null}
+              <p className="text-[15px] text-gray-900">
+                {property.address} {property.detailAddress}
+              </p>
+              <p className="text-[13px] text-gray-500">
+                {property.currentFloor}/{property.totalFloors}층 · {property.area}m²
+                {property.nearestStation ? ` · ${property.nearestStation} 도보 ${property.walkingTime}분` : ''}
+              </p>
+              <p className="text-[13px] text-gray-500">찜 {property.favoriteCount}</p>
             </div>
-          )}
-          <h1 className="text-[26px] font-bold text-gray-900">{priceLabel}</h1>
-          {property.maintenanceFee ? (
-            <p className="text-sm text-gray-500">관리비 {formatMoney(property.maintenanceFee)}만원</p>
-          ) : null}
-          <p className="text-[15px] text-gray-900">
-            {property.address} {property.detailAddress}
-          </p>
-          <p className="text-[13px] text-gray-500">
-            {property.currentFloor}/{property.totalFloors}층 · {property.area}m²
-            {property.nearestStation ? ` · ${property.nearestStation} 도보 ${property.walkingTime}분` : ''}
-          </p>
-          <p className="text-[13px] text-gray-500">
-            방향 {PROPERTY_DIRECTION_LABEL[property.direction]}
-            {property.remodelingYear ? ` · ${property.remodelingYear}년 리모델링` : ''}
-          </p>
-          {property.desiredBrokerageFee !== null && (
-            <p className="text-[13px] text-gray-500">희망 중개수수료율 {property.desiredBrokerageFee}%</p>
-          )}
-          <p className="text-[13px] text-gray-500">찜 {property.favoriteCount}</p>
 
-          <div className="mt-2 flex flex-wrap gap-2">
+            <div className="flex flex-col gap-2">
+              {isOwner && (
+                <Button fullWidth onClick={() => navigate(`/properties/${id}/bids`)}>
+                  받은 입찰 보기
+                </Button>
+              )}
+              {isAgentViewer && (
+                <Button fullWidth onClick={() => setShowBidForm((prev) => !prev)}>
+                  입찰하기
+                </Button>
+              )}
+              <div className="flex gap-2 [&>*]:flex-1">
+                {isLoggedIn() && (
+                  <Button variant="secondary" onClick={handleToggleFavorite}>
+                    {favorited ? '♥ 찜 취소' : '♡ 찜하기'}
+                  </Button>
+                )}
+                <CompareToggleButton item={{ propertyId: id, title: property.title }} />
+              </div>
+              {isOwner && (
+                <div className="flex gap-2 [&>*]:flex-1">
+                  <Button variant="secondary" onClick={() => navigate(`/properties/${id}/edit`)}>
+                    매물 수정
+                  </Button>
+                  <Button variant="secondary" onClick={handleDelete}>
+                    매물 삭제
+                  </Button>
+                </div>
+              )}
+            </div>
+            {favoriteMessage && <HelperText>{favoriteMessage}</HelperText>}
+
+            <div className="border-t border-gray-100 pt-4">
+              <p className="mb-2 text-xs font-medium text-gray-500">이 매물로 계산해보기</p>
+              <div className="flex flex-wrap gap-2">
+                {property.tradeType !== 'SALE' && (
+                  <Button
+                    variant="secondary"
+                    className="!px-3 !py-2 !text-[13px]"
+                    onClick={() =>
+                      navigate(
+                        property.tradeType === 'JEONSE'
+                          ? `/calculator?tab=compare&jeonse=${property.deposit}`
+                          : `/calculator?tab=compare&deposit=${property.deposit}&rent=${property.monthlyRent}`,
+                      )
+                    }
+                  >
+                    🧮 전세·월세 계산
+                  </Button>
+                )}
+                <Button
+                  variant="secondary"
+                  className="!px-3 !py-2 !text-[13px]"
+                  onClick={() => navigate(commissionCalculatorPath(property))}
+                >
+                  🧾 중개보수 계산
+                </Button>
+                {property.tradeType === 'SALE' && (
+                  <Button
+                    variant="secondary"
+                    className="!px-3 !py-2 !text-[13px]"
+                    onClick={() => navigate(`/calculator?tab=acquisition&price=${property.deposit}`)}
+                  >
+                    🏛 취득세 계산
+                  </Button>
+                )}
+              </div>
+            </div>
+
             {isLoggedIn() && (
-              <Button variant="secondary" onClick={handleToggleFavorite}>
-                {favorited ? '♥ 찜 취소' : '♡ 찜하기'}
-              </Button>
-            )}
-            <CompareToggleButton item={{ propertyId: id, title: property.title }} />
-            {isLoggedIn() && (
-              <Button variant="secondary" onClick={() => setShowReportForm((prev) => !prev)}>
-                신고하기
-              </Button>
-            )}
-            {isOwner && <Button onClick={() => navigate(`/properties/${id}/bids`)}>받은 입찰 보기</Button>}
-            {isOwner && (
-              <Button variant="secondary" onClick={() => navigate(`/properties/${id}/edit`)}>
-                매물 수정
-              </Button>
-            )}
-            {isOwner && (
-              <Button variant="secondary" onClick={handleDelete}>
-                매물 삭제
-              </Button>
-            )}
-            {isLoggedIn() && user?.role === 'AGENT' && !isOwner && (
-              <Button onClick={() => setShowBidForm((prev) => !prev)}>입찰하기</Button>
-            )}
-            {property.tradeType !== 'SALE' && (
-              <Button
-                variant="secondary"
-                onClick={() =>
-                  navigate(
-                    property.tradeType === 'JEONSE'
-                      ? `/calculator?tab=compare&jeonse=${property.deposit}`
-                      : `/calculator?tab=compare&deposit=${property.deposit}&rent=${property.monthlyRent}`,
-                  )
-                }
+              <button
+                type="button"
+                onClick={() => setShowReportForm((prev) => !prev)}
+                className="self-start text-xs text-gray-500 underline hover:text-danger"
               >
-                🧮 전세·월세 계산
-              </Button>
+                이 매물 신고하기
+              </button>
             )}
-            <Button
-              variant="secondary"
-              onClick={() => navigate(commissionCalculatorPath(property))}
-            >
-              🧾 중개보수 계산
-            </Button>
-            {property.tradeType === 'SALE' && (
-              <Button variant="secondary" onClick={() => navigate(`/calculator?tab=acquisition&price=${property.deposit}`)}>
-                🏛 취득세 계산
-              </Button>
-            )}
-          </div>
-          {favoriteMessage && <HelperText>{favoriteMessage}</HelperText>}
+          </Card>
 
           {showReportForm && (
             <Card className="flex flex-col gap-4">
@@ -521,7 +583,7 @@ function PropertyDetailPage() {
           )}
           {reportMessage && <HelperText>{reportMessage}</HelperText>}
 
-          {isLoggedIn() && user?.role === 'AGENT' && !isOwner && (
+          {isAgentViewer && (
             <LegalFeeCapCard property={property} proposedRate={showBidForm ? Number(proposedFee) : undefined} />
           )}
 
@@ -561,126 +623,138 @@ function PropertyDetailPage() {
               onChanged={(status) => setProperty((prev) => (prev ? { ...prev, status } : prev))}
             />
           )}
+        </aside>
 
-          <div className="mt-4">
-            <AiEvaluationSummaryCard
-              evaluation={property.propertyId === id && aiEvaluation?.propertyId === id ? aiEvaluation : null}
-              loading={aiEvaluationLoading}
-              error={aiEvaluationError}
-              onRetry={() => setAiEvaluationVersion((version) => version + 1)}
-              onDetails={() => navigate(`/properties/${id}/ai-report`)}
-            />
-          </div>
+        <div className="min-w-0">
+          <SectionNav items={sections} />
 
-          <div className="mt-2">
-            <PricePredictionCard
-              prediction={property.propertyId === id && pricePrediction?.propertyId === id ? pricePrediction : null}
-              loading={pricePredictionLoading}
-              error={pricePredictionError}
-              onRetry={() => setPricePredictionVersion((version) => version + 1)}
-            />
-          </div>
-        </div>
-      </div>
+          <DetailSection id="overview" title="매물 정보" first>
+            <PropertyOverview property={property} />
 
-      <section className="mt-12 border-t border-gray-200 pt-8" aria-live="polite">
-        <div className="mb-4 flex flex-wrap items-center gap-3">
-          <h2 className="text-xl font-bold text-gray-900">건축물 정보</h2>
-          {buildingInformation && (
-            <Badge variant={BUILDING_STATUS[buildingInformation.status].badge}>
-              {BUILDING_STATUS[buildingInformation.status].label}
-            </Badge>
+            {property.description && (
+              <>
+                <h3 className="mt-8 mb-3 text-[17px] font-bold text-gray-900">상세 설명</h3>
+                <p className="text-[15px] leading-relaxed whitespace-pre-wrap text-gray-900">{property.description}</p>
+              </>
+            )}
+
+            {property.options.length > 0 && (
+              <>
+                <h3 className="mt-8 mb-3 text-[17px] font-bold text-gray-900">옵션</h3>
+                <ul className="flex flex-wrap gap-2">
+                  {property.options.map((option) => (
+                    <li key={option}>
+                      <Badge>{PROPERTY_OPTION_LABEL[option]}</Badge>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </DetailSection>
+
+          <DetailSection id="analysis" title="AI 분석 · 시세">
+            <div className="flex flex-col gap-4">
+              <AiEvaluationSummaryCard
+                evaluation={property.propertyId === id && aiEvaluation?.propertyId === id ? aiEvaluation : null}
+                loading={aiEvaluationLoading}
+                error={aiEvaluationError}
+                onRetry={() => setAiEvaluationVersion((version) => version + 1)}
+                onDetails={() => navigate(`/properties/${id}/ai-report`)}
+              />
+              <PricePredictionCard
+                prediction={property.propertyId === id && pricePrediction?.propertyId === id ? pricePrediction : null}
+                loading={pricePredictionLoading}
+                error={pricePredictionError}
+                onRetry={() => setPricePredictionVersion((version) => version + 1)}
+              />
+            </div>
+          </DetailSection>
+
+          <DetailSection
+            id="building"
+            title="건축물 정보"
+            live
+            extra={
+              buildingInformation && (
+                <Badge variant={BUILDING_STATUS[buildingInformation.status].badge}>
+                  {BUILDING_STATUS[buildingInformation.status].label}
+                </Badge>
+              )
+            }
+          >
+            {!buildingInformation && !buildingInformationError && (
+              <p className="text-sm text-gray-500">건축물 정보 상태를 확인하는 중...</p>
+            )}
+
+            {buildingInformation && (
+              <Card className="flex flex-col gap-5">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    {BUILDING_STATUS[buildingInformation.status].description}
+                  </p>
+                  {(buildingInformation.status === 'PENDING' || buildingInformation.status === 'PROCESSING') && (
+                    <p className="mt-1 text-xs text-gray-500">완료될 때까지 이 화면에서 자동으로 상태를 갱신합니다.</p>
+                  )}
+                  {buildingInformation.status === 'FAILED' && buildingInformation.lastErrorMessage && (
+                    <p className="mt-1 text-sm text-danger">{buildingInformation.lastErrorMessage}</p>
+                  )}
+                </div>
+
+                {(buildingInformation.status === 'RESOLVED' || buildingInformation.status === 'PARTIAL') && (
+                  <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+                    {[
+                      ['건축연도', displayValue(buildingInformation.buildingYear, '년')],
+                      ['사용승인일', displayValue(buildingInformation.approvalDate)],
+                      ['세대 수', displayValue(buildingInformation.householdCount, '세대')],
+                      ['건물 동 수', displayValue(buildingInformation.buildingCount, '동')],
+                      ['지상/지하층', `${displayValue(buildingInformation.groundFloorCount, '층')} / ${displayValue(buildingInformation.undergroundFloorCount, '층')}`],
+                      ['엘리베이터', displayValue(buildingInformation.elevatorCount, '대')],
+                      ['주차', displayValue(buildingInformation.parkingCount, '대')],
+                      ['난방/복도', `${displayValue(buildingInformation.heatingType)} / ${displayValue(buildingInformation.corridorType)}`],
+                    ].map(([label, value]) => (
+                      <div key={label}>
+                        <dt className="text-xs text-gray-500">{label}</dt>
+                        <dd className="mt-1 text-sm font-medium text-gray-900">{value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+
+                {isOwner && (buildingInformation.status === 'FAILED' || buildingInformation.status === 'NOT_COLLECTED') && (
+                  <div>
+                    <Button
+                      variant="secondary"
+                      onClick={handleResolveBuildingInformation}
+                      disabled={buildingInformationRetrying}
+                    >
+                      {buildingInformationRetrying ? '다시 수집 중...' : '건축물 정보 다시 수집'}
+                    </Button>
+                    {buildingInformation.retryCount !== null && buildingInformation.retryCount > 0 && (
+                      <p className="mt-2 text-xs text-gray-500">현재 주소에서 {buildingInformation.retryCount}회 시도했어요.</p>
+                    )}
+                  </div>
+                )}
+              </Card>
+            )}
+
+            {buildingInformationError && (
+              <p className="mt-3 rounded-button bg-red-50 p-3 text-sm font-medium text-danger">
+                {buildingInformationError}
+              </p>
+            )}
+          </DetailSection>
+
+          <DetailSection id="infra" title="주변 인프라">
+            <InfrastructureCard latitude={property.latitude} longitude={property.longitude} />
+          </DetailSection>
+
+          {showMaintenance && (
+            <DetailSection id="maintenance" title="관리비 상세">
+              <MaintenanceFeeCard maintenanceFee={property.maintenanceFee} items={property.maintenanceItems} />
+            </DetailSection>
           )}
         </div>
-
-        {!buildingInformation && !buildingInformationError && (
-          <p className="text-sm text-gray-500">건축물 정보 상태를 확인하는 중...</p>
-        )}
-
-        {buildingInformation && (
-          <Card className="flex flex-col gap-5">
-            <div>
-              <p className="text-sm font-medium text-gray-900">
-                {BUILDING_STATUS[buildingInformation.status].description}
-              </p>
-              {(buildingInformation.status === 'PENDING' || buildingInformation.status === 'PROCESSING') && (
-                <p className="mt-1 text-xs text-gray-500">완료될 때까지 이 화면에서 자동으로 상태를 갱신합니다.</p>
-              )}
-              {buildingInformation.status === 'FAILED' && buildingInformation.lastErrorMessage && (
-                <p className="mt-1 text-sm text-danger">{buildingInformation.lastErrorMessage}</p>
-              )}
-            </div>
-
-            {(buildingInformation.status === 'RESOLVED' || buildingInformation.status === 'PARTIAL') && (
-              <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3 lg:grid-cols-4">
-                {[
-                  ['건축연도', displayValue(buildingInformation.buildingYear, '년')],
-                  ['사용승인일', displayValue(buildingInformation.approvalDate)],
-                  ['세대 수', displayValue(buildingInformation.householdCount, '세대')],
-                  ['건물 동 수', displayValue(buildingInformation.buildingCount, '동')],
-                  ['지상/지하층', `${displayValue(buildingInformation.groundFloorCount, '층')} / ${displayValue(buildingInformation.undergroundFloorCount, '층')}`],
-                  ['엘리베이터', displayValue(buildingInformation.elevatorCount, '대')],
-                  ['주차', displayValue(buildingInformation.parkingCount, '대')],
-                  ['난방/복도', `${displayValue(buildingInformation.heatingType)} / ${displayValue(buildingInformation.corridorType)}`],
-                ].map(([label, value]) => (
-                  <div key={label}>
-                    <dt className="text-xs text-gray-500">{label}</dt>
-                    <dd className="mt-1 text-sm font-medium text-gray-900">{value}</dd>
-                  </div>
-                ))}
-              </dl>
-            )}
-
-            {isOwner && (buildingInformation.status === 'FAILED' || buildingInformation.status === 'NOT_COLLECTED') && (
-              <div>
-                <Button
-                  variant="secondary"
-                  onClick={handleResolveBuildingInformation}
-                  disabled={buildingInformationRetrying}
-                >
-                  {buildingInformationRetrying ? '다시 수집 중...' : '건축물 정보 다시 수집'}
-                </Button>
-                {buildingInformation.retryCount !== null && buildingInformation.retryCount > 0 && (
-                  <p className="mt-2 text-xs text-gray-500">현재 주소에서 {buildingInformation.retryCount}회 시도했어요.</p>
-                )}
-              </div>
-            )}
-          </Card>
-        )}
-
-        {buildingInformationError && (
-          <p className="mt-3 rounded-button bg-red-50 p-3 text-sm font-medium text-danger">
-            {buildingInformationError}
-          </p>
-        )}
-      </section>
-
-      <section className="mt-12 border-t border-gray-200 pt-8">
-        <h2 className="mb-4 text-xl font-bold text-gray-900">주변 인프라</h2>
-        <InfrastructureCard latitude={property.latitude} longitude={property.longitude} />
-      </section>
-
-      {((property.maintenanceFee ?? 0) > 0 || (property.maintenanceItems?.length ?? 0) > 0) && (
-        <section className="mt-12 border-t border-gray-200 pt-8">
-          <h2 className="mb-4 text-xl font-bold text-gray-900">관리비 상세</h2>
-          <MaintenanceFeeCard maintenanceFee={property.maintenanceFee} items={property.maintenanceItems} />
-        </section>
-      )}
-
-      <section className="mt-12 border-t border-gray-200 pt-8">
-        <h2 className="mb-4 text-xl font-bold text-gray-900">상세 설명</h2>
-        <p className="mb-4 text-[15px] leading-relaxed whitespace-pre-wrap text-gray-900">{property.description}</p>
-
-        {property.options.length > 0 && (
-          <ul className="flex flex-wrap gap-2">
-            {property.options.map((option) => (
-              <li key={option}>
-                <Badge>{PROPERTY_OPTION_LABEL[option]}</Badge>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      </div>
     </PageShell>
   );
 }
