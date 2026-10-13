@@ -23,6 +23,7 @@ import { formatMoney } from '../../utils/format';
 import {
   PROPERTY_OPTION_LABEL,
   PROPERTY_DIRECTION_LABEL,
+  PROPERTY_STATUS_LABEL,
   PROPERTY_TYPE_LABEL,
   AiEvaluation,
   BuildingInformation,
@@ -36,6 +37,7 @@ import {
 import AiEvaluationSummaryCard from './components/AiEvaluationSummaryCard';
 import PricePredictionCard from './components/PricePredictionCard';
 import RealtorContactCard from './components/RealtorContactCard';
+import PropertyStatusManager from './components/PropertyStatusManager';
 
 const REPORT_REASONS: ReportReason[] = ['FAKE_PROPERTY', 'SOLD_OUT', 'PRICE_MISMATCH', 'INFO_MISMATCH', 'OTHER'];
 
@@ -398,6 +400,11 @@ function PropertyDetailPage() {
         <div className="flex flex-col gap-2.5">
           {property.isSuspicious && <Badge variant="danger">! 의심 매물</Badge>}
           <Badge>{PROPERTY_TYPE_LABEL[property.propertyType]}</Badge>
+          {property.status !== 'AVAILABLE' && (
+            <div className="flex">
+              <Badge variant="primary">{PROPERTY_STATUS_LABEL[property.status]}</Badge>
+            </div>
+          )}
           <h1 className="text-[26px] font-bold text-gray-900">{priceLabel}</h1>
           {property.maintenanceFee ? (
             <p className="text-sm text-gray-500">관리비 {formatMoney(property.maintenanceFee)}만원</p>
@@ -499,6 +506,13 @@ function PropertyDetailPage() {
           {bidMessage && <HelperText>{bidMessage}</HelperText>}
 
           <RealtorContactCard propertyId={id} />
+          {isOwner && (
+            <PropertyStatusManager
+              propertyId={id}
+              status={property.status}
+              onChanged={(status) => setProperty((prev) => (prev ? { ...prev, status } : prev))}
+            />
+          )}
 
           <div className="mt-4">
             <AiEvaluationSummaryCard

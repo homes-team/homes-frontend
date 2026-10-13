@@ -9,12 +9,19 @@ export interface AgentProfile {
   officeAddress: string | null;
   businessNum: string;
   isVerified: boolean;
+  /**
+   * (백엔드 미구현, 제안 스펙) 프로필 사진 URL. 내려오기 전에는 undefined라서
+   * 화면은 사무소명 첫 글자 아바타로 보여준다. docs/api-requests/realtor-profile-photo.md 참고.
+   */
+  profileImageUrl?: string | null;
 }
 
 /** AgentUpdateProfileReqDto.java 대응 (부분 수정) */
 export interface AgentUpdateProfileRequest {
   officeName?: string;
   officeAddress?: string;
+  /** (백엔드 미구현, 제안 스펙) presigned URL로 S3에 올린 사진의 최종 URL */
+  profileImageUrl?: string;
   officeLatitude?: number;
   officeLongitude?: number;
 }
