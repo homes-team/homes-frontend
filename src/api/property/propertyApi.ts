@@ -11,6 +11,8 @@ import {
   SortBy,
   TradeType,
 } from '../../types/property';
+import { PropertyRealtorInfo } from '../../types/realtor';
+import { applyClientSideFilters, serverSupportedOptions } from '../../utils/searchFilter';
 import { apiDelete, apiGet, apiPatch, apiPost } from '../client';
 
 /** 전체 매물 리스트 조회 (최신 등록순) — GET /properties */
@@ -59,6 +61,11 @@ export function fetchPricePrediction(
     allowAnonymousFallback: true,
     signal,
   });
+}
+
+/** 매물 담당 중개사 + 그 중개사의 다른 매물 — GET /properties/{propertyId}/realtors (비로그인 가능) */
+export function fetchPropertyRealtorInfo(propertyId: number, signal?: AbortSignal): Promise<PropertyRealtorInfo> {
+  return apiGet<PropertyRealtorInfo>(`/properties/${propertyId}/realtors`, { signal });
 }
 
 /**
@@ -133,6 +140,9 @@ export interface PropertyFilter {
   /** m² */
   minArea?: number;
   maxArea?: number;
+  /** 만원 단위. 백엔드 검색 조건에 아직 없어 응답을 프론트에서 거른다 (utils/searchFilter.ts) */
+  minMaintenanceFee?: number;
+  maxMaintenanceFee?: number;
   /** AND 조건 — 모두 만족하는 매물만 */
   options?: PropertyOption[];
   sortBy?: SortBy;
@@ -169,10 +179,12 @@ export function buildSearchQuery(params: MapSearchParams): string {
   append('maxMonthlyRent', params.maxMonthlyRent);
   append('minArea', params.minArea);
   append('maxArea', params.maxArea);
+  append('minMaintenanceFee', params.minMaintenanceFee);
+  append('maxMaintenanceFee', params.maxMaintenanceFee);
   append('sortBy', params.sortBy ?? DEFAULT_SORT_BY);
 
   // List<PropertyOption>은 같은 키를 반복해서 보낸다: ?options=PARKING&options=ELEVATOR
-  params.options?.forEach((option) => query.append('options', option));
+  serverSupportedOptions(params.options).forEach((option) => query.append('options', option));
 
   return query.toString();
 }
@@ -192,5 +204,5 @@ export function searchPropertiesOnMap(
     auth: true,
     allowAnonymousFallback: true,
     signal,
-  });
+  }).then((items) => applyClientSideFilters(items, params));
 }

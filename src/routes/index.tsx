@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
+import RootLayout from './RootLayout';
 import { homeRoutes } from './homeRoutes';
 import { authRoutes } from './authRoutes';
 import { searchRoutes } from './searchRoutes';
@@ -25,6 +26,8 @@ const protectedRoutes = [
 ];
 
 export const router = createBrowserRouter([
-  ...publicRoutes,
-  { element: <ProtectedRoute />, children: protectedRoutes },
+  {
+    element: <RootLayout />,
+    children: [...publicRoutes, { element: <ProtectedRoute />, children: protectedRoutes }],
+  },
 ]);

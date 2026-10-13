@@ -40,6 +40,7 @@ function ListPropertyEditLoader() {
           deposit: String(detail.deposit),
           monthlyRent: String(detail.monthlyRent),
           maintenanceFee: detail.maintenanceFee !== null ? String(detail.maintenanceFee) : '0',
+          maintenanceItems: detail.maintenanceItems ?? [],
           description: detail.description,
           desiredBrokerageFee: detail.desiredBrokerageFee !== null ? String(detail.desiredBrokerageFee) : '',
         });
