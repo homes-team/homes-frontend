@@ -37,6 +37,7 @@ import {
 import AiEvaluationSummaryCard from './components/AiEvaluationSummaryCard';
 import PricePredictionCard from './components/PricePredictionCard';
 import CompareToggleButton from '../../components/compare/CompareToggleButton';
+import MaintenanceFeeCard from './components/MaintenanceFeeCard';
 import PropertyStatusManager from './components/PropertyStatusManager';
 
 const REPORT_REASONS: ReportReason[] = ['FAKE_PROPERTY', 'SOLD_OUT', 'PRICE_MISMATCH', 'INFO_MISMATCH', 'OTHER'];
@@ -606,6 +607,13 @@ function PropertyDetailPage() {
           </p>
         )}
       </section>
+
+      {((property.maintenanceFee ?? 0) > 0 || (property.maintenanceItems?.length ?? 0) > 0) && (
+        <section className="mt-12 border-t border-gray-200 pt-8">
+          <h2 className="mb-4 text-xl font-bold text-gray-900">관리비 상세</h2>
+          <MaintenanceFeeCard maintenanceFee={property.maintenanceFee} items={property.maintenanceItems} />
+        </section>
+      )}
 
       <section className="mt-12 border-t border-gray-200 pt-8">
         <h2 className="mb-4 text-xl font-bold text-gray-900">상세 설명</h2>
