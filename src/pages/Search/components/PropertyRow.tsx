@@ -1,3 +1,4 @@
+import CompareToggleButton from '../../../components/compare/CompareToggleButton';
 import { PROPERTY_OPTION_LABEL, PROPERTY_STATUS_LABEL, PropertyListItem, PROPERTY_TYPE_LABEL } from '../../../types/property';
 import { formatPrice, formatRelativeTime, formatSearchMeta, formatWalking, pickCardOptions } from '../../../utils/format';
 
@@ -84,6 +85,7 @@ function PropertyRow({ property, selected, onSelect }: PropertyRowProps) {
 
           <div className="mt-auto flex justify-between text-xs text-gray-500">
             <span>♡ {property.favoriteCount}</span>
+            <CompareToggleButton size="row" item={{ propertyId: property.propertyId, title: property.title }} />
             <span>{formatRelativeTime(property.createdAt)}</span>
           </div>
         </div>
