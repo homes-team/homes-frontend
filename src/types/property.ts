@@ -91,7 +91,9 @@ export type PropertyOption =
   | 'CLOSET'
   | 'SINK'
   | 'VERANDA'
-  | 'FULL_OPTION';
+  | 'FULL_OPTION'
+  | 'PET_ALLOWED'
+  | 'JEONSE_LOAN';
 
 /** 정렬 기준 — 백엔드 sortBy 파라미터 값 */
 export type SortBy = 'RECOMMENDED' | 'LATEST' | 'FAVORITE';
@@ -130,6 +132,8 @@ export const PROPERTY_OPTION_LABEL: Record<PropertyOption, string> = {
   SINK: '싱크대',
   VERANDA: '베란다',
   FULL_OPTION: '풀옵션',
+  PET_ALLOWED: '반려동물 가능',
+  JEONSE_LOAN: '전세자금대출 가능',
 };
 
 /** 필터 모달의 체크박스 노출 순서 */
@@ -153,6 +157,16 @@ export const PROPERTY_OPTION_ORDER: PropertyOption[] = [
 ];
 
 /**
+ * 아직 백엔드 PropertyOption enum(및 property_options CHECK 제약)에 없는 옵션.
+ * 서버로 보내면 400이 나므로 검색 요청에서는 빼고 프론트에서 결과를 직접 거른다.
+ * 백엔드에 추가되면 PROPERTY_OPTION_ORDER로 옮기고 이 목록을 비운다.
+ */
+export const FRONTEND_ONLY_OPTIONS: PropertyOption[] = ['PET_ALLOWED', 'JEONSE_LOAN'];
+
+/** 검색 필터에만 노출하는 옵션 순서 (등록 마법사는 서버가 저장할 수 있는 PROPERTY_OPTION_ORDER만 쓴다) */
+export const FILTER_OPTION_ORDER: PropertyOption[] = [...PROPERTY_OPTION_ORDER, ...FRONTEND_ONLY_OPTIONS];
+
+/**
  * 카드에 노출할 옵션 우선순위.
  *
  * 백엔드는 옵션 전체 배열을 내려주고, 그중 무엇을 몇 개 보여줄지는 프론트가 정한다.
@@ -163,6 +177,8 @@ export const CARD_OPTION_PRIORITY: PropertyOption[] = [
   'PARKING',
   'ELEVATOR',
   'SECURITY_GUARD',
+  'PET_ALLOWED',
+  'JEONSE_LOAN',
   'AIR_CONDITIONER',
   'VERANDA',
   'WASHING_MACHINE',

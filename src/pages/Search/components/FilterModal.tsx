@@ -1,10 +1,10 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { PropertyFilter } from '../../../api/property/propertyApi';
-import { PROPERTY_OPTION_LABEL, PROPERTY_OPTION_ORDER, PropertyOption } from '../../../types/property';
+import { FILTER_OPTION_ORDER, FRONTEND_ONLY_OPTIONS, PROPERTY_OPTION_LABEL, PropertyOption } from '../../../types/property';
 
 export type DetailFilter = Pick<
   PropertyFilter,
-  'minDeposit' | 'maxDeposit' | 'minMonthlyRent' | 'maxMonthlyRent' | 'minArea' | 'maxArea' | 'options'
+  'minDeposit' | 'maxDeposit' | 'minMonthlyRent' | 'maxMonthlyRent' | 'minMaintenanceFee' | 'maxMaintenanceFee' | 'minArea' | 'maxArea' | 'options'
 >;
 
 interface FilterModalProps {
@@ -19,6 +19,8 @@ const NUMBER_FIELDS = [
   ['maxDeposit', '최대 보증금', '만원'],
   ['minMonthlyRent', '최소 월세', '만원'],
   ['maxMonthlyRent', '최대 월세', '만원'],
+  ['minMaintenanceFee', '최소 관리비', '만원'],
+  ['maxMaintenanceFee', '최대 관리비', '만원'],
   ['minArea', '최소 면적', '㎡'],
   ['maxArea', '최대 면적', '㎡'],
 ] as const;
@@ -78,6 +80,7 @@ function FilterModal({ open, value, onClose, onApply }: FilterModalProps) {
     const pairs: Array<[number | undefined, number | undefined, string]> = [
       [draft.minDeposit, draft.maxDeposit, '보증금'],
       [draft.minMonthlyRent, draft.maxMonthlyRent, '월세'],
+      [draft.minMaintenanceFee, draft.maxMaintenanceFee, '관리비'],
       [draft.minArea, draft.maxArea, '면적'],
     ];
     const invalid = pairs.find(([min, max]) => min !== undefined && max !== undefined && min > max);
@@ -136,7 +139,7 @@ function FilterModal({ open, value, onClose, onApply }: FilterModalProps) {
         <fieldset className="mt-5.5 border-0 p-0">
           <legend className="mb-2.5 text-sm font-bold">옵션 (선택한 조건을 모두 만족)</legend>
           <div className="grid grid-cols-3 gap-2.5 max-[560px]:grid-cols-1">
-            {PROPERTY_OPTION_ORDER.map((option) => (
+            {FILTER_OPTION_ORDER.map((option) => (
               <label key={option} className="flex items-center gap-1.5 text-[13px]">
                 <input
                   type="checkbox"
@@ -144,6 +147,7 @@ function FilterModal({ open, value, onClose, onApply }: FilterModalProps) {
                   onChange={() => toggleOption(option)}
                 />
                 {PROPERTY_OPTION_LABEL[option]}
+                {FRONTEND_ONLY_OPTIONS.includes(option) && <small className="text-gray-400">(준비 중)</small>}
               </label>
             ))}
           </div>

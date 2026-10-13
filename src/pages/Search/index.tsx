@@ -9,12 +9,11 @@ import PropertyMap from './components/PropertyMap';
 import PropertyRow from './components/PropertyRow';
 import SearchBar, { PlaceSuggestion } from './components/SearchBar';
 import { usePropertySearch } from '../../hooks/usePropertySearch';
-import { PropertyOption, PropertyType, SortBy, TradeType } from '../../types/property';
+import { FILTER_OPTION_ORDER, PropertyOption, PropertyType, SortBy, TradeType } from '../../types/property';
 
 const PROPERTY_TYPES: PropertyType[] = ['ONE_ROOM', 'TWO_ROOM', 'VILLA', 'HOUSE', 'APARTMENT', 'OFFICETEL', 'PRESALE'];
 const TRADE_TYPES: TradeType[] = ['MONTHLY_RENT', 'JEONSE', 'SALE'];
 const SORT_TYPES: SortBy[] = ['RECOMMENDED', 'LATEST', 'FAVORITE'];
-const PROPERTY_OPTIONS: PropertyOption[] = ['ELEVATOR', 'SECURITY_GUARD', 'PARKING', 'BED', 'DESK', 'AIR_CONDITIONER', 'REFRIGERATOR', 'WASHING_MACHINE', 'MICROWAVE', 'INDUCTION', 'GAS_STOVE', 'SHOE_RACK', 'CLOSET', 'SINK', 'VERANDA', 'FULL_OPTION'];
 
 function readNumber(params: URLSearchParams, key: string): number | undefined {
   const raw = params.get(key);
@@ -29,9 +28,11 @@ function readDetailFilter(params: URLSearchParams): DetailFilter {
     maxDeposit: readNumber(params, 'maxDeposit'),
     minMonthlyRent: readNumber(params, 'minMonthlyRent'),
     maxMonthlyRent: readNumber(params, 'maxMonthlyRent'),
+    minMaintenanceFee: readNumber(params, 'minMaintenanceFee'),
+    maxMaintenanceFee: readNumber(params, 'maxMaintenanceFee'),
     minArea: readNumber(params, 'minArea'),
     maxArea: readNumber(params, 'maxArea'),
-    options: params.getAll('options').filter((value): value is PropertyOption => PROPERTY_OPTIONS.includes(value as PropertyOption)),
+    options: params.getAll('options').filter((value): value is PropertyOption => FILTER_OPTION_ORDER.includes(value as PropertyOption)),
   };
 }
 
@@ -208,13 +209,7 @@ function SearchPage() {
             propertyType: propertyType ?? undefined,
             tradeType,
             sortBy,
-            minDeposit: value.minDeposit,
-            maxDeposit: value.maxDeposit,
-            minMonthlyRent: value.minMonthlyRent,
-            maxMonthlyRent: value.maxMonthlyRent,
-            minArea: value.minArea,
-            maxArea: value.maxArea,
-            options: value.options,
+            ...value,
           });
         }
       }} />

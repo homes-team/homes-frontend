@@ -20,3 +20,16 @@ describe('buildSearchQuery', () => {
     expect(query.has('keyword')).toBe(false);
   });
 });
+
+describe('buildSearchQuery - 관리비/신규 옵션', () => {
+  it('sends the maintenance fee range but never sends options the server does not know', () => {
+    const query = new URLSearchParams(buildSearchQuery({
+      swLat: 37.4, swLng: 126.9, neLat: 37.6, neLng: 127.1,
+      minMaintenanceFee: 5, maxMaintenanceFee: 20, options: ['PARKING', 'PET_ALLOWED', 'JEONSE_LOAN'],
+    }));
+
+    expect(query.get('minMaintenanceFee')).toBe('5');
+    expect(query.get('maxMaintenanceFee')).toBe('20');
+    expect(query.getAll('options')).toEqual(['PARKING']);
+  });
+});
