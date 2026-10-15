@@ -2,11 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useKakaoMap } from '../../../hooks/useKakaoMap';
 import {
   AiEvaluation,
+  IsochroneMode,
   NearbyFacilities,
   NearbyFacility,
   NearbyFacilityType,
   PROPERTY_DIRECTION_LABEL,
   PropertyDirection,
+  PropertyIsochrone,
 } from '../../../types/property';
 
 interface Props {
@@ -16,6 +18,10 @@ interface Props {
   loading: boolean;
   error: string | null;
   onRetry: () => void;
+  isochrones: PropertyIsochrone[];
+  isochronesLoading: boolean;
+  isochronesError: string | null;
+  onRetryIsochrones: () => void;
 }
 
 const FACILITY_META: Record<NearbyFacilityType, { label: string; icon: string; color: string }> = {
@@ -116,14 +122,28 @@ function createPropertyMarker() {
   return marker;
 }
 
-function AiInfrastructureMap({ evaluation, facilities, direction, loading, error, onRetry }: Props) {
+function AiInfrastructureMap({
+  evaluation,
+  facilities,
+  direction,
+  loading,
+  error,
+  onRetry,
+  isochrones,
+  isochronesLoading,
+  isochronesError,
+  onRetryIsochrones,
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { map, error: mapError } = useKakaoMap(containerRef);
   const overlaysRef = useRef<kakao.maps.CustomOverlay[]>([]);
   const sunlightPolygonRef = useRef<kakao.maps.Polygon | null>(null);
+  const isochronePolygonsRef = useRef<kakao.maps.Polygon[]>([]);
   const [selectedType, setSelectedType] = useState<NearbyFacilityType | 'ALL'>('ALL');
   const [selectedFacility, setSelectedFacility] = useState<NearbyFacility | null>(null);
   const [showSunlight, setShowSunlight] = useState(true);
+  const [showIsochrones, setShowIsochrones] = useState(true);
+  const [isochroneMode, setIsochroneMode] = useState<IsochroneMode>('walk');
 
   const sunlightScore = evaluation?.categories?.find((category) => category.key === 'SUNLIGHT')?.displayScore;
   const sunlightStyle = getSunlightLayerStyle(sunlightScore);
@@ -201,6 +221,46 @@ function AiInfrastructureMap({ evaluation, facilities, direction, loading, error
     };
   }, [directionBearing, facilities, map, showSunlight, sunlightStyle.color]);
 
+  useEffect(() => {
+    isochronePolygonsRef.current.forEach((polygon) => polygon.setMap(null));
+    isochronePolygonsRef.current = [];
+    if (!map || !showIsochrones) return;
+
+    const maps = window.kakao.maps;
+    const bounds = new maps.LatLngBounds();
+    let coordinateCount = 0;
+    const modeIsochrones = isochrones
+      .filter((isochrone) => isochrone.mode === isochroneMode)
+      .sort((left, right) => right.travelTimeMinutes - left.travelTimeMinutes);
+
+    modeIsochrones.forEach((isochrone) => {
+      const path = (isochrone.geometry.coordinates[0] ?? [])
+        .filter(([longitude, latitude]) => Number.isFinite(longitude) && Number.isFinite(latitude))
+        .map(([longitude, latitude]) => new maps.LatLng(latitude, longitude));
+      if (path.length < 3) return;
+      path.forEach((coordinate) => bounds.extend(coordinate));
+      coordinateCount += path.length;
+      const color = isochroneMode === 'walk' ? '#2563eb' : '#ea580c';
+      const polygon = new maps.Polygon({
+        path,
+        strokeWeight: isochrone.travelTimeMinutes === 5 ? 2 : 1,
+        strokeColor: color,
+        strokeOpacity: isochrone.travelTimeMinutes === 5 ? 0.85 : 0.6,
+        fillColor: color,
+        fillOpacity: isochrone.travelTimeMinutes === 5 ? 0.2 : 0.1,
+        zIndex: 0,
+      });
+      polygon.setMap(map);
+      isochronePolygonsRef.current.push(polygon);
+    });
+
+    if (coordinateCount > 0) map.setBounds(bounds, 36);
+    return () => {
+      isochronePolygonsRef.current.forEach((polygon) => polygon.setMap(null));
+      isochronePolygonsRef.current = [];
+    };
+  }, [isochroneMode, isochrones, map, showIsochrones]);
+
   return (
     <section className="mb-8 overflow-hidden rounded-card border border-gray-200 bg-white">
       <div className="border-b border-gray-100 p-5">
@@ -243,6 +303,36 @@ function AiInfrastructureMap({ evaluation, facilities, direction, loading, error
             </button>
           ))}
         </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2" aria-label="생활권 이동수단">
+          <span className="mr-1 text-xs font-semibold text-gray-500">5분·10분 생활권</span>
+          {(['walk', 'drive'] as IsochroneMode[]).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              aria-pressed={isochroneMode === mode}
+              onClick={() => {
+                setIsochroneMode(mode);
+                setShowIsochrones(true);
+              }}
+              className={`rounded-pill px-3 py-1.5 text-xs font-semibold transition ${
+                isochroneMode === mode && showIsochrones
+                  ? mode === 'walk' ? 'bg-blue-600 text-white' : 'bg-orange-600 text-white'
+                  : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {mode === 'walk' ? '🚶 도보' : '🚗 차량'}
+            </button>
+          ))}
+          <label className="ml-1 flex cursor-pointer items-center gap-2 text-xs font-semibold text-gray-600">
+            <input
+              type="checkbox"
+              checked={showIsochrones}
+              onChange={(event) => setShowIsochrones(event.target.checked)}
+              className="accent-primary"
+            />
+            영역 표시
+          </label>
+        </div>
       </div>
 
       <div className="relative h-[420px] bg-gray-100">
@@ -268,6 +358,30 @@ function AiInfrastructureMap({ evaluation, facilities, direction, loading, error
       </div>
 
       <div className="space-y-3 p-5">
+        {isochronesLoading && (
+          <p className="text-xs text-gray-500">5분·10분 생활권을 계산하는 중...</p>
+        )}
+        {!isochronesLoading && isochronesError && (
+          <div className="flex items-center justify-between gap-3 rounded-button bg-orange-50 p-3 text-xs text-orange-700">
+            <span>생활권 영역을 불러오지 못했습니다: {isochronesError}</span>
+            <button type="button" className="shrink-0 font-semibold underline" onClick={onRetryIsochrones}>
+              다시 시도
+            </button>
+          </div>
+        )}
+        {!isochronesLoading && !isochronesError && showIsochrones && (
+          <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
+            <span className="font-semibold text-gray-700">{isochroneMode === 'walk' ? '도보' : '차량'} 예상 생활권</span>
+            <span className="flex items-center gap-1">
+              <span className={`h-3 w-3 rounded-sm ${isochroneMode === 'walk' ? 'bg-blue-600/20' : 'bg-orange-600/20'}`} />
+              5분
+            </span>
+            <span className="flex items-center gap-1">
+              <span className={`h-3 w-3 rounded-sm ${isochroneMode === 'walk' ? 'bg-blue-600/10' : 'bg-orange-600/10'}`} />
+              10분
+            </span>
+          </div>
+        )}
         {!loading && !error && facilities && visibleFacilities.length === 0 && (
           <p className="rounded-button bg-gray-50 p-3 text-sm text-gray-500">
             선택한 유형의 주변 시설 정보가 없습니다.
@@ -298,6 +412,9 @@ function AiInfrastructureMap({ evaluation, facilities, direction, loading, error
           {directionBearing === null
             ? '매물 방향 정보가 없어 일조 방향 레이어는 표시하지 않습니다. 점수는 등록된 평가 정보만 보여줍니다.'
             : '부채꼴은 매물의 주실 방향을 나타내며, 색상은 방향과 층수를 기반으로 한 상대 평가입니다. 실제 주변 건물의 그림자나 시간대별 일조를 시뮬레이션한 결과가 아닙니다.'}
+        </p>
+        <p className="text-xs leading-relaxed text-gray-400">
+          생활권 영역은 도보·차량의 예상 이동 속도를 기준으로 계산한 참고 범위이며 실제 도로, 교통량, 경사도는 반영하지 않습니다.
         </p>
       </div>
     </section>

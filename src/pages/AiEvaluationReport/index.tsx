@@ -4,12 +4,27 @@ import {
   fetchAiEvaluation,
   fetchNearbyFacilities,
   fetchPropertyDetail,
+  fetchPropertyIsochrone,
 } from '../../api/property/propertyApi';
 import PageShell from '../../components/layout/PageShell';
-import { AiEvaluation, NearbyFacilities, PropertyDirection } from '../../types/property';
+import {
+  AiEvaluation,
+  IsochroneMode,
+  IsochroneTravelTime,
+  NearbyFacilities,
+  PropertyDirection,
+  PropertyIsochrone,
+} from '../../types/property';
 import AiEvaluationCard from '../PropertyDetail/components/AiEvaluationCard';
 import AiRadarChart from '../PropertyDetail/components/AiRadarChart';
 import AiInfrastructureMap from './components/AiInfrastructureMap';
+
+const ISOCHRONE_OPTIONS: Array<{ mode: IsochroneMode; time: IsochroneTravelTime }> = [
+  { mode: 'walk', time: 5 },
+  { mode: 'walk', time: 10 },
+  { mode: 'drive', time: 5 },
+  { mode: 'drive', time: 10 },
+];
 
 function AiEvaluationReportPage() {
   const { propertyId } = useParams<{ propertyId: string }>();
@@ -17,6 +32,7 @@ function AiEvaluationReportPage() {
   const navigate = useNavigate();
   const [evaluation, setEvaluation] = useState<AiEvaluation | null>(null);
   const [facilities, setFacilities] = useState<NearbyFacilities | null>(null);
+  const [isochrones, setIsochrones] = useState<PropertyIsochrone[]>([]);
   const [propertyMeta, setPropertyMeta] = useState<{
     propertyId: number;
     title: string;
@@ -26,12 +42,16 @@ function AiEvaluationReportPage() {
   const [error, setError] = useState<string | null>(null);
   const [facilitiesLoading, setFacilitiesLoading] = useState(true);
   const [facilitiesError, setFacilitiesError] = useState<string | null>(null);
+  const [isochronesLoading, setIsochronesLoading] = useState(true);
+  const [isochronesError, setIsochronesError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
   const [facilitiesVersion, setFacilitiesVersion] = useState(0);
+  const [isochronesVersion, setIsochronesVersion] = useState(0);
   const title = propertyMeta?.propertyId === id ? propertyMeta.title : '매물';
   const direction = propertyMeta?.propertyId === id ? propertyMeta.direction : null;
   const currentEvaluation = evaluation?.propertyId === id ? evaluation : null;
   const currentFacilities = facilities?.propertyId === id ? facilities : null;
+  const currentIsochrones = isochrones.filter((isochrone) => isochrone.propertyId === id);
 
   useEffect(() => {
     setPropertyMeta(null);
@@ -89,6 +109,31 @@ function AiEvaluationReportPage() {
     return () => controller.abort();
   }, [facilitiesVersion, id]);
 
+  useEffect(() => {
+    setIsochrones([]);
+    if (!Number.isFinite(id)) {
+      setIsochronesLoading(false);
+      setIsochronesError(null);
+      return;
+    }
+    const controller = new AbortController();
+    setIsochronesLoading(true);
+    setIsochronesError(null);
+    Promise.all(ISOCHRONE_OPTIONS.map(({ mode, time }) => (
+      fetchPropertyIsochrone(id, mode, time, controller.signal)
+    )))
+      .then((results) => {
+        if (!controller.signal.aborted) setIsochrones(results);
+      })
+      .catch((reason: Error) => {
+        if (!controller.signal.aborted) setIsochronesError(reason.message);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsochronesLoading(false);
+      });
+    return () => controller.abort();
+  }, [id, isochronesVersion]);
+
   return (
     <PageShell>
       <button type="button" onClick={() => navigate(`/properties/${id}`)} className="mb-5 text-sm text-gray-500 hover:text-primary">
@@ -116,6 +161,10 @@ function AiEvaluationReportPage() {
         loading={facilitiesLoading}
         error={facilitiesError}
         onRetry={() => setFacilitiesVersion((current) => current + 1)}
+        isochrones={currentIsochrones}
+        isochronesLoading={isochronesLoading}
+        isochronesError={isochronesError}
+        onRetryIsochrones={() => setIsochronesVersion((current) => current + 1)}
       />
 
       <AiEvaluationCard

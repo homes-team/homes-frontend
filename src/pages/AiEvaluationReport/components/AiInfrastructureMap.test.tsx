@@ -36,6 +36,19 @@ const facilities: NearbyFacility[] = [
   },
 ];
 
+const defaultProps = {
+  evaluation: null,
+  facilities: null,
+  direction: null,
+  loading: false,
+  error: null,
+  onRetry: vi.fn(),
+  isochrones: [],
+  isochronesLoading: false,
+  isochronesError: null,
+  onRetryIsochrones: vi.fn(),
+};
+
 describe('AI 인프라 지도 도우미', () => {
   beforeEach(() => {
     vi.mocked(useKakaoMap).mockReturnValue({ map: null, error: null });
@@ -74,12 +87,7 @@ describe('AI 인프라 지도 도우미', () => {
 
     render(
       <AiInfrastructureMap
-        evaluation={null}
-        facilities={null}
-        direction={null}
-        loading={false}
-        error={null}
-        onRetry={vi.fn()}
+        {...defaultProps}
       />,
     );
 
@@ -91,10 +99,7 @@ describe('AI 인프라 지도 도우미', () => {
     const onRetry = vi.fn();
     render(
       <AiInfrastructureMap
-        evaluation={null}
-        facilities={null}
-        direction={null}
-        loading={false}
+        {...defaultProps}
         error="시설 조회 실패"
         onRetry={onRetry}
       />,
@@ -102,5 +107,15 @@ describe('AI 인프라 지도 도우미', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '다시 시도' }));
     expect(onRetry).toHaveBeenCalledOnce();
+  });
+
+  it('도보와 차량 생활권 선택을 제공한다', () => {
+    render(<AiInfrastructureMap {...defaultProps} />);
+
+    const walkButton = screen.getByRole('button', { name: '🚶 도보' });
+    const driveButton = screen.getByRole('button', { name: '🚗 차량' });
+    expect(walkButton).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(driveButton);
+    expect(driveButton).toHaveAttribute('aria-pressed', 'true');
   });
 });

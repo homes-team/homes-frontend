@@ -3,6 +3,7 @@ import {
   BuildingInformation,
   ManagedPropertyStatus,
   NearbyFacilities,
+  PropertyIsochrone,
   PropertyCluster,
   PropertyDetail,
   PropertyListItem,
@@ -12,6 +13,8 @@ import {
   ReportCreateRequest,
   SortBy,
   TradeType,
+  IsochroneMode,
+  IsochroneTravelTime,
 } from '../../types/property';
 import { PropertyRealtorInfo } from '../../types/realtor';
 import { applyClientSideFilters, serverSupportedOptions } from '../../utils/searchFilter';
@@ -56,6 +59,17 @@ export function fetchAiEvaluation(propertyId: number, signal?: AbortSignal): Pro
 /** AI 평가 지도용 주변 인프라 좌표 조회. */
 export function fetchNearbyFacilities(propertyId: number, signal?: AbortSignal): Promise<NearbyFacilities> {
   return apiGet<NearbyFacilities>(`/properties/${propertyId}/nearby-facilities`, { signal });
+}
+
+/** 이동수단과 시간에 따른 매물 생활권 GeoJSON Polygon 조회. */
+export function fetchPropertyIsochrone(
+  propertyId: number,
+  mode: IsochroneMode,
+  travelTimeMinutes: IsochroneTravelTime,
+  signal?: AbortSignal,
+): Promise<PropertyIsochrone> {
+  const query = new URLSearchParams({ mode, time: String(travelTimeMinutes) });
+  return apiGet<PropertyIsochrone>(`/properties/${propertyId}/isochrone?${query.toString()}`, { signal });
 }
 
 /** 공공 실거래가 기반 가격 예측 — GET /properties/{propertyId}/price-prediction */
