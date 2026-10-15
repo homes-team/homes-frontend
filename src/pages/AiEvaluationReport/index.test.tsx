@@ -11,8 +11,11 @@ vi.mock('../../api/property/propertyApi', () => ({
 }));
 vi.mock('../../components/layout/PageShell', () => ({ default: ({ children }: { children: React.ReactNode }) => <main>{children}</main> }));
 vi.mock('./components/AiInfrastructureMap', () => ({
-  default: ({ loading, error }: { loading: boolean; error: string | null }) => (
-    <div>{loading ? '시설 로딩' : error ?? '시설 지도'}</div>
+  default: ({ loading, error, onRetry }: { loading: boolean; error: string | null; onRetry: () => void }) => (
+    <div>
+      {loading ? '시설 로딩' : error ?? '시설 지도'}
+      {error && <button type="button" onClick={onRetry}>시설 다시 시도</button>}
+    </div>
   ),
 }));
 
@@ -116,4 +119,23 @@ it('keeps the evaluation report available when nearby facilities fail', async ()
   setup('1');
   expect(await screen.findByText('평가 1')).toBeInTheDocument();
   expect(await screen.findByText('시설 조회 실패')).toBeInTheDocument();
+});
+
+it('retries only nearby facilities while keeping the evaluation report', async () => {
+  vi.mocked(fetchAiEvaluation).mockResolvedValue(evaluation(1));
+  vi.mocked(fetchPropertyDetail).mockResolvedValue(property(1));
+  vi.mocked(fetchNearbyFacilities)
+    .mockRejectedValueOnce(new Error('시설 조회 실패'))
+    .mockResolvedValueOnce(facilities(1));
+  setup('1');
+
+  expect(await screen.findByText('평가 1')).toBeInTheDocument();
+  expect(await screen.findByText('시설 조회 실패')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: '시설 다시 시도' }));
+
+  expect(await screen.findByText('시설 지도')).toBeInTheDocument();
+  expect(screen.getByText('평가 1')).toBeInTheDocument();
+  expect(fetchNearbyFacilities).toHaveBeenCalledTimes(2);
+  expect(fetchAiEvaluation).toHaveBeenCalledTimes(1);
+  expect(fetchPropertyDetail).toHaveBeenCalledTimes(1);
 });

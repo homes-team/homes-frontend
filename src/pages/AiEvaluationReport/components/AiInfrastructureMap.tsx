@@ -256,9 +256,13 @@ function AiInfrastructureMap({ evaluation, facilities, direction, loading, error
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gray-50 p-6 text-center">
             <p className="text-sm font-semibold text-gray-900">지도를 불러오지 못했습니다.</p>
             <p className="text-xs text-gray-500">{error ?? mapError}</p>
-            <button type="button" className="text-sm font-semibold text-primary underline" onClick={onRetry}>
-              다시 시도
-            </button>
+            {error ? (
+              <button type="button" className="text-sm font-semibold text-primary underline" onClick={onRetry}>
+                다시 시도
+              </button>
+            ) : (
+              <p className="text-xs text-gray-500">페이지를 새로 고침해 주세요.</p>
+            )}
           </div>
         )}
       </div>

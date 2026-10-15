@@ -1,10 +1,17 @@
+import { fireEvent, render, screen } from '@testing-library/react';
+import { useKakaoMap } from '../../../hooks/useKakaoMap';
 import { NearbyFacility } from '../../../types/property';
-import {
+import AiInfrastructureMap, {
   createSunlightSectorCoordinates,
   filterFacilities,
   getDirectionBearing,
   getSunlightLayerStyle,
 } from './AiInfrastructureMap';
+
+vi.mock('../../../hooks/useKakaoMap', () => ({
+  useKakaoMap: vi.fn(),
+}));
+
 
 const facilities: NearbyFacility[] = [
   {
@@ -30,6 +37,10 @@ const facilities: NearbyFacility[] = [
 ];
 
 describe('AI 인프라 지도 도우미', () => {
+  beforeEach(() => {
+    vi.mocked(useKakaoMap).mockReturnValue({ map: null, error: null });
+  });
+
   it('일조 점수를 단계별 색상과 문구로 변환한다', () => {
     expect(getSunlightLayerStyle(4.2)).toEqual({ color: '#16a34a', label: '우수' });
     expect(getSunlightLayerStyle(3)).toEqual({ color: '#eab308', label: '양호' });
@@ -56,5 +67,40 @@ describe('AI 인프라 지도 도우미', () => {
     expect(south).toHaveLength(12);
     expect(south[0]).toEqual({ latitude: 37.5, longitude: 127 });
     expect(south[6].latitude).toBeLessThan(37.5);
+  });
+
+  it('SDK 로드 오류에는 동작하지 않는 재시도 버튼 대신 새로 고침 안내를 표시한다', () => {
+    vi.mocked(useKakaoMap).mockReturnValue({ map: null, error: '지도 SDK 로드 실패' });
+
+    render(
+      <AiInfrastructureMap
+        evaluation={null}
+        facilities={null}
+        direction={null}
+        loading={false}
+        error={null}
+        onRetry={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText('페이지를 새로 고침해 주세요.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
+  });
+
+  it('시설 조회 오류에는 기존 재시도 버튼을 유지한다', () => {
+    const onRetry = vi.fn();
+    render(
+      <AiInfrastructureMap
+        evaluation={null}
+        facilities={null}
+        direction={null}
+        loading={false}
+        error="시설 조회 실패"
+        onRetry={onRetry}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '다시 시도' }));
+    expect(onRetry).toHaveBeenCalledOnce();
   });
 });
