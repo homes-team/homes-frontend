@@ -52,6 +52,25 @@ declare namespace kakao.maps {
     setPosition(position: LatLng): void;
     setZIndex(zIndex: number): void;
   }
+
+  interface PolygonOptions {
+    path: LatLng[];
+    map?: Map | null;
+    strokeWeight?: number;
+    strokeColor?: string;
+    strokeOpacity?: number;
+    strokeStyle?: string;
+    fillColor?: string;
+    fillOpacity?: number;
+    zIndex?: number;
+  }
+
+  class Polygon {
+    constructor(options: PolygonOptions);
+    setMap(map: Map | null): void;
+    setPath(path: LatLng[]): void;
+    setZIndex(zIndex: number): void;
+  }
  
   namespace event {
     function addListener(target: unknown, type: string, handler: () => void): void;

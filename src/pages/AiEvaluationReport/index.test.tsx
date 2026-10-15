@@ -1,11 +1,23 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { fetchAiEvaluation, fetchPropertyDetail } from '../../api/property/propertyApi';
-import { AiEvaluation, PropertyDetail } from '../../types/property';
+import { fetchAiEvaluation, fetchNearbyFacilities, fetchPropertyDetail } from '../../api/property/propertyApi';
+import { AiEvaluation, NearbyFacilities, PropertyDetail } from '../../types/property';
 import AiEvaluationReportPage from './index';
 
-vi.mock('../../api/property/propertyApi', () => ({ fetchAiEvaluation: vi.fn(), fetchPropertyDetail: vi.fn() }));
+vi.mock('../../api/property/propertyApi', () => ({
+  fetchAiEvaluation: vi.fn(),
+  fetchNearbyFacilities: vi.fn(),
+  fetchPropertyDetail: vi.fn(),
+}));
 vi.mock('../../components/layout/PageShell', () => ({ default: ({ children }: { children: React.ReactNode }) => <main>{children}</main> }));
+vi.mock('./components/AiInfrastructureMap', () => ({
+  default: ({ loading, error, onRetry }: { loading: boolean; error: string | null; onRetry: () => void }) => (
+    <div>
+      {loading ? '시설 로딩' : error ?? '시설 지도'}
+      {error && <button type="button" onClick={onRetry}>시설 다시 시도</button>}
+    </div>
+  ),
+}));
 
 const evaluation = (propertyId: number): AiEvaluation => ({
   propertyId,
@@ -15,6 +27,12 @@ const evaluation = (propertyId: number): AiEvaluation => ({
   scoreVersion: 'V3', reportModelVersion: 'V1', generatedAt: '',
 });
 const property = (propertyId: number) => ({ propertyId, title: `제목 ${propertyId}` }) as PropertyDetail;
+const facilities = (propertyId: number): NearbyFacilities => ({
+  propertyId,
+  center: { latitude: 37.5, longitude: 127 },
+  radiusMeters: 2000,
+  facilities: [],
+});
 function deferred<T>() {
   let resolve!: (value: T) => void;
   let reject!: (reason: Error) => void;
@@ -28,13 +46,17 @@ function setup(id: string) {
   render(<RouterProvider router={router} />);
   return router;
 }
-beforeEach(() => vi.resetAllMocks());
+beforeEach(() => {
+  vi.resetAllMocks();
+  vi.mocked(fetchNearbyFacilities).mockImplementation((propertyId) => Promise.resolve(facilities(propertyId)));
+});
 
 it('ends loading for an invalid ID without making requests', () => {
   setup('invalid');
   expect(screen.getByText('유효하지 않은 매물 ID입니다.')).toBeInTheDocument();
   expect(screen.queryByText(/불러오는 중/)).not.toBeInTheDocument();
   expect(fetchAiEvaluation).not.toHaveBeenCalled();
+  expect(fetchNearbyFacilities).not.toHaveBeenCalled();
   expect(fetchPropertyDetail).not.toHaveBeenCalled();
 });
 
@@ -88,4 +110,32 @@ it('does not render an evaluation belonging to a different property', async () =
   expect(await screen.findByRole('button', { name: '다시 시도' })).toBeInTheDocument();
   expect(screen.queryByText('평가 99')).not.toBeInTheDocument();
   expect(screen.queryByRole('img')).not.toBeInTheDocument();
+});
+
+it('keeps the evaluation report available when nearby facilities fail', async () => {
+  vi.mocked(fetchAiEvaluation).mockResolvedValue(evaluation(1));
+  vi.mocked(fetchPropertyDetail).mockResolvedValue(property(1));
+  vi.mocked(fetchNearbyFacilities).mockRejectedValue(new Error('시설 조회 실패'));
+  setup('1');
+  expect(await screen.findByText('평가 1')).toBeInTheDocument();
+  expect(await screen.findByText('시설 조회 실패')).toBeInTheDocument();
+});
+
+it('retries only nearby facilities while keeping the evaluation report', async () => {
+  vi.mocked(fetchAiEvaluation).mockResolvedValue(evaluation(1));
+  vi.mocked(fetchPropertyDetail).mockResolvedValue(property(1));
+  vi.mocked(fetchNearbyFacilities)
+    .mockRejectedValueOnce(new Error('시설 조회 실패'))
+    .mockResolvedValueOnce(facilities(1));
+  setup('1');
+
+  expect(await screen.findByText('평가 1')).toBeInTheDocument();
+  expect(await screen.findByText('시설 조회 실패')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: '시설 다시 시도' }));
+
+  expect(await screen.findByText('시설 지도')).toBeInTheDocument();
+  expect(screen.getByText('평가 1')).toBeInTheDocument();
+  expect(fetchNearbyFacilities).toHaveBeenCalledTimes(2);
+  expect(fetchAiEvaluation).toHaveBeenCalledTimes(1);
+  expect(fetchPropertyDetail).toHaveBeenCalledTimes(1);
 });
