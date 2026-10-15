@@ -117,5 +117,7 @@ describe('AI 인프라 지도 도우미', () => {
     expect(walkButton).toHaveAttribute('aria-pressed', 'true');
     fireEvent.click(driveButton);
     expect(driveButton).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('link', { name: '© OpenStreetMap contributors' }))
+      .toHaveAttribute('href', 'https://www.openstreetmap.org/copyright');
   });
 });

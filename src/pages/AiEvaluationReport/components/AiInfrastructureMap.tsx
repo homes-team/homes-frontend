@@ -414,7 +414,16 @@ function AiInfrastructureMap({
             : '부채꼴은 매물의 주실 방향을 나타내며, 색상은 방향과 층수를 기반으로 한 상대 평가입니다. 실제 주변 건물의 그림자나 시간대별 일조를 시뮬레이션한 결과가 아닙니다.'}
         </p>
         <p className="text-xs leading-relaxed text-gray-400">
-          생활권 영역은 도보·차량의 예상 이동 속도를 기준으로 계산한 참고 범위이며 실제 도로, 교통량, 경사도는 반영하지 않습니다.
+          생활권 영역은 OpenStreetMap 도로망과 이동수단별 통행 시간을 기준으로 계산하며 실시간 교통량, 공사, 경사도는 반영하지 않습니다.
+          {' '}
+          <a
+            className="underline underline-offset-2"
+            href="https://www.openstreetmap.org/copyright"
+            target="_blank"
+            rel="noreferrer"
+          >
+            © OpenStreetMap contributors
+          </a>
         </p>
       </div>
     </section>
