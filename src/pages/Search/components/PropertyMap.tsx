@@ -1,8 +1,11 @@
-import { useEffect, useRef } from 'react';
-import { MapBounds } from '../../../api/property/propertyApi';
+import { useEffect, useRef, useState } from 'react';
+import { fetchPropertyClusters, MapBounds } from '../../../api/property/propertyApi';
 import { useKakaoMap } from '../../../hooks/useKakaoMap';
-import { PropertyListItem } from '../../../types/property';
+import { PropertyCluster, PropertyListItem } from '../../../types/property';
 import { formatPrice } from '../../../utils/format';
+
+/** 이 레벨(카카오: 숫자가 클수록 축소)부터는 개별 마커 대신 묶음 개수를 보여준다. */
+export const CLUSTER_MIN_LEVEL = 6;
 
 interface PropertyMapProps {
   items: PropertyListItem[];
@@ -93,6 +96,26 @@ export function createPropertyOverlayContent(
   return button;
 }
 
+function clusterSizeClass(count: number): string {
+  if (count >= 100) return 'h-14 w-14 text-[15px]';
+  if (count >= 10) return 'h-12 w-12 text-sm';
+  return 'h-10 w-10 text-[13px]';
+}
+
+/** 묶음 마커. 클릭하면 그 지점을 기준으로 확대한다. */
+export function createClusterOverlayContent(cluster: PropertyCluster, onClick: () => void): HTMLButtonElement {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = `grid cursor-pointer place-items-center rounded-full border-2 border-white bg-primary font-bold text-white shadow-[0_2px_10px_rgba(0,0,0,0.2)] ring-4 ring-primary/25 hover:bg-primary-dark ${clusterSizeClass(cluster.count)}`;
+  button.textContent = cluster.count.toLocaleString();
+  button.setAttribute('aria-label', `매물 ${cluster.count}개, 확대해서 보기`);
+  button.addEventListener('click', (event) => {
+    event.stopPropagation();
+    onClick();
+  });
+  return button;
+}
+
 function readBounds(map: kakao.maps.Map): MapBounds {
   const bounds = map.getBounds();
   const sw = bounds.getSouthWest();
@@ -118,6 +141,10 @@ function PropertyMap({
   const containerRef = useRef<HTMLDivElement>(null);
   const { map, error } = useKakaoMap(containerRef);
   const overlaysRef = useRef<kakao.maps.CustomOverlay[]>([]);
+  const clusterOverlaysRef = useRef<kakao.maps.CustomOverlay[]>([]);
+  const [view, setView] = useState<{ bounds: MapBounds; level: number } | null>(null);
+  const [clusters, setClusters] = useState<PropertyCluster[]>([]);
+  const clusterMode = view !== null && view.level >= CLUSTER_MIN_LEVEL;
 
   /* 콜백을 ref로 들고 있어야 리스너를 매번 재등록하지 않는다 */
   const onBoundsChangedRef = useRef(onBoundsChanged);
@@ -132,13 +159,60 @@ function PropertyMap({
     if (!map) return;
 
     // 최초 1회는 초기 검색 트리거용
-    onBoundsChangedRef.current(readBounds(map), true);
+    const initialBounds = readBounds(map);
+    onBoundsChangedRef.current(initialBounds, true);
+    setView({ bounds: initialBounds, level: map.getLevel() });
 
-    const handleIdle = () => onBoundsChangedRef.current(readBounds(map), false);
+    const handleIdle = () => {
+      const bounds = readBounds(map);
+      onBoundsChangedRef.current(bounds, false);
+      setView({ bounds, level: map.getLevel() });
+    };
     window.kakao.maps.event.addListener(map, 'idle', handleIdle);
 
     return () => window.kakao.maps.event.removeListener(map, 'idle', handleIdle);
   }, [map]);
+
+  /* 축소 상태면 영역/레벨이 바뀔 때마다 묶음 개수를 다시 받는다 */
+  useEffect(() => {
+    if (!view || view.level < CLUSTER_MIN_LEVEL) {
+      setClusters([]);
+      return;
+    }
+    const controller = new AbortController();
+    fetchPropertyClusters(view.bounds, view.level, controller.signal)
+      .then(setClusters)
+      .catch(() => {
+        if (!controller.signal.aborted) setClusters([]);
+      });
+    return () => controller.abort();
+  }, [view]);
+
+  /* 묶음 마커 그리기 */
+  useEffect(() => {
+    if (!map) return;
+    const maps = window.kakao.maps;
+
+    clusters.forEach((cluster) => {
+      const position = new maps.LatLng(cluster.lat, cluster.lon);
+      const overlay = new maps.CustomOverlay({
+        position,
+        content: createClusterOverlayContent(cluster, () =>
+          map.setLevel(Math.max(map.getLevel() - 2, 1), { anchor: position, animate: true }),
+        ),
+        yAnchor: 0.5,
+        zIndex: 2,
+        clickable: true,
+      });
+      overlay.setMap(map);
+      clusterOverlaysRef.current.push(overlay);
+    });
+
+    return () => {
+      clusterOverlaysRef.current.forEach((overlay) => overlay.setMap(null));
+      clusterOverlaysRef.current = [];
+    };
+  }, [map, clusters]);
 
   /* 검색어로 선택한 장소로 이동 */
   useEffect(() => {
@@ -146,9 +220,9 @@ function PropertyMap({
     map.panTo(new window.kakao.maps.LatLng(moveTo.lat, moveTo.lng));
   }, [map, moveTo]);
 
-  /* 매물 목록이 바뀌면 마커 다시 그리기 */
+  /* 매물 목록이 바뀌면 마커 다시 그리기 (축소 상태에서는 묶음 마커만 보여준다) */
   useEffect(() => {
-    if (!map) return;
+    if (!map || clusterMode) return;
     const maps = window.kakao.maps;
 
     overlaysRef.current.forEach((overlay) => overlay.setMap(null));
@@ -179,14 +253,18 @@ function PropertyMap({
       overlaysRef.current.forEach((overlay) => overlay.setMap(null));
       overlaysRef.current = [];
     };
-  }, [map, items, selectedId]);
+  }, [map, items, selectedId, clusterMode]);
 
-  /* 리스트에서 선택하면 해당 마커로 지도 이동 */
+  /* 리스트에서 선택하면 해당 마커로 지도 이동. 묶음 상태면 마커가 보이는 레벨까지 확대한다. */
   useEffect(() => {
     if (!map || selectedId === null) return;
     const target = items.find((item) => item.propertyId === selectedId);
     if (!target) return;
-    map.panTo(new window.kakao.maps.LatLng(target.latitude, target.longitude));
+    const position = new window.kakao.maps.LatLng(target.latitude, target.longitude);
+    if (map.getLevel() >= CLUSTER_MIN_LEVEL) {
+      map.setLevel(CLUSTER_MIN_LEVEL - 1, { anchor: position });
+    }
+    map.panTo(position);
   }, [map, selectedId, items]);
 
   return (

@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { label: '원룸·투룸', to: '/search' },
   { label: '오피스텔', to: '/search?propertyType=OFFICETEL' },
   { label: '아파트', to: '/search?propertyType=APARTMENT' },
+  { label: '계산기', to: '/calculator' },
 ] as const;
 
 function Header() {

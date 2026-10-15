@@ -22,6 +22,12 @@ export function formatMoney(manwon: number): string {
   return manwon.toLocaleString();
 }
 
+/** formatMoney에 단위를 붙인다. 억 단위로 끝나면 이미 단위가 있어서 그대로 둔다. 예: 1000 → "1,000만원", 42000 → "4.2억", 55555 → "5억 5,555만원" */
+export function formatManwon(manwon: number): string {
+  const text = formatMoney(manwon);
+  return /\d$/.test(text) ? `${text}만원` : text;
+}
+
 /** 만원 단위 금액을 완전한 원화 문구로 변환한다. 예: 41900 → "4억 1,900만 원" */
 export function formatKoreanWon(manwon: number): string {
   const eok = Math.floor(manwon / 10000);

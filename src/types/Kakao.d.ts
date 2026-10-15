@@ -30,7 +30,7 @@ declare namespace kakao.maps {
     getCenter(): LatLng;
     setCenter(latlng: LatLng): void;
     getLevel(): number;
-    setLevel(level: number): void;
+    setLevel(level: number, options?: { anchor?: LatLng; animate?: boolean }): void;
     panTo(latlng: LatLng): void;
     relayout(): void;
   }

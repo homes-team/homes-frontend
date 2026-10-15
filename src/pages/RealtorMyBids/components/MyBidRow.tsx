@@ -10,6 +10,7 @@ import { fetchChatRooms } from '../../../api/chat/chatApi';
 import { ApiError } from '../../../api/client';
 import { formatRelativeTime } from '../../../utils/format';
 import { BID_STATUS_LABEL, MyBidListItem } from '../../../types/bid';
+import { BID_STATUS_VARIANT } from '../../../utils/statusStyle';
 
 function MyBidRow({ bid, onChanged }: { bid: MyBidListItem; onChanged: () => void }) {
   const navigate = useNavigate();
@@ -60,7 +61,7 @@ function MyBidRow({ bid, onChanged }: { bid: MyBidListItem; onChanged: () => voi
           {bid.propertyTitle}
           <p className="mt-0.5 text-xs font-normal text-gray-500">{bid.propertyAddress}</p>
         </button>
-        <Badge>{BID_STATUS_LABEL[bid.status]}</Badge>
+        <Badge variant={BID_STATUS_VARIANT[bid.status]}>{BID_STATUS_LABEL[bid.status]}</Badge>
       </div>
 
       <p className="mt-2 text-xs text-gray-500">
@@ -90,7 +91,6 @@ function MyBidRow({ bid, onChanged }: { bid: MyBidListItem; onChanged: () => voi
           propertyId={bid.propertyId}
           bidId={bid.bidId}
           editable={bid.status === 'PENDING'}
-          feeUnit="%"
           onChanged={onChanged}
         />
       )}

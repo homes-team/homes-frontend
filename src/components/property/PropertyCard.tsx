@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { PROPERTY_OPTION_LABEL, PropertyListItem, PROPERTY_TYPE_LABEL } from '../../types/property';
+import { PROPERTY_OPTION_LABEL, PROPERTY_STATUS_LABEL, PropertyListItem, PROPERTY_TYPE_LABEL } from '../../types/property';
 import { formatMeta, formatPrice, formatRelativeTime, pickCardOptions } from '../../utils/format';
 
 interface PropertyCardProps {
@@ -36,6 +36,15 @@ function PropertyCard({ property, dateLabel }: PropertyCardProps) {
         {property.status === 'MATCHED' && (
           <span className="absolute top-3 right-3 rounded-lg bg-warning px-3 py-1.5 text-xs font-bold text-white">
             중개 진행중
+          </span>
+        )}
+        {(property.status === 'COMPLETED' || property.status === 'HIDDEN') && (
+          <span
+            className={`absolute top-3 right-3 rounded-lg px-3 py-1.5 text-xs font-bold text-white ${
+              property.status === 'COMPLETED' ? 'bg-success' : 'bg-gray-500'
+            }`}
+          >
+            {PROPERTY_STATUS_LABEL[property.status]}
           </span>
         )}
         {property.isSuspicious && (

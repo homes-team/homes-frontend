@@ -11,8 +11,19 @@ import { createChatRoom } from '../../../api/chat/chatApi';
 import { ApiError } from '../../../api/client';
 import { formatRelativeTime } from '../../../utils/format';
 import { BID_STATUS_LABEL, BidListItem } from '../../../types/bid';
+import { BID_STATUS_VARIANT } from '../../../utils/statusStyle';
+import { StarRating } from '../../../components/ui/StarRating';
+import { BidderRating } from '../../../utils/bidSort';
 
-function BidRow({ propertyId, bid, onChanged }: { propertyId: number; bid: BidListItem; onChanged: () => void }) {
+interface BidRowProps {
+  propertyId: number;
+  bid: BidListItem;
+  onChanged: () => void;
+  /** 입찰한 중개사의 평점. 아직 불러오지 못했으면 표시하지 않는다 */
+  rating?: BidderRating;
+}
+
+function BidRow({ propertyId, bid, onChanged, rating }: BidRowProps) {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
@@ -56,12 +67,21 @@ function BidRow({ propertyId, bid, onChanged }: { propertyId: number; bid: BidLi
           >
             {bid.officeName}
           </button>
+          {rating && (
+            <p className="mt-0.5">
+              {rating.score !== null ? (
+                <StarRating score={rating.score} count={rating.count} />
+              ) : (
+                <span className="text-xs text-gray-500">아직 받은 평점이 없어요</span>
+              )}
+            </p>
+          )}
           <p className="text-xs text-gray-500">
-            제안 수수료 {bid.proposedFee.toLocaleString()}만원 · {formatRelativeTime(bid.createdAt)}
+            제안 수수료 {bid.proposedFee.toLocaleString()}% · {formatRelativeTime(bid.createdAt)}
           </p>
           {bid.content && <p className="mt-1.5 text-[13px] text-gray-600">{bid.content}</p>}
         </div>
-        <Badge>{BID_STATUS_LABEL[bid.status]}</Badge>
+        <Badge variant={BID_STATUS_VARIANT[bid.status]}>{BID_STATUS_LABEL[bid.status]}</Badge>
       </div>
 
       <div className="mt-3 flex gap-2">
