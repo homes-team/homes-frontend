@@ -9,6 +9,7 @@ import {
   PROPERTY_DIRECTION_LABEL,
   PropertyDirection,
   PropertyIsochrone,
+  IsochroneTravelTime,
 } from '../../../types/property';
 
 interface Props {
@@ -21,6 +22,9 @@ interface Props {
   isochrones: PropertyIsochrone[];
   isochronesLoading: boolean;
   isochronesError: string | null;
+  isochronesCompletedTimes: IsochroneTravelTime[];
+  isochroneMode: IsochroneMode;
+  onIsochroneModeChange: (mode: IsochroneMode) => void;
   onRetryIsochrones: () => void;
 }
 
@@ -132,6 +136,9 @@ function AiInfrastructureMap({
   isochrones,
   isochronesLoading,
   isochronesError,
+  isochronesCompletedTimes,
+  isochroneMode,
+  onIsochroneModeChange,
   onRetryIsochrones,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -143,7 +150,6 @@ function AiInfrastructureMap({
   const [selectedFacility, setSelectedFacility] = useState<NearbyFacility | null>(null);
   const [showSunlight, setShowSunlight] = useState(true);
   const [showIsochrones, setShowIsochrones] = useState(true);
-  const [isochroneMode, setIsochroneMode] = useState<IsochroneMode>('walk');
 
   const sunlightScore = evaluation?.categories?.find((category) => category.key === 'SUNLIGHT')?.displayScore;
   const sunlightStyle = getSunlightLayerStyle(sunlightScore);
@@ -152,6 +158,7 @@ function AiInfrastructureMap({
     () => filterFacilities(facilities?.facilities ?? [], selectedType),
     [facilities, selectedType],
   );
+  const isochroneProgress = Math.round((isochronesCompletedTimes.length / 2) * 100);
 
   useEffect(() => {
     if (!map || !facilities) return;
@@ -311,7 +318,7 @@ function AiInfrastructureMap({
               type="button"
               aria-pressed={isochroneMode === mode}
               onClick={() => {
-                setIsochroneMode(mode);
+                onIsochroneModeChange(mode);
                 setShowIsochrones(true);
               }}
               className={`rounded-pill px-3 py-1.5 text-xs font-semibold transition ${
@@ -359,7 +366,62 @@ function AiInfrastructureMap({
 
       <div className="space-y-3 p-5">
         {isochronesLoading && (
-          <p className="text-xs text-gray-500">5분·10분 생활권을 계산하는 중...</p>
+          <div className="overflow-hidden rounded-button border border-blue-100 bg-gradient-to-r from-blue-50 to-white p-4" aria-live="polite">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-gray-900">
+                  {isochroneMode === 'walk' ? '도보' : '차량'} 생활권 계산 중
+                </p>
+                <p className="mt-1 text-xs text-gray-500">
+                  OpenStreetMap 도로망에서 실제로 도달 가능한 경로를 분석하고 있습니다.
+                </p>
+              </div>
+              <span className="shrink-0 text-sm font-bold text-primary">
+                {isochronesCompletedTimes.length}/2 완료 · {isochroneProgress}%
+              </span>
+            </div>
+            <div
+              className="mt-3 h-2 overflow-hidden rounded-full bg-blue-100"
+              role="progressbar"
+              aria-label="생활권 계산 진행률"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={isochroneProgress}
+            >
+              <div
+                className="relative h-full rounded-full bg-primary transition-all duration-700 ease-out"
+                style={{ width: `${isochroneProgress}%` }}
+              >
+                <span className="absolute inset-0 animate-pulse bg-white/30" />
+              </div>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {([5, 10] as IsochroneTravelTime[]).map((time) => {
+                const completed = isochronesCompletedTimes.includes(time);
+                return (
+                  <div
+                    key={time}
+                    className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium ${
+                      completed ? 'bg-green-50 text-green-700' : 'bg-white text-gray-600'
+                    }`}
+                  >
+                    <span
+                      className={completed
+                        ? 'grid h-5 w-5 place-items-center rounded-full bg-green-500 text-white'
+                        : 'h-5 w-5 animate-spin rounded-full border-2 border-blue-200 border-t-primary'}
+                      aria-hidden="true"
+                    >
+                      {completed ? '✓' : ''}
+                    </span>
+                    {time}분 영역 {completed ? '계산 완료' : '경로 계산 중'}
+                  </div>
+                );
+              })}
+            </div>
+            <p className="mt-2 text-[11px] text-gray-400">
+              진행률은 완료된 5분·10분 계산 건수를 기준으로 표시합니다.
+            </p>
+          </div>
         )}
         {!isochronesLoading && isochronesError && (
           <div className="flex items-center justify-between gap-3 rounded-button bg-orange-50 p-3 text-xs text-orange-700">

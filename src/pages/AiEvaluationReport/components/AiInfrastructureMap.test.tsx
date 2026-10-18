@@ -46,6 +46,9 @@ const defaultProps = {
   isochrones: [],
   isochronesLoading: false,
   isochronesError: null,
+  isochronesCompletedTimes: [],
+  isochroneMode: 'walk' as const,
+  onIsochroneModeChange: vi.fn(),
   onRetryIsochrones: vi.fn(),
 };
 
@@ -110,14 +113,36 @@ describe('AI 인프라 지도 도우미', () => {
   });
 
   it('도보와 차량 생활권 선택을 제공한다', () => {
-    render(<AiInfrastructureMap {...defaultProps} />);
+    const onIsochroneModeChange = vi.fn();
+    render(
+      <AiInfrastructureMap
+        {...defaultProps}
+        onIsochroneModeChange={onIsochroneModeChange}
+      />,
+    );
 
     const walkButton = screen.getByRole('button', { name: '🚶 도보' });
     const driveButton = screen.getByRole('button', { name: '🚗 차량' });
     expect(walkButton).toHaveAttribute('aria-pressed', 'true');
     fireEvent.click(driveButton);
-    expect(driveButton).toHaveAttribute('aria-pressed', 'true');
+    expect(onIsochroneModeChange).toHaveBeenCalledWith('drive');
     expect(screen.getByRole('link', { name: '© OpenStreetMap contributors' }))
       .toHaveAttribute('href', 'https://www.openstreetmap.org/copyright');
+  });
+
+  it('완료된 생활권 계산 건수로 정확한 진행률을 표시한다', () => {
+    render(
+      <AiInfrastructureMap
+        {...defaultProps}
+        isochronesLoading
+        isochronesCompletedTimes={[5]}
+      />,
+    );
+
+    expect(screen.getByText('1/2 완료 · 50%')).toBeInTheDocument();
+    expect(screen.getByText('5분 영역 계산 완료')).toBeInTheDocument();
+    expect(screen.getByText('10분 영역 경로 계산 중')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: '생활권 계산 진행률' }))
+      .toHaveAttribute('aria-valuenow', '50');
   });
 });

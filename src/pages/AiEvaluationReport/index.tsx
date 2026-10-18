@@ -19,12 +19,7 @@ import AiEvaluationCard from '../PropertyDetail/components/AiEvaluationCard';
 import AiRadarChart from '../PropertyDetail/components/AiRadarChart';
 import AiInfrastructureMap from './components/AiInfrastructureMap';
 
-const ISOCHRONE_OPTIONS: Array<{ mode: IsochroneMode; time: IsochroneTravelTime }> = [
-  { mode: 'walk', time: 5 },
-  { mode: 'walk', time: 10 },
-  { mode: 'drive', time: 5 },
-  { mode: 'drive', time: 10 },
-];
+const ISOCHRONE_TIMES: IsochroneTravelTime[] = [5, 10];
 
 function AiEvaluationReportPage() {
   const { propertyId } = useParams<{ propertyId: string }>();
@@ -44,6 +39,8 @@ function AiEvaluationReportPage() {
   const [facilitiesError, setFacilitiesError] = useState<string | null>(null);
   const [isochronesLoading, setIsochronesLoading] = useState(true);
   const [isochronesError, setIsochronesError] = useState<string | null>(null);
+  const [isochronesCompletedTimes, setIsochronesCompletedTimes] = useState<IsochroneTravelTime[]>([]);
+  const [isochroneMode, setIsochroneMode] = useState<IsochroneMode>('walk');
   const [version, setVersion] = useState(0);
   const [facilitiesVersion, setFacilitiesVersion] = useState(0);
   const [isochronesVersion, setIsochronesVersion] = useState(0);
@@ -110,7 +107,9 @@ function AiEvaluationReportPage() {
   }, [facilitiesVersion, id]);
 
   useEffect(() => {
-    setIsochrones([]);
+    setIsochrones((current) => current.filter((isochrone) => (
+      isochrone.propertyId === id && isochrone.mode !== isochroneMode
+    )));
     if (!Number.isFinite(id)) {
       setIsochronesLoading(false);
       setIsochronesError(null);
@@ -119,20 +118,40 @@ function AiEvaluationReportPage() {
     const controller = new AbortController();
     setIsochronesLoading(true);
     setIsochronesError(null);
-    Promise.all(ISOCHRONE_OPTIONS.map(({ mode, time }) => (
-      fetchPropertyIsochrone(id, mode, time, controller.signal)
-    )))
+    setIsochronesCompletedTimes([]);
+    const requests = ISOCHRONE_TIMES.map((time) => (
+      fetchPropertyIsochrone(id, isochroneMode, time, controller.signal)
+        .then((result) => {
+          if (!controller.signal.aborted) {
+            setIsochrones((current) => [
+              ...current.filter((isochrone) => !(
+                isochrone.propertyId === id
+                && isochrone.mode === isochroneMode
+                && isochrone.travelTimeMinutes === time
+              )),
+              result,
+            ]);
+            setIsochronesCompletedTimes((current) => (
+              current.includes(time) ? current : [...current, time]
+            ));
+          }
+          return result;
+        })
+    ));
+    Promise.allSettled(requests)
       .then((results) => {
-        if (!controller.signal.aborted) setIsochrones(results);
-      })
-      .catch((reason: Error) => {
-        if (!controller.signal.aborted) setIsochronesError(reason.message);
+        if (controller.signal.aborted) return;
+        const failure = results.find((result) => result.status === 'rejected');
+        if (failure?.status === 'rejected') {
+          const reason = failure.reason;
+          setIsochronesError(reason instanceof Error ? reason.message : '생활권 계산에 실패했습니다.');
+        }
       })
       .finally(() => {
         if (!controller.signal.aborted) setIsochronesLoading(false);
       });
     return () => controller.abort();
-  }, [id, isochronesVersion]);
+  }, [id, isochroneMode, isochronesVersion]);
 
   return (
     <PageShell>
@@ -164,6 +183,9 @@ function AiEvaluationReportPage() {
         isochrones={currentIsochrones}
         isochronesLoading={isochronesLoading}
         isochronesError={isochronesError}
+        isochronesCompletedTimes={isochronesCompletedTimes}
+        isochroneMode={isochroneMode}
+        onIsochroneModeChange={setIsochroneMode}
         onRetryIsochrones={() => setIsochronesVersion((current) => current + 1)}
       />
 

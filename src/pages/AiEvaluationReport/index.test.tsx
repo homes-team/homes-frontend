@@ -23,6 +23,8 @@ vi.mock('./components/AiInfrastructureMap', () => ({
     onRetry,
     isochronesLoading,
     isochronesError,
+    isochroneMode,
+    onIsochroneModeChange,
     onRetryIsochrones,
   }: {
     loading: boolean;
@@ -30,6 +32,8 @@ vi.mock('./components/AiInfrastructureMap', () => ({
     onRetry: () => void;
     isochronesLoading: boolean;
     isochronesError: string | null;
+    isochroneMode: 'walk' | 'drive';
+    onIsochroneModeChange: (mode: 'walk' | 'drive') => void;
     onRetryIsochrones: () => void;
   }) => (
     <div>
@@ -37,6 +41,7 @@ vi.mock('./components/AiInfrastructureMap', () => ({
       {error && <button type="button" onClick={onRetry}>시설 다시 시도</button>}
       <span>{isochronesLoading ? '생활권 로딩' : isochronesError ?? '생활권 지도'}</span>
       {isochronesError && <button type="button" onClick={onRetryIsochrones}>생활권 다시 시도</button>}
+      <button type="button" onClick={() => onIsochroneModeChange('drive')}>차량 전환 ({isochroneMode})</button>
     </div>
   ),
 }));
@@ -181,15 +186,18 @@ it('retries only nearby facilities while keeping the evaluation report', async (
   expect(fetchPropertyDetail).toHaveBeenCalledTimes(1);
 });
 
-it('loads walk and drive isochrones for 5 and 10 minutes', async () => {
+it('loads walk isochrones first and drive isochrones on demand', async () => {
   vi.mocked(fetchAiEvaluation).mockResolvedValue(evaluation(1));
   vi.mocked(fetchPropertyDetail).mockResolvedValue(property(1));
   setup('1');
 
   expect(await screen.findByText('생활권 지도')).toBeInTheDocument();
-  expect(fetchPropertyIsochrone).toHaveBeenCalledTimes(4);
+  expect(fetchPropertyIsochrone).toHaveBeenCalledTimes(2);
   expect(fetchPropertyIsochrone).toHaveBeenCalledWith(1, 'walk', 5, expect.any(AbortSignal));
   expect(fetchPropertyIsochrone).toHaveBeenCalledWith(1, 'walk', 10, expect.any(AbortSignal));
+  fireEvent.click(screen.getByRole('button', { name: '차량 전환 (walk)' }));
+  expect(await screen.findByRole('button', { name: '차량 전환 (drive)' })).toBeInTheDocument();
+  expect(fetchPropertyIsochrone).toHaveBeenCalledTimes(4);
   expect(fetchPropertyIsochrone).toHaveBeenCalledWith(1, 'drive', 5, expect.any(AbortSignal));
   expect(fetchPropertyIsochrone).toHaveBeenCalledWith(1, 'drive', 10, expect.any(AbortSignal));
 });
