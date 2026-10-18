@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   fetchAiEvaluation,
@@ -48,7 +48,10 @@ function AiEvaluationReportPage() {
   const direction = propertyMeta?.propertyId === id ? propertyMeta.direction : null;
   const currentEvaluation = evaluation?.propertyId === id ? evaluation : null;
   const currentFacilities = facilities?.propertyId === id ? facilities : null;
-  const currentIsochrones = isochrones.filter((isochrone) => isochrone.propertyId === id);
+  const currentIsochrones = useMemo(
+    () => isochrones.filter((isochrone) => isochrone.propertyId === id),
+    [id, isochrones],
+  );
 
   useEffect(() => {
     setPropertyMeta(null);
