@@ -415,6 +415,32 @@ export interface NearbyFacilities {
   facilities: NearbyFacility[];
 }
 
+export type IsochroneMode = 'walk' | 'drive';
+export type IsochroneTravelTime = 5 | 10;
+
+export interface PropertyIsochrone {
+  propertyId: number;
+  mode: IsochroneMode;
+  travelTimeMinutes: number;
+  center: {
+    latitude: number;
+    longitude: number;
+  };
+  geometry: {
+    type: 'Polygon';
+    /** GeoJSON 좌표 순서: [longitude, latitude] */
+    coordinates: number[][][];
+  };
+  metadata: {
+    estimatedDistanceMeters: number | null;
+    totalAreaSquareMeters: number;
+    calculationMethod: string;
+    dataSource: string;
+    cached: boolean;
+    generatedAt: string;
+  };
+}
+
 export type PricePredictionStatus =
   | 'AVAILABLE'
   | 'INSUFFICIENT_DATA'

@@ -1,20 +1,47 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { fetchAiEvaluation, fetchNearbyFacilities, fetchPropertyDetail } from '../../api/property/propertyApi';
-import { AiEvaluation, NearbyFacilities, PropertyDetail } from '../../types/property';
+import {
+  fetchAiEvaluation,
+  fetchNearbyFacilities,
+  fetchPropertyDetail,
+  fetchPropertyIsochrone,
+} from '../../api/property/propertyApi';
+import { AiEvaluation, NearbyFacilities, PropertyDetail, PropertyIsochrone } from '../../types/property';
 import AiEvaluationReportPage from './index';
 
 vi.mock('../../api/property/propertyApi', () => ({
   fetchAiEvaluation: vi.fn(),
   fetchNearbyFacilities: vi.fn(),
   fetchPropertyDetail: vi.fn(),
+  fetchPropertyIsochrone: vi.fn(),
 }));
 vi.mock('../../components/layout/PageShell', () => ({ default: ({ children }: { children: React.ReactNode }) => <main>{children}</main> }));
 vi.mock('./components/AiInfrastructureMap', () => ({
-  default: ({ loading, error, onRetry }: { loading: boolean; error: string | null; onRetry: () => void }) => (
+  default: ({
+    loading,
+    error,
+    onRetry,
+    isochronesLoading,
+    isochronesError,
+    isochroneMode,
+    onIsochroneModeChange,
+    onRetryIsochrones,
+  }: {
+    loading: boolean;
+    error: string | null;
+    onRetry: () => void;
+    isochronesLoading: boolean;
+    isochronesError: string | null;
+    isochroneMode: 'walk' | 'drive';
+    onIsochroneModeChange: (mode: 'walk' | 'drive') => void;
+    onRetryIsochrones: () => void;
+  }) => (
     <div>
-      {loading ? '시설 로딩' : error ?? '시설 지도'}
+      <span>{loading ? '시설 로딩' : error ?? '시설 지도'}</span>
       {error && <button type="button" onClick={onRetry}>시설 다시 시도</button>}
+      <span>{isochronesLoading ? '생활권 로딩' : isochronesError ?? '생활권 지도'}</span>
+      {isochronesError && <button type="button" onClick={onRetryIsochrones}>생활권 다시 시도</button>}
+      <button type="button" onClick={() => onIsochroneModeChange('drive')}>차량 전환 ({isochroneMode})</button>
     </div>
   ),
 }));
@@ -33,6 +60,21 @@ const facilities = (propertyId: number): NearbyFacilities => ({
   radiusMeters: 2000,
   facilities: [],
 });
+const isochrone = (propertyId: number, mode: 'walk' | 'drive', time: 5 | 10): PropertyIsochrone => ({
+  propertyId,
+  mode,
+  travelTimeMinutes: time,
+  center: { latitude: 37.5, longitude: 127 },
+  geometry: { type: 'Polygon', coordinates: [[[127, 37.5], [127.01, 37.5], [127, 37.5]]] },
+  metadata: {
+    estimatedDistanceMeters: 400,
+    totalAreaSquareMeters: 1,
+    calculationMethod: 'VIRTUAL_RADIAL_POLYGON',
+    dataSource: 'PROPERTY_COORDINATE',
+    cached: false,
+    generatedAt: '',
+  },
+});
 function deferred<T>() {
   let resolve!: (value: T) => void;
   let reject!: (reason: Error) => void;
@@ -49,6 +91,9 @@ function setup(id: string) {
 beforeEach(() => {
   vi.resetAllMocks();
   vi.mocked(fetchNearbyFacilities).mockImplementation((propertyId) => Promise.resolve(facilities(propertyId)));
+  vi.mocked(fetchPropertyIsochrone).mockImplementation((propertyId, mode, time) => (
+    Promise.resolve(isochrone(propertyId, mode, time))
+  ));
 });
 
 it('ends loading for an invalid ID without making requests', () => {
@@ -58,6 +103,7 @@ it('ends loading for an invalid ID without making requests', () => {
   expect(fetchAiEvaluation).not.toHaveBeenCalled();
   expect(fetchNearbyFacilities).not.toHaveBeenCalled();
   expect(fetchPropertyDetail).not.toHaveBeenCalled();
+  expect(fetchPropertyIsochrone).not.toHaveBeenCalled();
 });
 
 it('shows evaluation without waiting for details and keeps the default title if details fail', async () => {
@@ -138,4 +184,20 @@ it('retries only nearby facilities while keeping the evaluation report', async (
   expect(fetchNearbyFacilities).toHaveBeenCalledTimes(2);
   expect(fetchAiEvaluation).toHaveBeenCalledTimes(1);
   expect(fetchPropertyDetail).toHaveBeenCalledTimes(1);
+});
+
+it('loads walk isochrones first and drive isochrones on demand', async () => {
+  vi.mocked(fetchAiEvaluation).mockResolvedValue(evaluation(1));
+  vi.mocked(fetchPropertyDetail).mockResolvedValue(property(1));
+  setup('1');
+
+  expect(await screen.findByText('생활권 지도')).toBeInTheDocument();
+  expect(fetchPropertyIsochrone).toHaveBeenCalledTimes(2);
+  expect(fetchPropertyIsochrone).toHaveBeenCalledWith(1, 'walk', 5, expect.any(AbortSignal));
+  expect(fetchPropertyIsochrone).toHaveBeenCalledWith(1, 'walk', 10, expect.any(AbortSignal));
+  fireEvent.click(screen.getByRole('button', { name: '차량 전환 (walk)' }));
+  expect(await screen.findByRole('button', { name: '차량 전환 (drive)' })).toBeInTheDocument();
+  expect(fetchPropertyIsochrone).toHaveBeenCalledTimes(4);
+  expect(fetchPropertyIsochrone).toHaveBeenCalledWith(1, 'drive', 5, expect.any(AbortSignal));
+  expect(fetchPropertyIsochrone).toHaveBeenCalledWith(1, 'drive', 10, expect.any(AbortSignal));
 });
