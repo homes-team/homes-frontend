@@ -1,10 +1,16 @@
 import { UpdatePasswordRequest, UserProfile, UserUpdateProfileRequest, UserUpdateProfileResult } from '../../types/auth';
+import { ReceivedBidListItem } from '../../types/bid';
 import { PropertyListItem, ReportListItem } from '../../types/property';
 import { apiDelete, apiGet, apiPatch } from '../client';
 
 /** 최근 본 방 조회 (로그인 필요) — GET /users/me/recent-views */
 export function fetchMyRecentViews(): Promise<PropertyListItem[]> {
   return apiGet<PropertyListItem[]>('/users/me/recent-views', { auth: true });
+}
+
+/** 내 모든 매물에 받은 입찰 제안서 (최신순) — GET /users/me/bids */
+export function fetchMyReceivedBids(): Promise<ReceivedBidListItem[]> {
+  return apiGet<ReceivedBidListItem[]>('/users/me/bids', { auth: true });
 }
 
 /** 내 프로필 조회 — GET /users/me */

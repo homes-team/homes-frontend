@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 const TABS = [
   { to: '/mypage', label: '프로필' },
   { to: '/mypage/properties', label: '내 매물' },
+  { to: '/mypage/bids', label: '받은 입찰' },
   { to: '/mypage/favorites', label: '찜한 매물' },
   { to: '/mypage/recent-views', label: '최근 본 방' },
   { to: '/mypage/reports', label: '신고 내역' },

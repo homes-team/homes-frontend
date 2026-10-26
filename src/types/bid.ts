@@ -31,6 +31,16 @@ export interface BidListItem {
 }
 
 /**
+ * ReceivedBidListRespDto 대응 — GET /users/me/bids
+ * 집주인이 내 모든 매물에 받은 제안서. BidListItem에 매물 정보가 더해진 모양이라 BidRow에 그대로 쓸 수 있다.
+ */
+export interface ReceivedBidListItem extends BidListItem {
+  propertyId: number;
+  propertyTitle: string;
+  propertyAddress: string;
+}
+
+/**
  * MyBidListRespDto 대응 — GET /realtors/me/bids
  * 중개사가 본인이 제출한 제안서와 최신 협상 수수료를 조회한다.
  */
