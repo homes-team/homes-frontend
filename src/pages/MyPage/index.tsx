@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import PageShell from '../../components/layout/PageShell';
 import MyPageNav from './components/MyPageNav';
 import Card from '../../components/ui/Card';
@@ -9,10 +9,12 @@ import { deleteMyAccount, fetchMyProfile, updateMyPassword, updateMyProfile } fr
 import { verifyIdentity } from '../../api/auth/authApi';
 import { ApiError } from '../../api/client';
 import { clearTokens } from '../../utils/auth';
+import { parseIdentityRedirect, requestIdentityVerification } from '../../utils/identityVerification';
 import { UserProfile } from '../../types/auth';
 
 function MyPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +27,7 @@ function MyPage() {
   const [newPassword, setNewPassword] = useState('');
   const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
 
-  const [identityVerificationId, setIdentityVerificationId] = useState('');
+  const [identityBusy, setIdentityBusy] = useState(false);
   const [identityMessage, setIdentityMessage] = useState<string | null>(null);
 
   const [withdrawMessage, setWithdrawMessage] = useState<string | null>(null);
@@ -65,17 +67,37 @@ function MyPage() {
     }
   };
 
-  const handleIdentitySubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const completeIdentity = async (identityVerificationId: string) => {
+    const result = await verifyIdentity(identityVerificationId);
+    setIdentityMessage(`본인인증이 완료됐어요. (${result.name ?? ''})`);
+    setProfile((prev) => (prev ? { ...prev, isIdentityVerified: result.isIdentityVerified, name: result.name } : prev));
+  };
+
+  const runIdentity = async (start: () => Promise<string | null>) => {
+    setIdentityBusy(true);
     setIdentityMessage(null);
     try {
-      const result = await verifyIdentity(identityVerificationId.trim());
-      setIdentityMessage(`본인인증이 완료됐어요. (${result.name ?? ''})`);
-      setProfile((prev) => (prev ? { ...prev, isIdentityVerified: result.isIdentityVerified, name: result.name } : prev));
+      const identityVerificationId = await start();
+      if (identityVerificationId) await completeIdentity(identityVerificationId);
     } catch (err) {
-      setIdentityMessage(err instanceof ApiError ? err.message : '본인인증에 실패했어요.');
+      setIdentityMessage(err instanceof Error ? err.message : '본인인증에 실패했어요.');
+    } finally {
+      setIdentityBusy(false);
     }
   };
+
+  const handleIdentityStart = () => runIdentity(requestIdentityVerification);
+
+  // 팝업이 막히는 환경(모바일 등)에서는 인증 후 이 페이지로 되돌아오므로 쿼리의 결과를 이어서 처리한다
+  useEffect(() => {
+    const redirected = parseIdentityRedirect(location.search);
+    if (!redirected) return;
+    navigate(location.pathname, { replace: true });
+    void runIdentity(async () => {
+      if (redirected.status === 'failure') throw new Error(redirected.message);
+      return redirected.identityVerificationId;
+    });
+  }, []);
 
   const handleWithdraw = async () => {
     if (!window.confirm('정말 탈퇴하시겠어요? 등록된 매물이 있으면 탈퇴할 수 없어요.')) return;
@@ -167,24 +189,14 @@ function MyPage() {
 
           {!profile.isIdentityVerified && (
             <Card>
-              <form className="flex flex-col gap-5" onSubmit={handleIdentitySubmit}>
+              <div className="flex flex-col gap-5">
                 <h2 className="text-lg font-bold text-gray-900">본인인증</h2>
-                {/* TODO: PortOne 브라우저 SDK(IMP.certification())로 팝업 인증 후 발급되는
-                    identityVerificationId를 자동으로 채우도록 교체. 지금은 authApi.verifyIdentity와
-                    동일한 이유로 수동 입력 스텁으로 둔다. */}
-                <Field>
-                  <Label htmlFor="identityVerificationId">identityVerificationId</Label>
-                  <Input
-                    id="identityVerificationId"
-                    placeholder="PortOne 인증 완료 후 발급된 ID"
-                    value={identityVerificationId}
-                    onChange={(event) => setIdentityVerificationId(event.target.value)}
-                    required
-                  />
-                </Field>
-                <Button type="submit">본인인증 완료 처리</Button>
+                <p className="text-xs text-gray-500">휴대폰으로 본인인증을 하면 실명이 등록되고 서비스 신뢰도가 올라가요.</p>
+                <Button onClick={handleIdentityStart} disabled={identityBusy}>
+                  {identityBusy ? '인증 확인 중...' : '본인인증 하기'}
+                </Button>
                 {identityMessage && <HelperText>{identityMessage}</HelperText>}
-              </form>
+              </div>
             </Card>
           )}
 

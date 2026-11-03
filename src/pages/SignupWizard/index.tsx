@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login, signup } from '../../api/auth/authApi';
+import { login, signup, verifyIdentity } from '../../api/auth/authApi';
 import { saveTokens } from '../../utils/auth';
+import { requestIdentityVerification } from '../../utils/identityVerification';
 import { buildAuthSteps } from '../../utils/authSteps';
 import { SignupResult } from '../../types/auth';
 import { useEmailAccountStep } from '../../hooks/useEmailAccountStep';
@@ -44,6 +45,7 @@ function SignupWizardPage() {
   const [submittingSignup, setSubmittingSignup] = useState(false);
   const [signupResult, setSignupResult] = useState<SignupResult | null>(null);
   const [identityMessage, setIdentityMessage] = useState<string | null>(null);
+  const [identityBusy, setIdentityBusy] = useState(false);
   const [termsError, setTermsError] = useState<string | null>(null);
 
   const toggleAllAgree = () => {
@@ -73,10 +75,22 @@ function SignupWizardPage() {
     }
   };
 
-  const handleStartIdentityVerification = () => {
-    // TODO: PortOne SDK(IMP.init 등) 연동 후, 팝업 완료 시 받는 identityVerificationId를
-    // api/auth/authApi.ts의 verifyIdentity(identityVerificationId)로 전달하도록 교체.
-    setIdentityMessage('PortOne 본인인증 SDK 연동 후 이용할 수 있어요. 지금은 건너뛰어도 가입에는 문제가 없어요.');
+  const handleStartIdentityVerification = async () => {
+    if (identityBusy) return;
+    setIdentityBusy(true);
+    setIdentityMessage(null);
+    try {
+      const identityVerificationId = await requestIdentityVerification();
+      // null이면 모바일 등에서 포트원이 페이지를 이동시킨 경우 — 결과는 마이페이지로 돌아와 이어서 처리한다
+      if (!identityVerificationId) return;
+      const result = await verifyIdentity(identityVerificationId);
+      setSignupResult((prev) => (prev ? { ...prev, name: result.name } : prev));
+      setWizardStep('done');
+    } catch (error) {
+      setIdentityMessage(error instanceof Error ? error.message : '본인인증에 실패했어요.');
+    } finally {
+      setIdentityBusy(false);
+    }
   };
 
   if (wizardStep === 'done' && signupResult) {
@@ -129,7 +143,9 @@ function SignupWizardPage() {
 
           {identityMessage && <HelperText>{identityMessage}</HelperText>}
 
-          <Button onClick={handleStartIdentityVerification}>PortOne 본인인증 시작하기</Button>
+          <Button onClick={handleStartIdentityVerification} disabled={identityBusy}>
+            {identityBusy ? '인증 확인 중...' : '본인인증 시작하기'}
+          </Button>
 
           <button
             type="button"
