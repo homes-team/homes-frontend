@@ -18,6 +18,9 @@ function NearbyPropertyRow({ property }: { property: NearbyProperty }) {
           <p className="text-[13px] text-gray-500">
             {property.address} {property.detailAddress}
           </p>
+          <p className="mt-1 text-[13px] font-semibold text-primary">
+            희망 중개수수료율 {property.desiredBrokerageFee == null ? '협의' : `${property.desiredBrokerageFee}%`}
+          </p>
         </div>
         <span className="text-[13px] text-gray-400">{Math.round(property.distanceInMeters)}m</span>
       </Card>
