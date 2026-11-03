@@ -136,6 +136,15 @@ function MyPage() {
                 <span className="font-bold text-gray-900">{profile.isIdentityVerified ? '완료' : '미완료'}</span>
               </div>
             </div>
+            {!profile.isIdentityVerified && (
+              <div className="mt-4 flex flex-col gap-3">
+                <p className="text-xs text-gray-500">휴대폰으로 본인인증을 하면 실명이 등록되고 서비스 신뢰도가 올라가요.</p>
+                <Button onClick={handleIdentityStart} disabled={identityBusy}>
+                  {identityBusy ? '인증 확인 중...' : '본인인증 하기'}
+                </Button>
+              </div>
+            )}
+            {identityMessage && <HelperText>{identityMessage}</HelperText>}
           </Card>
 
           <Card>
@@ -186,19 +195,6 @@ function MyPage() {
               {passwordMessage && <HelperText>{passwordMessage}</HelperText>}
             </form>
           </Card>
-
-          {!profile.isIdentityVerified && (
-            <Card>
-              <div className="flex flex-col gap-5">
-                <h2 className="text-lg font-bold text-gray-900">본인인증</h2>
-                <p className="text-xs text-gray-500">휴대폰으로 본인인증을 하면 실명이 등록되고 서비스 신뢰도가 올라가요.</p>
-                <Button onClick={handleIdentityStart} disabled={identityBusy}>
-                  {identityBusy ? '인증 확인 중...' : '본인인증 하기'}
-                </Button>
-                {identityMessage && <HelperText>{identityMessage}</HelperText>}
-              </div>
-            </Card>
-          )}
 
           <Card>
             <h2 className="text-lg font-bold text-gray-900">회원 탈퇴</h2>
