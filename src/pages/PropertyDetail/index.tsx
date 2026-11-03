@@ -745,7 +745,7 @@ function PropertyDetailPage() {
           </DetailSection>
 
           <DetailSection id="infra" title="주변 인프라">
-            <InfrastructureCard latitude={property.latitude} longitude={property.longitude} />
+            <InfrastructureCard propertyId={id} />
           </DetailSection>
 
           {showMaintenance && (

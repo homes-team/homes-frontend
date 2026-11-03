@@ -1,47 +1,68 @@
 import { useEffect, useMemo, useState } from 'react';
 import Card from '../../../components/ui/Card';
 import Badge from '../../../components/ui/Badge';
-import { fetchInfrastructure } from '../../../api/property/infrastructureApi';
-import { INFRA_RADIUS_METERS, INFRA_TYPE_ICON, INFRA_TYPE_LABEL, InfrastructureItem } from '../../../types/infrastructure';
-import {
-  boundsAround,
-  formatDistance,
-  groupNearby,
-  STATION_AREA_METERS,
-  walkingMinutes,
-} from '../../../utils/infrastructure';
+import { fetchNearbyFacilities } from '../../../api/property/propertyApi';
+import { NearbyFacilities, NearbyFacility, NearbyFacilityType } from '../../../types/property';
+import { formatDistance, STATION_AREA_METERS, walkingMinutes } from '../../../utils/infrastructure';
 
 interface InfrastructureCardProps {
-  latitude: number;
-  longitude: number;
+  propertyId: number;
 }
 
-/** 모든 카테고리 반경을 덮는 조회 영역 (가장 넓은 반경 기준) */
-const FETCH_RADIUS_METERS = Math.max(...Object.values(INFRA_RADIUS_METERS));
+const FACILITY_CONFIG: Array<{
+  type: NearbyFacilityType;
+  label: string;
+  icon: string;
+  radius: number;
+}> = [
+  { type: 'SUBWAY', label: '지하철역', icon: '🚇', radius: 1500 },
+  { type: 'BUS_STOP', label: '버스 정류장', icon: '🚌', radius: 500 },
+  { type: 'MART', label: '대형마트', icon: '🛒', radius: 1500 },
+  { type: 'HOSPITAL', label: '병원', icon: '🏥', radius: 1000 },
+  { type: 'SCHOOL', label: '학교', icon: '🏫', radius: 1000 },
+  { type: 'PARK', label: '공원', icon: '🌳', radius: 1000 },
+  { type: 'CULTURE', label: '문화시설', icon: '🎭', radius: 1500 },
+];
+
+const NEARBY_LIMIT = 3;
 
 const formatRadius = (meters: number) => (meters >= 1000 ? `${meters / 1000}km` : `${meters}m`);
 
+function groupFacilities(data: NearbyFacilities | null) {
+  return FACILITY_CONFIG.map((config) => {
+    const byName = new Map<string, NearbyFacility>();
+    data?.facilities
+      .filter((facility) => facility.type === config.type && facility.distanceMeters <= config.radius)
+      .forEach((facility) => {
+        const existing = byName.get(facility.name);
+        if (!existing || facility.distanceMeters < existing.distanceMeters) byName.set(facility.name, facility);
+      });
+    const sorted = [...byName.values()].sort((left, right) => left.distanceMeters - right.distanceMeters);
+    return { ...config, nearest: sorted.slice(0, NEARBY_LIMIT), total: sorted.length };
+  });
+}
+
 /** 매물 상세의 "주변 인프라" — 지하철·버스·마트·병원·학교·공원·문화시설까지의 거리와 도보 시간 */
-function InfrastructureCard({ latitude, longitude }: InfrastructureCardProps) {
-  const [items, setItems] = useState<InfrastructureItem[] | null>(null);
+function InfrastructureCard({ propertyId }: InfrastructureCardProps) {
+  const [facilities, setFacilities] = useState<NearbyFacilities | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
-    setItems(null);
+    setFacilities(null);
     setError(null);
 
-    fetchInfrastructure(boundsAround({ lat: latitude, lng: longitude }, FETCH_RADIUS_METERS), undefined, controller.signal)
-      .then(setItems)
+    fetchNearbyFacilities(propertyId, controller.signal)
+      .then(setFacilities)
       .catch((err: Error) => {
         if (!controller.signal.aborted) setError(err.message);
       });
 
     return () => controller.abort();
-  }, [latitude, longitude, attempt]);
+  }, [propertyId, attempt]);
 
-  const groups = useMemo(() => (items ? groupNearby(items, { lat: latitude, lng: longitude }) : []), [items, latitude, longitude]);
+  const groups = useMemo(() => groupFacilities(facilities), [facilities]);
   const stationNearby = groups.find((group) => group.type === 'SUBWAY')?.nearest[0];
 
   if (error) {
@@ -55,7 +76,7 @@ function InfrastructureCard({ latitude, longitude }: InfrastructureCardProps) {
     );
   }
 
-  if (!items) {
+  if (!facilities) {
     return (
       <Card>
         <p className="py-6 text-center text-sm text-gray-500">주변 인프라를 불러오는 중...</p>
@@ -65,21 +86,21 @@ function InfrastructureCard({ latitude, longitude }: InfrastructureCardProps) {
 
   return (
     <Card className="flex flex-col gap-5">
-      {stationNearby && stationNearby.distance <= STATION_AREA_METERS && (
+      {stationNearby && stationNearby.distanceMeters <= STATION_AREA_METERS && (
         <div className="flex items-center gap-2">
           <Badge variant="primary">역세권</Badge>
           <p className="text-sm text-gray-700">
-            {stationNearby.item.name}까지 도보 {walkingMinutes(stationNearby.distance)}분 ({formatDistance(stationNearby.distance)})
+            {stationNearby.name}까지 도보 {walkingMinutes(stationNearby.distanceMeters)}분 ({formatDistance(stationNearby.distanceMeters)})
           </p>
         </div>
       )}
 
       <div className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2">
         {groups.map((group) => (
-          <section key={group.type} aria-label={INFRA_TYPE_LABEL[group.type]}>
+          <section key={group.type} aria-label={group.label}>
             <div className="mb-2 flex items-baseline justify-between">
               <h3 className="text-[15px] font-bold text-gray-900">
-                <span aria-hidden="true">{INFRA_TYPE_ICON[group.type]}</span> {INFRA_TYPE_LABEL[group.type]}
+                <span aria-hidden="true">{group.icon}</span> {group.label}
               </h3>
               <span className="text-xs text-gray-500">
                 반경 {formatRadius(group.radius)} {group.total}곳
@@ -90,11 +111,11 @@ function InfrastructureCard({ latitude, longitude }: InfrastructureCardProps) {
               <p className="rounded-lg bg-gray-50 px-3 py-2.5 text-[13px] text-gray-500">반경 {formatRadius(group.radius)} 안에 없어요</p>
             ) : (
               <ul className="divide-y divide-gray-100 rounded-lg border border-gray-200">
-                {group.nearest.map(({ item, distance }) => (
-                  <li key={item.id} className="flex items-center justify-between gap-3 px-3 py-2.5 text-[14px]">
-                    <span className="truncate text-gray-900">{item.name}</span>
+                {group.nearest.map((facility) => (
+                  <li key={facility.id} className="flex items-center justify-between gap-3 px-3 py-2.5 text-[14px]">
+                    <span className="truncate text-gray-900">{facility.name}</span>
                     <span className="shrink-0 text-[13px] text-gray-500">
-                      {formatDistance(distance)} · 도보 {walkingMinutes(distance)}분
+                      {formatDistance(facility.distanceMeters)} · 도보 {walkingMinutes(facility.distanceMeters)}분
                     </span>
                   </li>
                 ))}
