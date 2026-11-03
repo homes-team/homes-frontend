@@ -83,7 +83,7 @@ function ListPropertyAddressPage() {
         {checkError && <ErrorText>{checkError}</ErrorText>}
         {addressConfirmed && !checkError && (
           <HelperText>
-            ✓ 주소가 확인되었어요 (위도 {form.latitude?.toFixed(5)}, 경도 {form.longitude?.toFixed(5)})
+            ✓ 주소가 확인되었어요
           </HelperText>
         )}
       </Field>
