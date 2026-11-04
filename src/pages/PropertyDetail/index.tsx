@@ -468,7 +468,7 @@ function PropertyDetailPage() {
                 <p className="text-sm text-gray-500">관리비 {formatMoney(property.maintenanceFee)}만원</p>
               ) : null}
               <p className="text-[15px] text-gray-900">
-                {property.address} {property.detailAddress}
+                {property.address}
               </p>
               <p className="text-[13px] text-gray-500">
                 {property.currentFloor}/{property.totalFloors}층 · {property.area}m²

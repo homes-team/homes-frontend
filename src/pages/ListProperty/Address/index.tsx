@@ -98,6 +98,7 @@ function ListPropertyAddressPage() {
           value={form.detailAddress}
           onChange={(e) => updateForm({ detailAddress: e.target.value })}
         />
+        <HelperText>동·호수는 개인정보라서 매물 화면에 공개되지 않아요.</HelperText>
       </Field>
 
       <div className="flex gap-3">

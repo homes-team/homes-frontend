@@ -16,7 +16,7 @@ function NearbyPropertyRow({ property }: { property: NearbyProperty }) {
             {property.tradeType === 'MONTHLY_RENT' ? `/${property.monthlyRent}` : ''}
           </p>
           <p className="text-[13px] text-gray-500">
-            {property.address} {property.detailAddress}
+            {property.address}
           </p>
           <p className="mt-1 text-[13px] font-semibold text-primary">
             희망 중개수수료율 {property.desiredBrokerageFee == null ? '협의' : `${property.desiredBrokerageFee}%`}
