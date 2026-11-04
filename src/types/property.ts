@@ -106,6 +106,11 @@ export type PropertyOption =
   | 'SINK'
   | 'VERANDA'
   | 'FULL_OPTION'
+  | 'ENTRANCE_SECURITY'
+  | 'CCTV'
+  | 'FIRE_ALARM'
+  | 'BATHTUB'
+  | 'INTERPHONE'
   | 'PET_ALLOWED'
   | 'JEONSE_LOAN';
 
@@ -192,6 +197,11 @@ export const PROPERTY_OPTION_LABEL: Record<PropertyOption, string> = {
   SINK: '싱크대',
   VERANDA: '베란다',
   FULL_OPTION: '풀옵션',
+  ENTRANCE_SECURITY: '현관보안',
+  CCTV: 'CCTV',
+  FIRE_ALARM: '화재경보기',
+  BATHTUB: '욕조',
+  INTERPHONE: '인터폰',
   PET_ALLOWED: '반려동물 가능',
   JEONSE_LOAN: '전세자금대출 가능',
 };
@@ -202,6 +212,10 @@ export const PROPERTY_OPTION_ORDER: PropertyOption[] = [
   'PARKING',
   'ELEVATOR',
   'SECURITY_GUARD',
+  'ENTRANCE_SECURITY',
+  'CCTV',
+  'FIRE_ALARM',
+  'INTERPHONE',
   'AIR_CONDITIONER',
   'WASHING_MACHINE',
   'REFRIGERATOR',
@@ -212,6 +226,7 @@ export const PROPERTY_OPTION_ORDER: PropertyOption[] = [
   'CLOSET',
   'SHOE_RACK',
   'VERANDA',
+  'BATHTUB',
   'BED',
   'DESK',
 ];

@@ -197,7 +197,7 @@ it('loads walk isochrones first and drive isochrones on demand', async () => {
   expect(fetchPropertyIsochrone).toHaveBeenCalledWith(1, 'walk', 10, expect.any(AbortSignal));
   fireEvent.click(screen.getByRole('button', { name: '차량 전환 (walk)' }));
   expect(await screen.findByRole('button', { name: '차량 전환 (drive)' })).toBeInTheDocument();
-  expect(fetchPropertyIsochrone).toHaveBeenCalledTimes(4);
+  expect(fetchPropertyIsochrone).toHaveBeenCalledTimes(3);
   expect(fetchPropertyIsochrone).toHaveBeenCalledWith(1, 'drive', 5, expect.any(AbortSignal));
-  expect(fetchPropertyIsochrone).toHaveBeenCalledWith(1, 'drive', 10, expect.any(AbortSignal));
+  expect(fetchPropertyIsochrone).not.toHaveBeenCalledWith(1, 'drive', 10, expect.any(AbortSignal));
 });

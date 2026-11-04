@@ -19,7 +19,9 @@ import AiEvaluationCard from '../PropertyDetail/components/AiEvaluationCard';
 import AiRadarChart from '../PropertyDetail/components/AiRadarChart';
 import AiInfrastructureMap from './components/AiInfrastructureMap';
 
-const ISOCHRONE_TIMES: IsochroneTravelTime[] = [5, 10];
+export function getIsochroneTimes(mode: IsochroneMode): IsochroneTravelTime[] {
+  return mode === 'drive' ? [5] : [5, 10];
+}
 
 function AiEvaluationReportPage() {
   const { propertyId } = useParams<{ propertyId: string }>();
@@ -122,7 +124,7 @@ function AiEvaluationReportPage() {
     setIsochronesLoading(true);
     setIsochronesError(null);
     setIsochronesCompletedTimes([]);
-    const requests = ISOCHRONE_TIMES.map((time) => (
+    const requests = getIsochroneTimes(isochroneMode).map((time) => (
       fetchPropertyIsochrone(id, isochroneMode, time, controller.signal)
         .then((result) => {
           if (!controller.signal.aborted) {

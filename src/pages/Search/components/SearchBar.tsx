@@ -98,11 +98,7 @@ function SearchBar({ value, onChange, onSubmit }: SearchBarProps) {
       setActiveIndex((prev) => (prev <= 0 ? suggestions.length - 1 : prev - 1));
     } else if (event.key === 'Enter') {
       event.preventDefault();
-      if (activeIndex >= 0) select(suggestions[activeIndex]);
-      else {
-        onSubmit(value.trim());
-        setOpen(false);
-      }
+      select(suggestions[activeIndex >= 0 ? activeIndex : 0]);
     } else if (event.key === 'Escape') {
       setOpen(false);
     }

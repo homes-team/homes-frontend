@@ -145,4 +145,19 @@ describe('AI 인프라 지도 도우미', () => {
     expect(screen.getByRole('progressbar', { name: '생활권 계산 진행률' }))
       .toHaveAttribute('aria-valuenow', '50');
   });
+
+  it('차량 생활권은 5분 계산만 표시한다', () => {
+    render(
+      <AiInfrastructureMap
+        {...defaultProps}
+        isochronesLoading
+        isochroneMode="drive"
+        isochronesCompletedTimes={[5]}
+      />,
+    );
+
+    expect(screen.getByText('1/1 완료 · 100%')).toBeInTheDocument();
+    expect(screen.getByText('5분 영역 계산 완료')).toBeInTheDocument();
+    expect(screen.queryByText(/10분 영역/)).not.toBeInTheDocument();
+  });
 });
