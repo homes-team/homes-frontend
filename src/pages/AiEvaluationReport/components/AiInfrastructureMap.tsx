@@ -46,6 +46,10 @@ const FILTERS: Array<{ type: NearbyFacilityType | 'ALL'; label: string }> = [
   })),
 ];
 
+export function getIsochroneTimes(mode: IsochroneMode): IsochroneTravelTime[] {
+  return mode === 'drive' ? [5] : [5, 10];
+}
+
 export function getSunlightLayerStyle(score: number | null | undefined) {
   if (score === null || score === undefined) return { color: '#94a3b8', label: '데이터 부족' };
   if (score >= 4) return { color: '#16a34a', label: '우수' };
@@ -158,7 +162,9 @@ function AiInfrastructureMap({
     () => filterFacilities(facilities?.facilities ?? [], selectedType),
     [facilities, selectedType],
   );
-  const isochroneProgress = Math.round((isochronesCompletedTimes.length / 2) * 100);
+  const isochroneTimes = getIsochroneTimes(isochroneMode);
+  const completedIsochroneCount = isochronesCompletedTimes.filter((time) => isochroneTimes.includes(time)).length;
+  const isochroneProgress = Math.round((completedIsochroneCount / isochroneTimes.length) * 100);
 
   useEffect(() => {
     if (!map || !facilities) return;
@@ -311,7 +317,7 @@ function AiInfrastructureMap({
           ))}
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2" aria-label="생활권 이동수단">
-          <span className="mr-1 text-xs font-semibold text-gray-500">5분·10분 생활권</span>
+          <span className="mr-1 text-xs font-semibold text-gray-500">도보 5·10분 / 차량 5분 생활권</span>
           {(['walk', 'drive'] as IsochroneMode[]).map((mode) => (
             <button
               key={mode}
@@ -377,7 +383,7 @@ function AiInfrastructureMap({
                 </p>
               </div>
               <span className="shrink-0 text-sm font-bold text-primary">
-                {isochronesCompletedTimes.length}/2 완료 · {isochroneProgress}%
+                {completedIsochroneCount}/{isochroneTimes.length} 완료 · {isochroneProgress}%
               </span>
             </div>
             <div
@@ -395,8 +401,8 @@ function AiInfrastructureMap({
                 <span className="absolute inset-0 animate-pulse bg-white/30" />
               </div>
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              {([5, 10] as IsochroneTravelTime[]).map((time) => {
+            <div className={`mt-3 grid gap-2 ${isochroneTimes.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+              {isochroneTimes.map((time) => {
                 const completed = isochronesCompletedTimes.includes(time);
                 return (
                   <div
@@ -419,7 +425,7 @@ function AiInfrastructureMap({
               })}
             </div>
             <p className="mt-2 text-[11px] text-gray-400">
-              진행률은 완료된 5분·10분 계산 건수를 기준으로 표시합니다.
+              진행률은 현재 이동수단에서 제공하는 생활권 계산 건수를 기준으로 표시합니다.
             </p>
           </div>
         )}
@@ -438,10 +444,12 @@ function AiInfrastructureMap({
               <span className={`h-3 w-3 rounded-sm ${isochroneMode === 'walk' ? 'bg-blue-600/20' : 'bg-orange-600/20'}`} />
               5분
             </span>
-            <span className="flex items-center gap-1">
-              <span className={`h-3 w-3 rounded-sm ${isochroneMode === 'walk' ? 'bg-blue-600/10' : 'bg-orange-600/10'}`} />
-              10분
-            </span>
+            {isochroneMode === 'walk' && (
+              <span className="flex items-center gap-1">
+                <span className="h-3 w-3 rounded-sm bg-blue-600/10" />
+                10분
+              </span>
+            )}
           </div>
         )}
         {!loading && !error && facilities && visibleFacilities.length === 0 && (

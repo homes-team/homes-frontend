@@ -85,6 +85,10 @@ function SearchBar({ value, onChange, onSubmit }: SearchBarProps) {
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) {
+      return;
+    }
+
     if (!open || suggestions.length === 0) {
       if (event.key === 'Enter') onSubmit(value.trim());
       return;
@@ -98,8 +102,9 @@ function SearchBar({ value, onChange, onSubmit }: SearchBarProps) {
       setActiveIndex((prev) => (prev <= 0 ? suggestions.length - 1 : prev - 1));
     } else if (event.key === 'Enter') {
       event.preventDefault();
-      if (activeIndex >= 0) select(suggestions[activeIndex]);
-      else {
+      if (activeIndex >= 0 && activeIndex < suggestions.length) {
+        select(suggestions[activeIndex]);
+      } else {
         onSubmit(value.trim());
         setOpen(false);
       }

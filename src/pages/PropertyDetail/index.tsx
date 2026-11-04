@@ -720,7 +720,7 @@ function PropertyDetailPage() {
                   </dl>
                 )}
 
-                {isOwner && (buildingInformation.status === 'FAILED' || buildingInformation.status === 'NOT_COLLECTED') && (
+                {(buildingInformation.status === 'FAILED' || buildingInformation.status === 'NOT_COLLECTED') && (
                   <div>
                     <Button
                       variant="secondary"

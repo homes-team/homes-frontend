@@ -23,6 +23,7 @@ vi.mock('./components/AiInfrastructureMap', () => ({
     onRetry,
     isochronesLoading,
     isochronesError,
+    isochronesCompletedTimes,
     isochroneMode,
     onIsochroneModeChange,
     onRetryIsochrones,
@@ -32,6 +33,7 @@ vi.mock('./components/AiInfrastructureMap', () => ({
     onRetry: () => void;
     isochronesLoading: boolean;
     isochronesError: string | null;
+    isochronesCompletedTimes: Array<5 | 10>;
     isochroneMode: 'walk' | 'drive';
     onIsochroneModeChange: (mode: 'walk' | 'drive') => void;
     onRetryIsochrones: () => void;
@@ -40,6 +42,7 @@ vi.mock('./components/AiInfrastructureMap', () => ({
       <span>{loading ? '시설 로딩' : error ?? '시설 지도'}</span>
       {error && <button type="button" onClick={onRetry}>시설 다시 시도</button>}
       <span>{isochronesLoading ? '생활권 로딩' : isochronesError ?? '생활권 지도'}</span>
+      <span>완료 {isochronesCompletedTimes.join(',') || '0'}</span>
       {isochronesError && <button type="button" onClick={onRetryIsochrones}>생활권 다시 시도</button>}
       <button type="button" onClick={() => onIsochroneModeChange('drive')}>차량 전환 ({isochroneMode})</button>
     </div>
@@ -187,8 +190,14 @@ it('retries only nearby facilities while keeping the evaluation report', async (
 });
 
 it('loads walk isochrones first and drive isochrones on demand', async () => {
+  const driveIsochrone = deferred<PropertyIsochrone>();
   vi.mocked(fetchAiEvaluation).mockResolvedValue(evaluation(1));
   vi.mocked(fetchPropertyDetail).mockResolvedValue(property(1));
+  vi.mocked(fetchPropertyIsochrone).mockImplementation((propertyId, mode, time) => (
+    mode === 'drive'
+      ? driveIsochrone.promise
+      : Promise.resolve(isochrone(propertyId, mode, time))
+  ));
   setup('1');
 
   expect(await screen.findByText('생활권 지도')).toBeInTheDocument();
@@ -197,7 +206,10 @@ it('loads walk isochrones first and drive isochrones on demand', async () => {
   expect(fetchPropertyIsochrone).toHaveBeenCalledWith(1, 'walk', 10, expect.any(AbortSignal));
   fireEvent.click(screen.getByRole('button', { name: '차량 전환 (walk)' }));
   expect(await screen.findByRole('button', { name: '차량 전환 (drive)' })).toBeInTheDocument();
-  expect(fetchPropertyIsochrone).toHaveBeenCalledTimes(4);
+  expect(await screen.findByText('완료 0')).toBeInTheDocument();
+  expect(fetchPropertyIsochrone).toHaveBeenCalledTimes(3);
   expect(fetchPropertyIsochrone).toHaveBeenCalledWith(1, 'drive', 5, expect.any(AbortSignal));
-  expect(fetchPropertyIsochrone).toHaveBeenCalledWith(1, 'drive', 10, expect.any(AbortSignal));
+  expect(fetchPropertyIsochrone).not.toHaveBeenCalledWith(1, 'drive', 10, expect.any(AbortSignal));
+  await act(async () => driveIsochrone.resolve(isochrone(1, 'drive', 5)));
+  expect(await screen.findByText('완료 5')).toBeInTheDocument();
 });
