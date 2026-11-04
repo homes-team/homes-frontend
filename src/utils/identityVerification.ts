@@ -16,7 +16,7 @@ export type IdentityRedirectResult =
  * ID는 우리가 요청 시점에 만들어 넘기고(V2 방식), 백엔드(POST /users/me/verification)가 이 ID로 포트원에서 결과를 다시 조회한다.
  * 팝업을 쓰지 못하는 환경에서는 redirectUrl로 페이지가 이동하므로 null을 돌려준다 (결과는 parseIdentityRedirect로 읽는다).
  */
-export async function requestIdentityVerification(): Promise<string | null> {
+export async function requestIdentityVerification(redirectPath: string = IDENTITY_REDIRECT_PATH): Promise<string | null> {
   if (!STORE_ID || !CHANNEL_KEY) {
     throw new Error('본인인증 설정이 아직 완료되지 않았어요. 관리자에게 문의해주세요.');
   }
@@ -25,7 +25,7 @@ export async function requestIdentityVerification(): Promise<string | null> {
     storeId: STORE_ID,
     channelKey: CHANNEL_KEY,
     identityVerificationId,
-    redirectUrl: `${window.location.origin}${IDENTITY_REDIRECT_PATH}`,
+    redirectUrl: `${window.location.origin}${redirectPath}`,
   });
   if (!response) return null;
   if (response.code != null) throw new Error(response.message ?? '본인인증에 실패했어요.');
