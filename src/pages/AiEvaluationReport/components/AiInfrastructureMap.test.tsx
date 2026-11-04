@@ -150,14 +150,12 @@ describe('AI 인프라 지도 도우미', () => {
     render(
       <AiInfrastructureMap
         {...defaultProps}
-        isochronesLoading
         isochroneMode="drive"
-        isochronesCompletedTimes={[5]}
       />,
     );
 
-    expect(screen.getByText('1/1 완료 · 100%')).toBeInTheDocument();
-    expect(screen.getByText('5분 영역 계산 완료')).toBeInTheDocument();
-    expect(screen.queryByText(/10분 영역/)).not.toBeInTheDocument();
+    expect(screen.getByText('차량 예상 생활권')).toBeInTheDocument();
+    expect(screen.getByText('5분')).toBeInTheDocument();
+    expect(screen.queryByText('10분')).not.toBeInTheDocument();
   });
 });
