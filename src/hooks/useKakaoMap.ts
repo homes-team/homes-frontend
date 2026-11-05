@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useState } from 'react';
+import { RefObject, useEffect, useRef, useState } from 'react';
 import { loadKakaoMapSdk } from '../utils/KakaoLoader';
 
 /** 강남역. 초기 진입 시 지도 중심 */
@@ -16,9 +16,14 @@ interface UseKakaoMapResult {
  * SDK 로드는 비동기라 첫 렌더에는 map이 null이다.
  * 지도를 쓰는 쪽에서는 map이 생긴 뒤에 동작하도록 의존성에 넣어야 한다.
  */
-export function useKakaoMap(containerRef: RefObject<HTMLDivElement | null>): UseKakaoMapResult {
+export function useKakaoMap(
+  containerRef: RefObject<HTMLDivElement | null>,
+  initialCenter?: { lat: number; lng: number },
+): UseKakaoMapResult {
   const [map, setMap] = useState<kakao.maps.Map | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // 지도는 한 번만 만들기 때문에 처음 받은 중심만 쓴다
+  const initialCenterRef = useRef(initialCenter);
 
   useEffect(() => {
     let cancelled = false;
@@ -28,7 +33,10 @@ export function useKakaoMap(containerRef: RefObject<HTMLDivElement | null>): Use
         if (cancelled || !containerRef.current) return;
 
         const instance = new maps.Map(containerRef.current, {
-          center: new maps.LatLng(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng),
+          center: new maps.LatLng(
+            (initialCenterRef.current ?? DEFAULT_CENTER).lat,
+            (initialCenterRef.current ?? DEFAULT_CENTER).lng,
+          ),
           level: DEFAULT_LEVEL,
         });
         setMap(instance);

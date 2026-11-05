@@ -9,6 +9,7 @@ import PropertyMap from './components/PropertyMap';
 import PropertyRow from './components/PropertyRow';
 import SearchBar, { PlaceSuggestion } from './components/SearchBar';
 import { usePropertySearch } from '../../hooks/usePropertySearch';
+import { findPlace } from '../../utils/placeSearch';
 import { FILTER_OPTION_ORDER, PropertyOption, PropertyType, SortBy, TradeType } from '../../types/property';
 
 const PROPERTY_TYPES: PropertyType[] = ['ONE_ROOM', 'TWO_ROOM', 'VILLA', 'HOUSE', 'APARTMENT', 'OFFICETEL', 'PRESALE'];
@@ -60,17 +61,42 @@ function SearchPage() {
   const [moveTo, setMoveTo] = useState<{ lat: number; lng: number } | null>(null);
   const [boundsChanged, setBoundsChanged] = useState(false);
   const boundsRef = useRef<MapBounds | null>(null);
+  /**
+   * 지도를 열 처음 위치. undefined면 검색어가 가리키는 장소를 찾는 중이라 지도를 아직 만들지 않는다.
+   * (먼저 강남역에서 열고 옮기면 엉뚱한 지역을 한 번 검색하게 된다)
+   */
+  const [initialCenter, setInitialCenter] = useState<{ lat: number; lng: number } | null | undefined>(
+    () => (searchParams.get('keyword')?.trim() ? undefined : null),
+  );
+  /** 장소(지하철역 등)로 해석해 지도를 옮긴 검색어. 이 검색어는 주소·제목 글자 검색에 쓰지 않는다 */
+  const [placeKeyword, setPlaceKeyword] = useState<string | null>(null);
   const pendingPlaceSearchRef = useRef(false);
-  const pendingPlaceKeywordRef = useRef<string | undefined>(undefined);
   const isUpdatingUrlRef = useRef(false);
 
   const filter: PropertyFilter = useMemo(() => ({
-    keyword: keyword.trim() || undefined,
+    keyword: keyword.trim() && keyword.trim() !== placeKeyword ? keyword.trim() : undefined,
     propertyType: propertyType ?? undefined,
     tradeType,
     sortBy,
     ...detailFilter,
-  }), [keyword, propertyType, tradeType, sortBy, detailFilter]);
+  }), [keyword, placeKeyword, propertyType, tradeType, sortBy, detailFilter]);
+
+  useEffect(() => {
+    const initialKeyword = searchParams.get('keyword')?.trim();
+    if (!initialKeyword) return;
+    let cancelled = false;
+    findPlace(initialKeyword)
+      .then((place) => {
+        if (cancelled) return;
+        if (place) setPlaceKeyword(initialKeyword);
+        setInitialCenter(place ? { lat: place.lat, lng: place.lng } : null);
+      })
+      .catch(() => !cancelled && setInitialCenter(null));
+    return () => {
+      cancelled = true;
+    };
+    // 처음 들어온 주소의 검색어만 처리한다
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -128,24 +154,27 @@ function SearchPage() {
   const handleBoundsChanged = useCallback((bounds: MapBounds, isInitial: boolean) => {
     boundsRef.current = bounds;
     if (isInitial || pendingPlaceSearchRef.current) {
-      const keywordOverride = pendingPlaceSearchRef.current ? pendingPlaceKeywordRef.current : undefined;
+      // 장소로 옮긴 검색은 위치로만 찾는다 (글자 검색을 겹치면 "창동역"이 들어간 주소만 남아 거의 비어버린다)
+      runSearch(pendingPlaceSearchRef.current ? { keyword: undefined } : {});
       pendingPlaceSearchRef.current = false;
-      pendingPlaceKeywordRef.current = undefined;
-      runSearch(keywordOverride === undefined ? {} : { keyword: keywordOverride });
       return;
     }
     setBoundsChanged(true);
   }, [runSearch]);
 
-  const handleSubmitKeyword = useCallback((value: string, place?: PlaceSuggestion) => {
+  const handleSubmitKeyword = useCallback(async (value: string, place?: PlaceSuggestion) => {
+    const trimmed = value.trim();
     setKeyword(value);
-    if (place) {
+    // 자동완성을 고르지 않고 엔터만 쳐도, 지하철역·동네 같은 장소면 그 위치로 지도를 옮긴다
+    const target = place ?? (trimmed ? await findPlace(trimmed).catch(() => null) : null);
+    if (target) {
+      setPlaceKeyword(trimmed);
       pendingPlaceSearchRef.current = true;
-      pendingPlaceKeywordRef.current = value.trim() || undefined;
-      setMoveTo({ lat: place.lat, lng: place.lng });
+      setMoveTo({ lat: target.lat, lng: target.lng });
       return;
     }
-    runSearch({ keyword: value.trim() || undefined });
+    setPlaceKeyword(null);
+    runSearch({ keyword: trimmed || undefined });
   }, [runSearch]);
 
   const activeFilterCount = useMemo(() => Object.values(detailFilter).reduce<number>(
@@ -194,9 +223,14 @@ function SearchPage() {
             )}
           </div>
         </aside>
-        <PropertyMap items={items} selectedId={selectedId} onSelectProperty={setSelectedId}
-          onOpenProperty={(propertyId) => navigate(`/properties/${propertyId}`)}
-          onBoundsChanged={handleBoundsChanged} showResearch={boundsChanged} onResearch={() => runSearch()} moveTo={moveTo} />
+        {initialCenter === undefined ? (
+          <div className="flex-1" aria-hidden="true" />
+        ) : (
+          <PropertyMap items={items} selectedId={selectedId} onSelectProperty={setSelectedId}
+            onOpenProperty={(propertyId) => navigate(`/properties/${propertyId}`)}
+            onBoundsChanged={handleBoundsChanged} showResearch={boundsChanged} onResearch={() => runSearch()} moveTo={moveTo}
+            initialCenter={initialCenter ?? undefined} />
+        )}
       </div>
       <FilterModal open={filterOpen} value={detailFilter} onClose={() => setFilterOpen(false)} onApply={(value) => {
         setDetailFilter(value);
@@ -205,7 +239,7 @@ function SearchPage() {
           setBoundsChanged(false);
           search({
             ...boundsRef.current,
-            keyword: keyword.trim() || undefined,
+            keyword: filter.keyword,
             propertyType: propertyType ?? undefined,
             tradeType,
             sortBy,
