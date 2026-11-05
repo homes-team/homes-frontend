@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import WizardShell from '../components/WizardShell';
+import AddressSearchModal from '../components/AddressSearchModal';
 import Button from '../../../components/ui/Button';
 import { Field, Label, Input, Select, HelperText, ErrorText } from '../../../components/ui/Field';
 import { useListPropertyForm } from '../../../context/ListPropertyContext';
@@ -14,6 +15,7 @@ const DIRECTIONS: PropertyDirection[] = [
 function ListPropertyAddressPage() {
   const navigate = useNavigate();
   const { form, updateForm } = useListPropertyForm();
+  const [searching, setSearching] = useState(false);
   const [checking, setChecking] = useState(false);
   const [checkError, setCheckError] = useState<string | null>(null);
 
@@ -22,16 +24,16 @@ function ListPropertyAddressPage() {
   const remodelingYearValid = remodelingYear === null
     || (Number.isInteger(remodelingYear) && remodelingYear >= 1800 && remodelingYear <= new Date().getFullYear());
 
-  async function handleCheckAddress() {
-    const trimmed = form.address.trim();
-    if (!trimmed) return;
+  /** 검색 화면에서 고른 표준 주소를 입력칸에 채우고, 바로 좌표까지 확정한다 */
+  async function handleSelectAddress(address: string) {
+    setSearching(false);
+    updateForm({ address, latitude: null, longitude: null });
     setChecking(true);
     setCheckError(null);
     try {
-      const coord = await geocodeAddress(trimmed);
+      const coord = await geocodeAddress(address);
       if (!coord) {
-        setCheckError('입력하신 주소를 찾을 수 없어요. 조금 더 자세히 입력해주세요.');
-        updateForm({ latitude: null, longitude: null });
+        setCheckError('선택하신 주소의 위치를 찾을 수 없어요. 다른 주소로 다시 검색해주세요.');
         return;
       }
       updateForm({ latitude: coord.lat, longitude: coord.lng });
@@ -64,20 +66,18 @@ function ListPropertyAddressPage() {
           <Input
             id="address"
             className="flex-1"
-            placeholder="예) 서울시 강남구 역삼동 123-45"
+            placeholder="주소 검색을 눌러 주소를 찾아주세요"
             value={form.address}
-            onChange={(e) => {
-              updateForm({ address: e.target.value, latitude: null, longitude: null });
-              setCheckError(null);
-            }}
+            readOnly
+            onClick={() => setSearching(true)}
           />
           <button
             type="button"
             className="shrink-0 whitespace-nowrap rounded-button border border-gray-200 px-4 py-[13px] text-sm font-semibold text-gray-900 hover:border-primary hover:text-primary disabled:opacity-50"
-            onClick={handleCheckAddress}
-            disabled={checking || !form.address.trim()}
+            onClick={() => setSearching(true)}
+            disabled={checking}
           >
-            {checking ? '확인 중...' : '주소 확인'}
+            {checking ? '확인 중...' : '주소 검색'}
           </button>
         </div>
         {checkError && <ErrorText>{checkError}</ErrorText>}
@@ -179,6 +179,7 @@ function ListPropertyAddressPage() {
           <span className="absolute right-4 text-sm text-gray-500">m²</span>
         </div>
       </Field>
+      {searching && <AddressSearchModal onSelect={handleSelectAddress} onClose={() => setSearching(false)} />}
     </WizardShell>
   );
 }
