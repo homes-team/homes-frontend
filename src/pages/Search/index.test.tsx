@@ -1,14 +1,23 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useParams } from 'react-router-dom';
+import { CompareProvider } from '../../context/CompareContext';
+import { PropertyListItem } from '../../types/property';
 import { findPlace } from '../../utils/placeSearch';
+import PropertyRow from './components/PropertyRow';
 import SearchPage from './index';
 
 const search = vi.hoisted(() => vi.fn());
 const mapProps = vi.hoisted(() => ({ current: null as null | Record<string, any> }));
+const searchResult = vi.hoisted(() => ({
+  items: [] as Record<string, any>[],
+  loading: false,
+  error: null as string | null,
+  searched: false,
+}));
 
 vi.mock('../../utils/placeSearch', () => ({ findPlace: vi.fn() }));
 vi.mock('../../hooks/usePropertySearch', () => ({
-  usePropertySearch: () => ({ items: [], loading: false, error: null, searched: false, search }),
+  usePropertySearch: () => ({ ...searchResult, search }),
 }));
 vi.mock('../../components/layout/Header', () => ({ default: () => null }));
 vi.mock('./components/CategoryChips', () => ({ default: () => null }));
@@ -27,17 +36,118 @@ vi.mock('./components/PropertyMap', () => ({
 }));
 
 const CHANGDONG = { id: '1', name: '창동역 1호선', address: '서울 도봉구 창동', lat: 37.653, lng: 127.047 };
+const PROPERTY: PropertyListItem = {
+  propertyId: 75,
+  thumbnailUrl: null,
+  title: '모바일 테스트 매물',
+  address: '서울시 도봉구 창동 75',
+  latitude: 37.653,
+  longitude: 127.047,
+  propertyType: 'ONE_ROOM',
+  tradeType: 'MONTHLY_RENT',
+  deposit: 1000,
+  monthlyRent: 60,
+  maintenanceFee: 5,
+  totalFloors: 10,
+  currentFloor: 5,
+  area: 24,
+  description: '모바일 상세 이동 테스트',
+  createdAt: '2026-11-05T12:00:00',
+  aiScore: null,
+  options: [],
+  nearestStation: null,
+  walkingTime: null,
+  favoriteCount: 0,
+  isSuspicious: false,
+  status: 'AVAILABLE',
+};
+
+function PropertyDetailStub() {
+  const { propertyId } = useParams();
+  return <p>매물 상세 ID: {propertyId}</p>;
+}
 
 const renderSearch = (url: string) =>
   render(
     <MemoryRouter initialEntries={[url]}>
-      <SearchPage />
+      <CompareProvider>
+        <Routes>
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/properties/:propertyId" element={<PropertyDetailStub />} />
+        </Routes>
+      </CompareProvider>
     </MemoryRouter>,
   );
 
 beforeEach(() => {
   vi.resetAllMocks();
   mapProps.current = null;
+  searchResult.items = [];
+  searchResult.loading = false;
+  searchResult.error = null;
+  searchResult.searched = false;
+});
+
+describe('SearchPage mobile layout', () => {
+  it('changes the property bottom sheet through its responsive snap points', () => {
+    renderSearch('/search');
+    const sheet = screen.getByTestId('mobile-property-sheet');
+
+    expect(sheet).toHaveAttribute('data-snap', 'collapsed');
+    fireEvent.click(screen.getByRole('button', { name: '매물 목록 펼치기' }));
+    expect(sheet).toHaveAttribute('data-snap', 'half');
+    fireEvent.click(screen.getByRole('button', { name: '매물 목록 펼치기' }));
+    expect(sheet).toHaveAttribute('data-snap', 'expanded');
+    fireEvent.click(screen.getByRole('button', { name: '매물 목록 접기' }));
+    expect(sheet).toHaveAttribute('data-snap', 'collapsed');
+  });
+
+  it('moves one snap point at a time when the handle is swiped', () => {
+    renderSearch('/search');
+    const sheet = screen.getByTestId('mobile-property-sheet');
+    const handle = screen.getByRole('button', { name: '매물 목록 펼치기' });
+
+    fireEvent.pointerDown(handle, { clientY: 200, pointerId: 1 });
+    fireEvent.pointerUp(handle, { clientY: 100, pointerId: 1 });
+    fireEvent.click(handle);
+    expect(sheet).toHaveAttribute('data-snap', 'half');
+
+    fireEvent.pointerDown(handle, { clientY: 100, pointerId: 1 });
+    fireEvent.pointerUp(handle, { clientY: 200, pointerId: 1 });
+    fireEvent.click(handle);
+    expect(sheet).toHaveAttribute('data-snap', 'collapsed');
+  });
+
+  it('opens the detail route when a property row is selected', () => {
+    searchResult.items = [PROPERTY];
+    searchResult.searched = true;
+    renderSearch('/search');
+
+    fireEvent.click(screen.getByText(PROPERTY.title).closest('[role="button"]')!);
+
+    expect(screen.getByText('매물 상세 ID: 75')).toBeInTheDocument();
+  });
+});
+
+describe('PropertyRow activation', () => {
+  it.each([
+    ['click', 'click'],
+    ['Enter', 'Enter'],
+    ['Space', ' '],
+  ])('opens its property with %s', (_, interaction) => {
+    const onOpen = vi.fn();
+    render(
+      <CompareProvider>
+        <ul><PropertyRow property={PROPERTY} selected={false} onOpen={onOpen} /></ul>
+      </CompareProvider>,
+    );
+    const row = screen.getByText(PROPERTY.title).closest('[role="button"]')!;
+
+    if (interaction === 'click') fireEvent.click(row);
+    else fireEvent.keyDown(row, { key: interaction });
+
+    expect(onOpen).toHaveBeenCalledWith(PROPERTY.propertyId);
+  });
 });
 
 describe('SearchPage keyword from the home search', () => {
