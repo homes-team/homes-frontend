@@ -29,6 +29,13 @@ describe('NearbyPropertyRow', () => {
     expect(screen.getByText('희망 중개수수료율 0.4%')).toBeInTheDocument();
   });
 
+  it('does not reveal the unit number of the property', () => {
+    renderRow();
+
+    expect(screen.getByText('서울특별시 도봉구 방학동')).toBeInTheDocument();
+    expect(screen.queryByText(/101동/)).not.toBeInTheDocument();
+  });
+
   it('shows negotiation when the desired brokerage fee is unavailable', () => {
     renderRow({ ...property, desiredBrokerageFee: null });
 

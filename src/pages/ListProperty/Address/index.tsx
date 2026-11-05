@@ -98,6 +98,7 @@ function ListPropertyAddressPage() {
           value={form.detailAddress}
           onChange={(e) => updateForm({ detailAddress: e.target.value })}
         />
+        <HelperText>동·호수는 개인정보라서 다른 사용자에게 공개되지 않고, 등록한 본인에게만 보여요.</HelperText>
       </Field>
 
       <div className="flex gap-3">
