@@ -19,7 +19,7 @@ interface CategoryChipsProps {
 
 function CategoryChips({ value, onChange }: CategoryChipsProps) {
   return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label="방 종류">
+    <div className="flex flex-nowrap gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] md:flex-wrap md:overflow-visible md:pb-0 [&::-webkit-scrollbar]:hidden" role="group" aria-label="방 종류">
       {CATEGORIES.map((category) => {
         const active = category.value === value;
         return (

@@ -5,10 +5,10 @@ import { formatPrice, formatRelativeTime, formatSearchMeta, formatWalking, pickC
 interface PropertyRowProps {
   property: PropertyListItem;
   selected: boolean;
-  onSelect: (propertyId: number) => void;
+  onOpen: (propertyId: number) => void;
 }
 
-function PropertyRow({ property, selected, onSelect }: PropertyRowProps) {
+function PropertyRow({ property, selected, onOpen }: PropertyRowProps) {
   const typeLabel = PROPERTY_TYPE_LABEL[property.propertyType];
   const walking = formatWalking(property);
   const options = pickCardOptions(property.options, walking ? 2 : 3);
@@ -19,11 +19,11 @@ function PropertyRow({ property, selected, onSelect }: PropertyRowProps) {
         className={`flex gap-3.5 border-b border-gray-100 bg-white p-4 outline-none transition-colors hover:bg-gray-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary ${
           selected ? 'bg-primary-50' : ''
         }`}
-        onClick={() => onSelect(property.propertyId)}
+        onClick={() => onOpen(property.propertyId)}
         onKeyDown={(event) => {
           if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
-            onSelect(property.propertyId);
+            onOpen(property.propertyId);
           }
         }}
         role="button"

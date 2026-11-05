@@ -90,8 +90,8 @@ function Header() {
   };
 
   return (
-    <header className="flex items-center justify-between px-10 py-3.5 bg-white">
-      <div className="flex items-center gap-8">
+    <header className="flex shrink-0 items-center justify-between bg-white px-4 py-3 sm:px-6 lg:px-10 lg:py-3.5">
+      <div className="flex items-center gap-4 lg:gap-8">
         <button type="button" onClick={() => navigate('/')} className="flex items-center gap-2">
           <Logo />
           <span className="text-xl font-bold text-primary">홈즈</span>
@@ -110,7 +110,7 @@ function Header() {
         </nav>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4">
         <button
           type="button"
           className="hidden w-[230px] rounded-pill bg-gray-100 px-4 py-[9px] text-left text-[13px] text-gray-500 md:block"
@@ -141,13 +141,13 @@ function Header() {
           <button
             type="button"
             onClick={() => navigate(role === 'AGENT' ? '/realtor/mypage' : '/mypage')}
-            className="text-sm font-medium text-gray-500"
+            className="hidden text-sm font-medium text-gray-500 sm:block"
           >
             마이페이지
           </button>
         )}
         {loggedIn ? (
-          <button type="button" className="text-sm font-medium text-gray-500" onClick={handleLogout}>
+          <button type="button" className="hidden text-sm font-medium text-gray-500 sm:block" onClick={handleLogout}>
             로그아웃
           </button>
         ) : (
@@ -158,7 +158,7 @@ function Header() {
         <button
           type="button"
           onClick={() => navigate(loggedIn ? '/list-property/start' : '/login')}
-          className="rounded-button bg-primary px-5 py-2.5 text-sm font-bold text-white hover:bg-primary-dark"
+          className="rounded-button bg-primary px-3.5 py-2 text-xs font-bold whitespace-nowrap text-white hover:bg-primary-dark sm:px-5 sm:py-2.5 sm:text-sm"
         >
           방 내놓기
         </button>

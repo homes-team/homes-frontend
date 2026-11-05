@@ -52,8 +52,8 @@ function FilterBar({
   const sortLabel = SORT_OPTIONS.find((option) => option.value === sortBy)?.label ?? '최신순';
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-b border-gray-200 bg-white px-4 py-3">
-      <p className="text-[13px] font-medium whitespace-nowrap text-gray-600">
+    <div className="flex items-center gap-3 overflow-x-auto border-t border-b border-gray-200 bg-white px-3 py-2.5 [scrollbar-width:none] md:justify-between md:overflow-visible md:px-4 md:py-3 [&::-webkit-scrollbar]:hidden">
+      <p className="shrink-0 text-[13px] font-medium whitespace-nowrap text-gray-600">
         {loading ? (
           '검색 중...'
         ) : (
@@ -63,7 +63,7 @@ function FilterBar({
         )}
       </p>
 
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         <div className="flex rounded-md bg-gray-100 p-[3px]" role="group" aria-label="거래 유형">
           {TRADE_TYPES.map((type) => {
             const active = tradeType === type.value;

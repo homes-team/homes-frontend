@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapBounds, PropertyFilter } from '../../api/property/propertyApi';
 import Header from '../../components/layout/Header';
@@ -15,6 +15,16 @@ import { FILTER_OPTION_ORDER, PropertyOption, PropertyType, SortBy, TradeType } 
 const PROPERTY_TYPES: PropertyType[] = ['ONE_ROOM', 'TWO_ROOM', 'VILLA', 'HOUSE', 'APARTMENT', 'OFFICETEL', 'PRESALE'];
 const TRADE_TYPES: TradeType[] = ['MONTHLY_RENT', 'JEONSE', 'SALE'];
 const SORT_TYPES: SortBy[] = ['RECOMMENDED', 'LATEST', 'FAVORITE'];
+
+type MobileSheetSnap = 'collapsed' | 'half' | 'expanded';
+
+export function resolveMobileSheetSnap(current: MobileSheetSnap, dragDeltaY: number): MobileSheetSnap {
+  const snaps: MobileSheetSnap[] = ['collapsed', 'half', 'expanded'];
+  const currentIndex = snaps.indexOf(current);
+  if (dragDeltaY <= -40) return snaps[Math.min(currentIndex + 1, snaps.length - 1)];
+  if (dragDeltaY >= 40) return snaps[Math.max(currentIndex - 1, 0)];
+  return current;
+}
 
 function readNumber(params: URLSearchParams, key: string): number | undefined {
   const raw = params.get(key);
@@ -60,7 +70,10 @@ function SearchPage() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [moveTo, setMoveTo] = useState<{ lat: number; lng: number } | null>(null);
   const [boundsChanged, setBoundsChanged] = useState(false);
+  const [mobileSheetSnap, setMobileSheetSnap] = useState<MobileSheetSnap>('collapsed');
   const boundsRef = useRef<MapBounds | null>(null);
+  const sheetDragStartYRef = useRef<number | null>(null);
+  const sheetWasDraggedRef = useRef(false);
   /**
    * 지도를 열 처음 위치. undefined면 검색어가 가리키는 장소를 찾는 중이라 지도를 아직 만들지 않는다.
    * (먼저 강남역에서 열고 옮기면 엉뚱한 지역을 한 번 검색하게 된다)
@@ -181,46 +194,99 @@ function SearchPage() {
     (count, value) => count + (Array.isArray(value) ? value.length : value === undefined ? 0 : 1), 0,
   ), [detailFilter]);
 
+  const mobileSheetHeight = {
+    collapsed: 'h-[112px]',
+    half: 'h-[48%]',
+    expanded: 'h-[78%]',
+  }[mobileSheetSnap];
+
+  const cycleMobileSheet = () => {
+    if (sheetWasDraggedRef.current) {
+      sheetWasDraggedRef.current = false;
+      return;
+    }
+    setMobileSheetSnap((current) => (
+      current === 'collapsed' ? 'half' : current === 'half' ? 'expanded' : 'collapsed'
+    ));
+  };
+
+  const handleSheetPointerDown = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    sheetDragStartYRef.current = event.clientY;
+    sheetWasDraggedRef.current = false;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+
+  const handleSheetPointerUp = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (sheetDragStartYRef.current === null) return;
+    const dragDeltaY = event.clientY - sheetDragStartYRef.current;
+    sheetDragStartYRef.current = null;
+    if (Math.abs(dragDeltaY) < 40) return;
+    sheetWasDraggedRef.current = true;
+    setMobileSheetSnap((current) => resolveMobileSheetSnap(current, dragDeltaY));
+  };
+
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
+    <div className="flex h-[100dvh] flex-col overflow-hidden">
       <Header />
-      <div className="flex min-h-0 flex-1">
-        <aside className="flex w-[480px] shrink-0 flex-col border-r border-gray-200 bg-white max-[900px]:w-[380px]">
-          <div className="flex flex-col gap-3 px-4 pt-4 pb-3.5">
+      <div className="relative flex min-h-0 flex-1">
+        <aside className="pointer-events-none absolute inset-0 z-10 flex flex-col md:relative md:inset-auto md:z-auto md:w-[380px] md:shrink-0 md:border-r md:border-gray-200 md:bg-white md:pointer-events-auto lg:w-[480px]">
+          <div className="pointer-events-auto absolute top-3 right-3 left-3 z-10 flex flex-col gap-2 rounded-2xl bg-white/95 p-3 shadow-[0_6px_24px_rgba(15,23,42,0.14)] backdrop-blur md:static md:rounded-none md:bg-white md:px-4 md:pt-4 md:pb-3.5 md:shadow-none md:backdrop-blur-none">
             <SearchBar value={keyword} onChange={setKeyword} onSubmit={handleSubmitKeyword} />
             <CategoryChips value={propertyType} onChange={(value) => { setPropertyType(value); runSearch({ propertyType: value ?? undefined }); }} />
           </div>
-          <FilterBar total={items.length} loading={loading} tradeType={tradeType}
-            onTradeTypeChange={(value) => { setTradeType(value); runSearch({ tradeType: value }); }}
-            sortBy={sortBy} onSortByChange={(value) => { setSortBy(value); runSearch({ sortBy: value }); }}
-            activeFilterCount={activeFilterCount} onOpenFilter={() => setFilterOpen(true)} />
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            {error && (
-              <div className="flex flex-col items-center gap-2 px-6 py-15 text-center" role="alert">
-                <p className="text-[15px] font-bold text-gray-900">매물을 불러오지 못했습니다</p>
-                <p className="text-[13px] leading-relaxed text-gray-500">{error}</p>
-                <button
-                  type="button"
-                  className="mt-1.5 rounded-md border border-gray-200 bg-white px-4 py-2 text-[13px] font-medium text-gray-600 hover:border-gray-400"
-                  onClick={() => runSearch()}
-                >
-                  다시 시도
-                </button>
-              </div>
-            )}
-            {!error && !loading && searched && items.length === 0 && (
-              <div className="flex flex-col items-center gap-2 px-6 py-15 text-center">
-                <p className="text-[15px] font-bold text-gray-900">조건에 맞는 방이 없습니다</p>
-                <p className="text-[13px] leading-relaxed text-gray-500">지역을 넓히거나 필터를 줄여서 다시 찾아보세요.</p>
-              </div>
-            )}
-            {!error && items.length > 0 && (
-              <ul className="m-0 list-none p-0">
-                {items.map((item) => (
-                  <PropertyRow key={item.propertyId} property={item} selected={item.propertyId === selectedId} onSelect={setSelectedId} />
-                ))}
-              </ul>
-            )}
+          <div
+            className={`pointer-events-auto absolute right-0 bottom-0 left-0 flex min-h-0 flex-col overflow-hidden rounded-t-3xl bg-white shadow-[0_-8px_30px_rgba(15,23,42,0.18)] transition-[height] duration-300 ease-out ${mobileSheetHeight} md:static md:h-auto md:min-h-0 md:flex-1 md:rounded-none md:shadow-none`}
+            data-testid="mobile-property-sheet"
+            data-snap={mobileSheetSnap}
+          >
+            <button
+              type="button"
+              className="flex h-8 shrink-0 touch-none items-center justify-center md:hidden"
+              aria-label={mobileSheetSnap === 'expanded' ? '매물 목록 접기' : '매물 목록 펼치기'}
+              aria-expanded={mobileSheetSnap !== 'collapsed'}
+              onClick={cycleMobileSheet}
+              onPointerDown={handleSheetPointerDown}
+              onPointerUp={handleSheetPointerUp}
+            >
+              <span className="h-1.5 w-12 rounded-full bg-gray-300" aria-hidden="true" />
+            </button>
+            <FilterBar total={items.length} loading={loading} tradeType={tradeType}
+              onTradeTypeChange={(value) => { setTradeType(value); runSearch({ tradeType: value }); }}
+              sortBy={sortBy} onSortByChange={(value) => { setSortBy(value); runSearch({ sortBy: value }); }}
+              activeFilterCount={activeFilterCount} onOpenFilter={() => setFilterOpen(true)} />
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+              {error && (
+                <div className="flex flex-col items-center gap-2 px-6 py-15 text-center" role="alert">
+                  <p className="text-[15px] font-bold text-gray-900">매물을 불러오지 못했습니다</p>
+                  <p className="text-[13px] leading-relaxed text-gray-500">{error}</p>
+                  <button
+                    type="button"
+                    className="mt-1.5 rounded-md border border-gray-200 bg-white px-4 py-2 text-[13px] font-medium text-gray-600 hover:border-gray-400"
+                    onClick={() => runSearch()}
+                  >
+                    다시 시도
+                  </button>
+                </div>
+              )}
+              {!error && !loading && searched && items.length === 0 && (
+                <div className="flex flex-col items-center gap-2 px-6 py-15 text-center">
+                  <p className="text-[15px] font-bold text-gray-900">조건에 맞는 방이 없습니다</p>
+                  <p className="text-[13px] leading-relaxed text-gray-500">지역을 넓히거나 필터를 줄여서 다시 찾아보세요.</p>
+                </div>
+              )}
+              {!error && items.length > 0 && (
+                <ul className="m-0 list-none p-0">
+                  {items.map((item) => (
+                    <PropertyRow
+                      key={item.propertyId}
+                      property={item}
+                      selected={item.propertyId === selectedId}
+                      onOpen={(propertyId) => navigate(`/properties/${propertyId}`)}
+                    />
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         </aside>
         {initialCenter === undefined ? (
