@@ -19,6 +19,8 @@ interface PropertyMapProps {
   onResearch: () => void;
   /** 검색어 선택 시 이동할 좌표 */
   moveTo: { lat: number; lng: number } | null;
+  /** 지도를 처음 열 때의 중심. 없으면 강남역 */
+  initialCenter?: { lat: number; lng: number };
 }
 
 /**
@@ -137,9 +139,10 @@ function PropertyMap({
   showResearch,
   onResearch,
   moveTo,
+  initialCenter,
 }: PropertyMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { map, error } = useKakaoMap(containerRef);
+  const { map, error } = useKakaoMap(containerRef, initialCenter);
   const overlaysRef = useRef<kakao.maps.CustomOverlay[]>([]);
   const clusterOverlaysRef = useRef<kakao.maps.CustomOverlay[]>([]);
   const [view, setView] = useState<{ bounds: MapBounds; level: number } | null>(null);
