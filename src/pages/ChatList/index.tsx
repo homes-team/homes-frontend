@@ -67,12 +67,13 @@ function ChatListPage() {
         <div className="flex flex-col gap-3">
           {rooms.map((room) => {
             const isSelfLeft = myUserId === room.userId ? room.isUserLeft : room.isAgentLeft;
+            const isPeerLeft = myUserId === room.userId ? room.isAgentLeft : room.isUserLeft;
             return (
               <button key={room.chatId} type="button" onClick={() => navigate(`/chats/${room.chatId}`)}>
                 <Card className="flex items-center justify-between text-left">
                   <div>
                     <p className="font-bold">{room.propertyTitle ?? `매물 #${room.propertyId}`}</p>
-                    <p className="text-[13px] text-gray-500">{isSelfLeft ? '채팅방을 나갔어요' : '대화 중'}</p>
+                    <p className="text-[13px] text-gray-500">{isSelfLeft ? '채팅방을 나갔어요' : isPeerLeft ? '상대가 나갔어요' : '대화 중'}</p>
                   </div>
                   <span className="text-[13px] text-gray-400">{formatRelativeTime(room.createdAt)}</span>
                 </Card>
