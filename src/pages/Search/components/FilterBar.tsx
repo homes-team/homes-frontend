@@ -52,7 +52,7 @@ function FilterBar({
   const sortLabel = SORT_OPTIONS.find((option) => option.value === sortBy)?.label ?? '최신순';
 
   return (
-    <div className="flex items-center gap-3 overflow-x-auto border-t border-b border-gray-200 bg-white px-3 py-2.5 [scrollbar-width:none] md:justify-between md:overflow-visible md:px-4 md:py-3 [&::-webkit-scrollbar]:hidden">
+    <div className="flex items-center justify-between gap-2 border-t border-b border-gray-200 bg-white px-3 py-2.5 md:px-4 md:py-3">
       <p className="shrink-0 text-[13px] font-medium whitespace-nowrap text-gray-600">
         {loading ? (
           '검색 중...'
@@ -63,28 +63,30 @@ function FilterBar({
         )}
       </p>
 
-      <div className="flex shrink-0 items-center gap-2">
-        <div className="flex rounded-md bg-gray-100 p-[3px]" role="group" aria-label="거래 유형">
-          {TRADE_TYPES.map((type) => {
-            const active = tradeType === type.value;
-            return (
-              <button
-                key={type.value}
-                type="button"
-                className={`rounded px-2.5 py-[5px] text-xs font-medium whitespace-nowrap ${
-                  active ? 'bg-white font-bold text-gray-900 shadow-[0_1px_2px_rgba(0,0,0,0.08)]' : 'text-gray-500'
-                }`}
-                aria-pressed={active}
-                // 같은 값을 다시 누르면 해제 → 전체 거래유형
-                onClick={() => onTradeTypeChange(active ? undefined : type.value)}
-              >
-                {type.label}
-              </button>
-            );
-          })}
+      <div className="flex min-w-0 items-center gap-2">
+        <div className="min-w-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex w-max rounded-md bg-gray-100 p-[3px]" role="group" aria-label="거래 유형">
+            {TRADE_TYPES.map((type) => {
+              const active = tradeType === type.value;
+              return (
+                <button
+                  key={type.value}
+                  type="button"
+                  className={`rounded px-2.5 py-[5px] text-xs font-medium whitespace-nowrap ${
+                    active ? 'bg-white font-bold text-gray-900 shadow-[0_1px_2px_rgba(0,0,0,0.08)]' : 'text-gray-500'
+                  }`}
+                  aria-pressed={active}
+                  // 같은 값을 다시 누르면 해제 → 전체 거래유형
+                  onClick={() => onTradeTypeChange(active ? undefined : type.value)}
+                >
+                  {type.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        <div className="relative" ref={sortRef}>
+        <div className="relative shrink-0" ref={sortRef}>
           <button
             type="button"
             className="flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-[7px] text-xs font-medium whitespace-nowrap text-gray-600 hover:border-gray-400"
@@ -128,7 +130,7 @@ function FilterBar({
 
         <button
           type="button"
-          className="flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-[7px] text-xs font-medium whitespace-nowrap text-gray-600 hover:border-gray-400"
+          className="flex shrink-0 items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-[7px] text-xs font-medium whitespace-nowrap text-gray-600 hover:border-gray-400"
           onClick={onOpenFilter}
         >
           필터

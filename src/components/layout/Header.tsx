@@ -110,7 +110,7 @@ function Header() {
         </nav>
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-4">
+      <div className="relative flex items-center gap-2 sm:gap-4">
         <button
           type="button"
           className="hidden w-[230px] rounded-pill bg-gray-100 px-4 py-[9px] text-left text-[13px] text-gray-500 md:block"
@@ -136,6 +136,29 @@ function Header() {
           <button type="button" onClick={() => navigate('/chats')} aria-label="채팅" className="text-lg leading-none">
             💬
           </button>
+        )}
+        {loggedIn && (
+          <details className="relative sm:hidden">
+            <summary className="cursor-pointer list-none rounded-md border border-gray-200 px-2.5 py-2 text-xs font-medium whitespace-nowrap text-gray-600 [&::-webkit-details-marker]:hidden">
+              내 메뉴
+            </summary>
+            <div className="absolute top-[calc(100%+8px)] right-0 z-50 min-w-32 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-[0_8px_24px_rgba(15,23,42,0.16)]">
+              <button
+                type="button"
+                onClick={() => navigate(role === 'AGENT' ? '/realtor/mypage' : '/mypage')}
+                className="block w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50"
+              >
+                마이페이지
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="block w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50"
+              >
+                로그아웃
+              </button>
+            </div>
+          </details>
         )}
         {loggedIn && (
           <button

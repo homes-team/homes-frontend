@@ -18,6 +18,7 @@ const SORT_TYPES: SortBy[] = ['RECOMMENDED', 'LATEST', 'FAVORITE'];
 
 type MobileSheetSnap = 'collapsed' | 'half' | 'expanded';
 
+/** 세로 드래그 거리와 현재 단계로 모바일 매물 시트의 다음 고정 높이를 결정한다. */
 export function resolveMobileSheetSnap(current: MobileSheetSnap, dragDeltaY: number): MobileSheetSnap {
   const snaps: MobileSheetSnap[] = ['collapsed', 'half', 'expanded'];
   const currentIndex = snaps.indexOf(current);
