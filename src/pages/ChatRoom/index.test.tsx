@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { connectChatSocket, fetchChatMessages, fetchChatRooms } from '../../api/chat/chatApi';
+import { markChatNotificationsRead } from '../../api/notification/notificationApi';
 import { ChatRoom } from '../../types/chat';
 import ChatRoomPage from './index';
 
@@ -10,6 +11,7 @@ vi.mock('../../api/chat/chatApi', () => ({
   fetchChatRooms: vi.fn(),
   leaveChatRoom: vi.fn(),
 }));
+vi.mock('../../api/notification/notificationApi', () => ({ markChatNotificationsRead: vi.fn() }));
 vi.mock('../../utils/auth', () => ({ getCurrentUser: () => ({ sub: '1' }) }));
 vi.mock('../../components/layout/PageShell', () => ({ default: ({ children }: { children: React.ReactNode }) => <main>{children}</main> }));
 
@@ -41,6 +43,22 @@ describe('ChatRoomPage', () => {
     expect(await screen.findByPlaceholderText('메시지를 입력해주세요')).toBeInTheDocument();
     expect(connectChatSocket).toHaveBeenCalled();
     expect(screen.queryByText('상대가 나갔습니다.')).not.toBeInTheDocument();
+  });
+
+  it('clears the unread notifications of the room it opens', async () => {
+    vi.mocked(fetchChatRooms).mockResolvedValue([room()]);
+    renderRoom();
+
+    await screen.findByPlaceholderText('메시지를 입력해주세요');
+    expect(markChatNotificationsRead).toHaveBeenCalledWith(7);
+  });
+
+  it('does not touch notifications for a room the user already left', async () => {
+    vi.mocked(fetchChatRooms).mockResolvedValue([]);
+    renderRoom();
+
+    await screen.findByText('이미 나간 채팅방이에요');
+    expect(markChatNotificationsRead).not.toHaveBeenCalled();
   });
 
   it('blocks a room the user already left, e.g. when coming back through a notification', async () => {
