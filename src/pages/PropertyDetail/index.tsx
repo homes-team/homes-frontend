@@ -41,6 +41,7 @@ import InfrastructureCard from './components/InfrastructureCard';
 import MaintenanceFeeCard from './components/MaintenanceFeeCard';
 import PropertyStatusManager from './components/PropertyStatusManager';
 import LegalFeeCapCard from './components/LegalFeeCapCard';
+import OwnerVerificationCard from './components/OwnerVerificationCard';
 import PropertyOverview from './components/PropertyOverview';
 import SectionNav from './components/SectionNav';
 import { checkProposedRate, commissionCalculatorPath, legalFeeCap } from '../../utils/legalFeeCap';
@@ -616,6 +617,7 @@ function PropertyDetailPage() {
           {bidMessage && <HelperText>{bidMessage}</HelperText>}
 
           <RealtorContactCard propertyId={id} />
+          {isOwner && <OwnerVerificationCard propertyId={id} />}
           {isOwner && (
             <PropertyStatusManager
               propertyId={id}

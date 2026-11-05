@@ -8,6 +8,32 @@ interface PresignedUpload {
 
 const UPLOAD_TIMEOUT_MS = 30_000;
 
+async function putToPresignedUrl(issued: PresignedUpload, file: File): Promise<string> {
+  try {
+    await axios.put(issued.uploadUrl, file, {
+      headers: { 'Content-Type': file.type || 'application/octet-stream' },
+      timeout: UPLOAD_TIMEOUT_MS,
+    });
+  } catch {
+    throw new Error('파일 업로드가 차단됐어요. 잠시 후 다시 시도해주세요.');
+  }
+
+  return issued.fileUrl;
+}
+
+/**
+ * 집주인 등기부등본 이미지를 S3에 올리고 최종 URL을 돌려준다.
+ * GET /properties/{propertyId}/verifications/owner/presigned-url — 매물 등록자 토큰 필수.
+ */
+export async function uploadOwnerDocumentToS3(propertyId: number, file: File): Promise<string> {
+  const params = new URLSearchParams({ fileName: file.name });
+  const issued = await apiGet<PresignedUpload>(
+    `/properties/${propertyId}/verifications/owner/presigned-url?${params.toString()}`,
+    { auth: true },
+  );
+  return putToPresignedUrl(issued, file);
+}
+
 /**
  * presigned URL 발급 → S3에 PUT 업로드 → 최종 공개 URL 반환.
  * - 로그인 상태(auth:true): GET /properties/presigned-url — 매물 사진 전용, 토큰 필수. S3 properties/ 폴더에 저장된다.
@@ -22,14 +48,5 @@ export async function uploadFileToS3(file: File, identity: { auth?: boolean; ema
     ? await apiGet<PresignedUpload>(`/realtors/presigned-url?${params.toString()}`)
     : await apiGet<PresignedUpload>(`/properties/presigned-url?${params.toString()}`, { auth: true });
 
-  try {
-    await axios.put(issued.uploadUrl, file, {
-      headers: { 'Content-Type': file.type || 'application/octet-stream' },
-      timeout: UPLOAD_TIMEOUT_MS,
-    });
-  } catch {
-    throw new Error('파일 업로드가 차단됐어요. 잠시 후 다시 시도해주세요.');
-  }
-
-  return issued.fileUrl;
+  return putToPresignedUrl(issued, file);
 }
