@@ -8,7 +8,7 @@ import { Field, Label, Input, HelperText, ErrorText } from '../../components/ui/
 import { deleteMyAccount, fetchMyProfile, updateMyPassword, updateMyProfile } from '../../api/user/userApi';
 import { verifyIdentity } from '../../api/auth/authApi';
 import { ApiError } from '../../api/client';
-import { clearTokens } from '../../utils/auth';
+import { clearTokens, isGoogleLogin } from '../../utils/auth';
 import { parseIdentityRedirect, requestIdentityVerification } from '../../utils/identityVerification';
 import { UserProfile } from '../../types/auth';
 
@@ -111,6 +111,9 @@ function MyPage() {
     }
   };
 
+  // 소셜(구글) 계정은 비밀번호를 직접 정한 적이 없어서 변경할 수 없다
+  const isSocialAccount = (profile?.provider !== undefined && profile.provider !== 'SELF') || isGoogleLogin();
+
   return (
     <PageShell>
       <h1 className="mb-4 text-xl font-bold text-gray-900">마이페이지</h1>
@@ -168,33 +171,35 @@ function MyPage() {
             </form>
           </Card>
 
-          <Card>
-            <form className="flex flex-col gap-5" onSubmit={handlePasswordSubmit}>
-              <h2 className="text-lg font-bold text-gray-900">비밀번호 변경</h2>
-              <Field>
-                <Label htmlFor="currentPassword">현재 비밀번호</Label>
-                <Input
-                  id="currentPassword"
-                  type="password"
-                  value={currentPassword}
-                  onChange={(event) => setCurrentPassword(event.target.value)}
-                  required
-                />
-              </Field>
-              <Field>
-                <Label htmlFor="newPassword">새 비밀번호</Label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  value={newPassword}
-                  onChange={(event) => setNewPassword(event.target.value)}
-                  required
-                />
-              </Field>
-              <Button type="submit">비밀번호 변경</Button>
-              {passwordMessage && <HelperText>{passwordMessage}</HelperText>}
-            </form>
-          </Card>
+          {!isSocialAccount && (
+            <Card>
+              <form className="flex flex-col gap-5" onSubmit={handlePasswordSubmit}>
+                <h2 className="text-lg font-bold text-gray-900">비밀번호 변경</h2>
+                <Field>
+                  <Label htmlFor="currentPassword">현재 비밀번호</Label>
+                  <Input
+                    id="currentPassword"
+                    type="password"
+                    value={currentPassword}
+                    onChange={(event) => setCurrentPassword(event.target.value)}
+                    required
+                  />
+                </Field>
+                <Field>
+                  <Label htmlFor="newPassword">새 비밀번호</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    value={newPassword}
+                    onChange={(event) => setNewPassword(event.target.value)}
+                    required
+                  />
+                </Field>
+                <Button type="submit">비밀번호 변경</Button>
+                {passwordMessage && <HelperText>{passwordMessage}</HelperText>}
+              </form>
+            </Card>
+          )}
 
           <Card>
             <h2 className="text-lg font-bold text-gray-900">회원 탈퇴</h2>

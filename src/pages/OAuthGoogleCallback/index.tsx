@@ -34,7 +34,7 @@ function OAuthGoogleCallback() {
 
     loginWithGoogle({ authorizationCode: code })
       .then((tokenDto) => {
-        saveTokens(tokenDto);
+        saveTokens(tokenDto, 'GOOGLE');
         navigate('/', { replace: true });
       })
       .catch((err) => {
