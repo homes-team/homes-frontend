@@ -74,6 +74,8 @@ export interface UserProfile {
   usagePurpose: string | null;
   isIdentityVerified: boolean;
   role: 'USER' | 'AGENT' | 'ADMIN';
+  /** 가입 경로(SELF/GOOGLE 등). 백엔드가 내려주면 이 값을 우선해서 쓴다 */
+  provider?: string;
 }
 
 /** UserUpdateProfileReqDto.java 대응 (부분 수정) */
