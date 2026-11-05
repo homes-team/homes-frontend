@@ -42,6 +42,9 @@ import MaintenanceFeeCard from './components/MaintenanceFeeCard';
 import PropertyStatusManager from './components/PropertyStatusManager';
 import LegalFeeCapCard from './components/LegalFeeCapCard';
 import OwnerVerificationCard from './components/OwnerVerificationCard';
+import VerificationNotice from './components/VerificationNotice';
+import VerificationBadges from '../../components/property/VerificationBadges';
+import { usePropertyVerification } from '../../hooks/usePropertyVerification';
 import PropertyOverview from './components/PropertyOverview';
 import SectionNav from './components/SectionNav';
 import { checkProposedRate, commissionCalculatorPath, legalFeeCap } from '../../utils/legalFeeCap';
@@ -131,6 +134,7 @@ function PropertyDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isOwner, setIsOwner] = useState(false);
+  const verification = usePropertyVerification(id, property);
   const [activeImage, setActiveImage] = useState(0);
   const [buildingInformation, setBuildingInformation] = useState<BuildingInformation | null>(null);
   const [buildingInformationError, setBuildingInformationError] = useState<string | null>(null);
@@ -460,6 +464,7 @@ function PropertyDetailPage() {
               <div className="flex flex-wrap items-center gap-1.5">
                 {property.isSuspicious && <Badge variant="danger">! 의심 매물</Badge>}
                 <Badge>{PROPERTY_TYPE_LABEL[property.propertyType]}</Badge>
+                <VerificationBadges isOwnerVerified={verification.isOwnerVerified} isRealtorVerified={verification.isRealtorVerified} />
                 {property.status !== 'AVAILABLE' && (
                   <Badge variant={PROPERTY_STATUS_VARIANT[property.status]}>{PROPERTY_STATUS_LABEL[property.status]}</Badge>
                 )}
@@ -617,6 +622,9 @@ function PropertyDetailPage() {
           {bidMessage && <HelperText>{bidMessage}</HelperText>}
 
           <RealtorContactCard propertyId={id} />
+          {!isOwner && (
+            <VerificationNotice isOwnerVerified={verification.isOwnerVerified} isRealtorVerified={verification.isRealtorVerified} />
+          )}
           {isOwner && <OwnerVerificationCard propertyId={id} />}
           {isOwner && (
             <PropertyStatusManager

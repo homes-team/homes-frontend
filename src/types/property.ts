@@ -334,6 +334,10 @@ export interface PropertyDetail {
   favoriteCount: number;
   isSuspicious: boolean;
   status: PropertyStatus;
+  /** 등기부등본(집주인) 인증 완료 여부. 백엔드가 내려주기 전에는 없다 */
+  isOwnerVerified?: boolean;
+  /** 중개사 현장 인증 완료 여부. 백엔드가 내려주기 전에는 없다 */
+  isRealtorVerified?: boolean;
 }
 
 export type AiEvaluationCategoryKey =
@@ -541,4 +545,8 @@ export interface PropertyListItem {
   favoriteCount: number;
   isSuspicious: boolean;
   status: PropertyStatus;
+  /** 등기부등본(집주인) 인증 완료 여부. 백엔드가 내려주기 전에는 없다 */
+  isOwnerVerified?: boolean;
+  /** 중개사 현장 인증 완료 여부. 백엔드가 내려주기 전에는 없다 */
+  isRealtorVerified?: boolean;
 }

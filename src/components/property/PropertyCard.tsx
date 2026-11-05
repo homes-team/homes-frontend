@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import VerificationBadges from '../../components/property/VerificationBadges';
 import { PROPERTY_OPTION_LABEL, PROPERTY_STATUS_LABEL, PropertyListItem, PROPERTY_TYPE_LABEL } from '../../types/property';
 import { formatMeta, formatPrice, formatRelativeTime, pickCardOptions } from '../../utils/format';
 
@@ -59,6 +60,11 @@ function PropertyCard({ property, dateLabel }: PropertyCardProps) {
           <strong className="text-[19px] font-bold text-gray-900">{formatPrice(property)}</strong>
         </div>
         <p className="truncate text-[15px] font-medium text-gray-600">{property.title}</p>
+        {(property.isOwnerVerified || property.isRealtorVerified) && (
+          <div className="flex flex-wrap gap-1.5">
+            <VerificationBadges isOwnerVerified={property.isOwnerVerified} isRealtorVerified={property.isRealtorVerified} />
+          </div>
+        )}
         <p className="text-[13px] text-gray-500">
           {typeLabel} · {formatMeta(property)}
         </p>
