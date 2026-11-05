@@ -85,10 +85,10 @@ function ListPropertyFeePage() {
             onClick={() => {
               const id = completedId;
               resetForm();
-              navigate(isEditing ? `/properties/${id}` : '/');
+              navigate(`/properties/${id}`);
             }}
           >
-            {isEditing ? '매물로 돌아가기' : '홈으로 가기'}
+            {isEditing ? '매물로 돌아가기' : '등록한 매물 보기'}
           </Button>
         }
       >
