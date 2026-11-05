@@ -467,9 +467,9 @@ function PropertyDetailPage() {
               {property.maintenanceFee ? (
                 <p className="text-sm text-gray-500">관리비 {formatMoney(property.maintenanceFee)}만원</p>
               ) : null}
-              <p className="text-[15px] text-gray-900">
-                {property.address}
-              </p>
+              <p className="text-[15px] text-gray-900">{property.address}</p>
+              {/* 동·호수는 개인정보라 등록한 본인에게만 보여준다 */}
+              {isOwner && property.detailAddress && <p className="text-[15px] text-gray-900">{property.detailAddress}</p>}
               <p className="text-[13px] text-gray-500">
                 {property.currentFloor}/{property.totalFloors}층 · {property.area}m²
                 {property.nearestStation ? ` · ${property.nearestStation} 도보 ${property.walkingTime}분` : ''}
