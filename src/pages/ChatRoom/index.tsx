@@ -4,6 +4,7 @@ import PageShell from '../../components/layout/PageShell';
 import Button from '../../components/ui/Button';
 import { Input, ErrorText } from '../../components/ui/Field';
 import { connectChatSocket, fetchChatMessages, fetchChatRooms, leaveChatRoom, ChatSocketHandle } from '../../api/chat/chatApi';
+import { markChatNotificationsRead } from '../../api/notification/notificationApi';
 import { ApiError } from '../../api/client';
 import { getCurrentUser } from '../../utils/auth';
 import { ChatMessage } from '../../types/chat';
@@ -44,6 +45,8 @@ function ChatRoomPage() {
       }
       const peerLeft = myUserId === room.userId ? room.isAgentLeft : room.isUserLeft;
       setRoomStatus(peerLeft ? 'peerLeft' : 'active');
+      // 이 방에 들어왔으니 이 방의 안 읽은 알림은 읽은 것으로 처리한다 (헤더 배지도 같이 줄어든다)
+      void markChatNotificationsRead(id);
 
       const history = await fetchChatMessages(id);
       if (cancelled) return;

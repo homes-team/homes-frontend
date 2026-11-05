@@ -2,7 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AUTH_STATE_CHANGED_EVENT, isLoggedIn } from '../../api/client';
 import { logout as logoutRequest } from '../../api/auth/authApi';
-import { fetchNotifications, subscribeToNotifications } from '../../api/notification/notificationApi';
+import {
+  fetchNotifications,
+  markNotificationRead,
+  NOTIFICATIONS_CHANGED_EVENT,
+  subscribeToNotifications,
+} from '../../api/notification/notificationApi';
 import { clearTokens, getCurrentUser } from '../../utils/auth';
 import Logo from '../ui/Logo';
 
@@ -33,16 +38,26 @@ function Header() {
     }
 
     let cancelled = false;
-    fetchNotifications()
-      .then((list) => {
-        if (!cancelled) setUnreadCount(list.filter((n) => !n.isRead).length);
-      })
-      .catch(() => {
-        /* 배지 카운트 실패는 조용히 무시 */
-      });
+    const refreshUnreadCount = () =>
+      fetchNotifications()
+        .then((list) => {
+          if (!cancelled) setUnreadCount(list.filter((n) => !n.isRead).length);
+        })
+        .catch(() => {
+          /* 배지 카운트 실패는 조용히 무시 */
+        });
+    refreshUnreadCount();
+    window.addEventListener(NOTIFICATIONS_CHANGED_EVENT, refreshUnreadCount);
 
     subscribeToNotifications(
-      () => setUnreadCount((prev) => prev + 1),
+      (notification) => {
+        // 지금 보고 있는 채팅방의 새 메시지 알림은 바로 읽음 처리하고 배지에 더하지 않는다
+        if (notification.type === 'CHAT' && window.location.pathname === `/chats/${notification.referenceId}`) {
+          markNotificationRead(notification.notificationId).catch(() => setUnreadCount((prev) => prev + 1));
+          return;
+        }
+        setUnreadCount((prev) => prev + 1);
+      },
       () => {
         /* SSE 연결 오류는 조용히 무시 — 배지가 즉시 갱신되지 않을 뿐, 알림 목록 페이지에서는 항상 최신을 불러온다 */
       },
@@ -56,6 +71,7 @@ function Header() {
 
     return () => {
       cancelled = true;
+      window.removeEventListener(NOTIFICATIONS_CHANGED_EVENT, refreshUnreadCount);
       disconnectRef.current?.();
       disconnectRef.current = null;
     };
