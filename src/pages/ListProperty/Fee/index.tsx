@@ -79,9 +79,6 @@ function ListPropertyFeePage() {
         step={6}
         totalSteps={6}
         title={isEditing ? '매물 수정이 완료되었어요!' : '매물 등록이 완료되었어요!'}
-        description={
-          isEditing ? `매물 번호 #${completedId} 정보를 수정했습니다.` : `매물 번호 #${completedId} 로 등록되었습니다.`
-        }
         footer={
           <Button
             fullWidth
