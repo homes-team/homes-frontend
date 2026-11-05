@@ -1,4 +1,5 @@
 import CompareToggleButton from '../../../components/compare/CompareToggleButton';
+import VerificationBadges from '../../../components/property/VerificationBadges';
 import { PROPERTY_OPTION_LABEL, PROPERTY_STATUS_LABEL, PropertyListItem, PROPERTY_TYPE_LABEL } from '../../../types/property';
 import { formatPrice, formatRelativeTime, formatSearchMeta, formatWalking, pickCardOptions } from '../../../utils/format';
 
@@ -70,6 +71,11 @@ function PropertyRow({ property, selected, onSelect }: PropertyRowProps) {
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <strong className="text-lg leading-[1.4] font-bold text-gray-900">{formatPrice(property)}</strong>
           <p className="truncate text-sm leading-[1.4] font-medium text-gray-900">{property.title}</p>
+          {(property.isOwnerVerified || property.isRealtorVerified) && (
+            <div className="flex flex-wrap gap-1.5">
+              <VerificationBadges isOwnerVerified={property.isOwnerVerified} isRealtorVerified={property.isRealtorVerified} />
+            </div>
+          )}
           <p className="truncate text-xs leading-[1.4] text-gray-500">{formatSearchMeta(property)}</p>
 
           {(walking || options.length > 0) && (
