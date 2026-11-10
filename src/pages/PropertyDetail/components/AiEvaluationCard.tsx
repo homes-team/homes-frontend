@@ -9,6 +9,11 @@ interface AiEvaluationCardProps {
   onRetry: () => void;
 }
 
+const DEFAULT_CHECKPOINTS = [
+  '현장 방문 시 채광·소음·환기와 실제 관리 상태를 직접 확인해 보세요.',
+  '등기부등본, 건축물대장과 계약 조건은 계약 전에 최신 정보로 다시 확인해 보세요.',
+];
+
 function formatScore(score: number | null) {
   return score === null ? '-' : score.toFixed(1);
 }
@@ -35,6 +40,9 @@ function AiEvaluationCard({ evaluation, loading, error, onRetry }: AiEvaluationC
 
   const { overall, report } = evaluation;
   const categories = Array.isArray(evaluation.categories) ? evaluation.categories : [];
+  const strengths = Array.isArray(report.strengths) ? report.strengths : [];
+  const weaknesses = Array.isArray(report.weaknesses) ? report.weaknesses : [];
+  const checkpoints = weaknesses.length > 0 ? weaknesses : DEFAULT_CHECKPOINTS;
 
   return (
     <Card className="flex flex-col gap-6">
@@ -48,7 +56,7 @@ function AiEvaluationCard({ evaluation, loading, error, onRetry }: AiEvaluationC
         </div>
 
         <div>
-          <p className="text-base font-semibold text-gray-900">{report.summary}</p>
+          <p className="text-base font-normal leading-relaxed text-gray-900">{report.summary}</p>
           {report.notice && <p className="mt-2 text-sm text-gray-500">{report.notice}</p>}
         </div>
       </div>
@@ -82,7 +90,7 @@ function AiEvaluationCard({ evaluation, loading, error, onRetry }: AiEvaluationC
                       return (
                         <div key={item.code} className="flex items-start justify-between gap-3 rounded-button bg-gray-50 px-3 py-2.5">
                           <dt className="shrink-0 text-xs font-medium text-gray-500">{item.label}</dt>
-                          <dd className="min-w-0 flex-1 break-words text-right text-sm font-semibold text-gray-900">
+                          <dd className="min-w-0 flex-1 break-words text-right text-sm font-normal text-gray-900">
                             {formatEvidenceValue(item.value, item.unit)}
                           </dd>
                         </div>
@@ -96,22 +104,22 @@ function AiEvaluationCard({ evaluation, loading, error, onRetry }: AiEvaluationC
         })}
       </ul>
 
-      {(report.strengths.length > 0 || report.weaknesses.length > 0) && (
-        <div className="grid gap-5 sm:grid-cols-2">
+      <div className={`grid gap-5 ${strengths.length > 0 ? 'sm:grid-cols-2' : ''}`}>
+        {strengths.length > 0 && (
           <div>
             <h3 className="text-sm font-semibold text-gray-900">강점</h3>
             <ul className="mt-2 space-y-1 text-sm text-gray-600">
-              {report.strengths.map((strength) => <li key={strength}>• {strength}</li>)}
+              {strengths.map((strength) => <li key={strength}>• {strength}</li>)}
             </ul>
           </div>
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900">확인할 점</h3>
-            <ul className="mt-2 space-y-1 text-sm text-gray-600">
-              {report.weaknesses.map((weakness) => <li key={weakness}>• {weakness}</li>)}
-            </ul>
-          </div>
+        )}
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900">확인할 점</h3>
+          <ul className="mt-2 space-y-1 text-sm text-gray-600">
+            {checkpoints.map((checkpoint) => <li key={checkpoint}>• {checkpoint}</li>)}
+          </ul>
         </div>
-      )}
+      </div>
     </Card>
   );
 }
