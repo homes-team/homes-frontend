@@ -16,9 +16,6 @@ function AiBanner() {
             <br />
             2030 세대의 합리적인 선택을 돕습니다.
           </p>
-          <button type="button" className="rounded-button bg-primary px-6 py-3.5 text-[15px] font-bold text-white hover:bg-primary-dark">
-            AI 예측 모델 체험하기
-          </button>
         </div>
 
         <div className="flex shrink-0 flex-col gap-4 rounded-2xl bg-dark-2 px-7 py-6" aria-hidden="true">

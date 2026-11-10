@@ -133,6 +133,24 @@ describe('AiEvaluationCard', () => {
     expect(screen.queryByText(/학교 거리 점수×60%/)).not.toBeInTheDocument();
     expect(screen.getByText('평가 근거 없음')).toBeInTheDocument();
     expect(screen.getByText('주실 방향 정보가 필요합니다.')).toBeInTheDocument();
+    expect(screen.getByText(evaluation.report.summary)).toHaveClass('font-normal');
+    expect(screen.getByText('도봉초등학교 · 300m')).toHaveClass('font-normal');
+    expect(screen.getByText(/교통 점수가 낮습니다/)).toBeInTheDocument();
+  });
+
+  it('shows default checkpoints when the report has no weaknesses', () => {
+    render(
+      <AiEvaluationCard
+        evaluation={{ ...evaluation, report: { ...evaluation.report, strengths: [], weaknesses: [] } }}
+        loading={false}
+        error={null}
+        onRetry={() => {}}
+      />,
+    );
+
+    expect(screen.getByRole('heading', { name: '확인할 점' })).toBeInTheDocument();
+    expect(screen.getByText(/현장 방문 시 채광·소음·환기/)).toBeInTheDocument();
+    expect(screen.getByText(/등기부등본, 건축물대장과 계약 조건/)).toBeInTheDocument();
   });
 
   it('renders when categories are absent from a malformed response', () => {
