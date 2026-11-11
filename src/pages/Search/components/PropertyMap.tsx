@@ -19,6 +19,8 @@ interface PropertyMapProps {
   onResearch: () => void;
   /** 검색어 선택 시 이동할 좌표 */
   moveTo: { lat: number; lng: number } | null;
+  /** 마커가 없는 빈 지도를 눌렀을 때 (선택한 매물 해제용) */
+  onMapClick?: () => void;
   /** 지도를 처음 열 때의 중심. 없으면 강남역 */
   initialCenter?: { lat: number; lng: number };
 }
@@ -139,6 +141,7 @@ function PropertyMap({
   showResearch,
   onResearch,
   moveTo,
+  onMapClick,
   initialCenter,
 }: PropertyMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -156,6 +159,16 @@ function PropertyMap({
   onSelectRef.current = onSelectProperty;
   const onOpenRef = useRef(onOpenProperty);
   onOpenRef.current = onOpenProperty;
+  const onMapClickRef = useRef(onMapClick);
+  onMapClickRef.current = onMapClick;
+
+  /* 빈 지도를 누르면 선택을 풀 수 있게 알린다 (마커·미리보기 카드 클릭은 지도까지 올라오지 않는다) */
+  useEffect(() => {
+    if (!map) return;
+    const handleMapClick = () => onMapClickRef.current?.();
+    window.kakao.maps.event.addListener(map, 'click', handleMapClick);
+    return () => window.kakao.maps.event.removeListener(map, 'click', handleMapClick);
+  }, [map]);
 
   /* 지도 idle 이벤트 → 영역 변경 알림 */
   useEffect(() => {
