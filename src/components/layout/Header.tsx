@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AUTH_STATE_CHANGED_EVENT, isLoggedIn } from '../../api/client';
 import { logout as logoutRequest } from '../../api/auth/authApi';
 import {
@@ -20,6 +20,8 @@ const NAV_ITEMS = [
 
 function Header() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const [searchKeyword, setSearchKeyword] = useState('');
   const [loggedIn, setLoggedIn] = useState(isLoggedIn);
   const [unreadCount, setUnreadCount] = useState(0);
   const role = loggedIn ? getCurrentUser()?.role : null;
@@ -111,12 +113,27 @@ function Header() {
       </div>
 
       <div className="relative flex items-center gap-2 sm:gap-4">
-        <button
-          type="button"
-          className="hidden w-[230px] rounded-pill bg-gray-100 px-4 py-[9px] text-left text-[13px] text-gray-500 md:block"
-        >
-          어떤 동네, 어떤 방을 찾으세요?
-        </button>
+        {/* 검색 화면에는 이미 검색창이 있어서 거기서는 숨긴다 */}
+        {pathname !== '/search' && (
+          <form
+            role="search"
+            className="hidden w-[230px] md:block"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const keyword = searchKeyword.trim();
+              navigate(keyword ? `/search?keyword=${encodeURIComponent(keyword)}` : '/search');
+            }}
+          >
+            <input
+              type="search"
+              value={searchKeyword}
+              onChange={(event) => setSearchKeyword(event.target.value)}
+              placeholder="어떤 동네, 어떤 방을 찾으세요?"
+              aria-label="매물 검색어"
+              className="w-full rounded-pill bg-gray-100 px-4 py-[9px] text-[13px] text-gray-900 outline-none placeholder:text-gray-500 focus:bg-white focus:ring-2 focus:ring-primary"
+            />
+          </form>
+        )}
         {loggedIn && (
           <button
             type="button"
