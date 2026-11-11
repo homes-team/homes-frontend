@@ -296,7 +296,7 @@ function SearchPage() {
           <PropertyMap items={items} selectedId={selectedId} onSelectProperty={setSelectedId}
             onOpenProperty={(propertyId) => navigate(`/properties/${propertyId}`)}
             onBoundsChanged={handleBoundsChanged} showResearch={boundsChanged} onResearch={() => runSearch()} moveTo={moveTo}
-            initialCenter={initialCenter ?? undefined} />
+            onMapClick={() => setSelectedId(null)} initialCenter={initialCenter ?? undefined} />
         )}
       </div>
       <FilterModal open={filterOpen} value={detailFilter} onClose={() => setFilterOpen(false)} onApply={(value) => {

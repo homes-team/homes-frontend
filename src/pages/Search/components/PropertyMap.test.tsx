@@ -1,5 +1,18 @@
+import { render } from '@testing-library/react';
 import { PropertyListItem } from '../../../types/property';
-import { createClusterOverlayContent, createPropertyOverlayContent } from './PropertyMap';
+import PropertyMap, { createClusterOverlayContent, createPropertyOverlayContent } from './PropertyMap';
+
+const fakeMap = vi.hoisted(() => ({
+  getBounds: () => ({
+    getSouthWest: () => ({ getLat: () => 1, getLng: () => 2 }),
+    getNorthEast: () => ({ getLat: () => 3, getLng: () => 4 }),
+  }),
+  getLevel: () => 3,
+  panTo: () => undefined,
+  setLevel: () => undefined,
+}));
+vi.mock('../../../hooks/useKakaoMap', () => ({ useKakaoMap: () => ({ map: fakeMap, error: null }) }));
+vi.mock('../../../api/property/propertyApi', () => ({ fetchPropertyClusters: vi.fn().mockResolvedValue([]) }));
 
 const property: PropertyListItem = {
   propertyId: 21,
@@ -82,5 +95,34 @@ describe('createClusterOverlayContent', () => {
 
     expect(small).toHaveClass('h-10');
     expect(large).toHaveClass('h-14');
+  });
+});
+
+describe('PropertyMap empty-area click', () => {
+  it('tells the page when the empty map is clicked, and stops listening on unmount', () => {
+    const listeners = new Map<string, () => void>();
+    const removed: string[] = [];
+    (window as unknown as { kakao: unknown }).kakao = {
+      maps: {
+        event: {
+          addListener: (_target: unknown, type: string, handler: () => void) => listeners.set(type, handler),
+          removeListener: (_target: unknown, type: string) => removed.push(type),
+        },
+      },
+    };
+    const onMapClick = vi.fn();
+    const { unmount } = render(
+      <PropertyMap
+        items={[]} selectedId={null} onSelectProperty={() => undefined} onOpenProperty={() => undefined}
+        onBoundsChanged={() => undefined} showResearch={false} onResearch={() => undefined} moveTo={null}
+        onMapClick={onMapClick}
+      />,
+    );
+
+    listeners.get('click')?.();
+    expect(onMapClick).toHaveBeenCalledTimes(1);
+
+    unmount();
+    expect(removed).toContain('click');
   });
 });
